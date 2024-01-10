@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"RoMi.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"RoMi.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}

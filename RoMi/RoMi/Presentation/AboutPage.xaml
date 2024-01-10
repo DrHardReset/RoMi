@@ -1,0 +1,72 @@
+﻿<Page x:Class="RoMi.Presentation.AboutPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="using:RoMi.Presentation"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:uen="using:Uno.Extensions.Navigation.UI"
+	xmlns:utu="using:Uno.Toolkit.UI"
+	NavigationCacheMode="Required"
+	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+	<Grid utu:SafeArea.Insets="All">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto" />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+
+		<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+
+    <utu:NavigationBar Content="About RoMi"
+													Grid.Row="0">
+      <utu:NavigationBar.MainCommand>
+        <AppBarButton>
+          <AppBarButton.Icon>
+            <BitmapIcon UriSource="ms-appx:///RoMi/Assets/Icons/back.png" />
+          </AppBarButton.Icon>
+        </AppBarButton>
+      </utu:NavigationBar.MainCommand>
+    </utu:NavigationBar>
+
+		<StackPanel Grid.Row="1"
+			        	HorizontalAlignment="Center"
+								VerticalAlignment="Top">
+
+			<TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="RoMi" HorizontalAlignment="Center"/>
+      <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Copyright (C) 2023 Johannes Brallentin" HorizontalAlignment="Center"/>
+      <TextBlock Style="{StaticResource BodyTextBlockStyle}" HorizontalAlignment="Center">
+				<Span xml:space="preserve"><Run>This program is licensed under the </Run><Hyperlink NavigateUri="https://github.com/DrHardReset/ROMI/blob/master/LICENSE.md">GNU General Public License 3</Hyperlink><Run>.</Run></Span>
+			</TextBlock>
+    </StackPanel>
+
+    <ScrollViewer Grid.Row="2">
+      <StackPanel HorizontalAlignment="Center"
+									Margin="0,50,0,0">
+
+        <TextBlock Style="{StaticResource TitleTextBlockStyle}"
+					  				Text="Used Libraries:"/>
+
+			  <ItemsControl ItemsSource="{Binding Packages}"
+				          		HorizontalAlignment="Center">
+				  <ItemsControl.ItemTemplate>
+					  <DataTemplate>
+						  <Grid>
+								<Grid.ColumnDefinitions>
+								  <ColumnDefinition Width="Auto" />
+		  						<ColumnDefinition Width="*" MinWidth="20" />
+		  						<ColumnDefinition Width="Auto"/>
+		  					</Grid.ColumnDefinitions>
+
+			  				<TextBlock Grid.Column="0" Text="{Binding Id}" />
+				  			<TextBlock Grid.Column="2" HorizontalAlignment="Right" Text="{Binding ResolvedVersion}" />
+					  	</Grid>
+				    </DataTemplate>
+				  </ItemsControl.ItemTemplate>
+			  </ItemsControl>
+		  </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Page>

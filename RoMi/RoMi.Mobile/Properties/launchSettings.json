@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RoMi.Mobile": {
+      "commandName": "Project",
+      "remoteDebugEnabled": false
+    }
+  }
+}
