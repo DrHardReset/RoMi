@@ -37,7 +37,7 @@ See About page in the app for all used libraries.
 
 Thanks to 
 ==========================
-Eddie Lotter's [MIDI SysEx Tutorial][github-release-link]
+Eddie Lotter's [MIDI SysEx Tutorial][eddies-tutorial]
 
 <!-- LINK GROUP -->
 [discussions-link]: https://github.com/DrHardReset/RoMi/discussions
