@@ -87,6 +87,17 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="call createLibraryDependencyReport.bat $(SolutionDir) $(ProjectDir)" />
+    <PropertyGroup>
+    <PowerShellExe Condition=" '$(PowerShellExe)'=='' "> 
+      %WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe
+    </PowerShellExe>
+    <ScriptLocation Condition=" '$(ScriptLocation)'=='' ">
+      C:\Path With Spaces\LogDeploy.ps1
+    </ScriptLocation>
+    <LogFileLocation Condition=" '$(LogFileLocation)'=='' ">
+      C:\Path With Spaces\ContactManagerDeployLog.txt
+    </LogFileLocation>
+  </PropertyGroup>
+  <Exec Command="powershell.exe -NonInteractive -executionpolicy Unrestricted &quot;&amp; '.\createLibraryDependencyReport.ps1' '$(SolutionDir)' '$(ProjectDir)'&quot;" />
   </Target>
 </Project>
