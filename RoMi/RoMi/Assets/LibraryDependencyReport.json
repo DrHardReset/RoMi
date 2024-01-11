@@ -1,12 +1,6 @@
 {
   "version": 1,
   "parameters": "",
-  "problems": [
-    {
-      "level": "warning",
-      "text": "(A): Automatisch referenziertes Paket."
-    }
-  ],
   "projects": [
     {
       "path": "<solutionDir>/RoMi/RoMi/RoMi.csproj",
@@ -155,7 +149,7 @@
       "path": "<solutionDir>/RoMi/RoMi.Mobile/RoMi.Mobile.csproj",
       "frameworks": [
         {
-          "framework": "net7.0-android33.0",
+          "framework": "net7.0-windows10.0.19041",
           "topLevelPackages": [
             {
               "id": "CommunityToolkit.Mvvm",
@@ -166,18 +160,6 @@
               "id": "Microsoft.Extensions.Logging.Console",
               "requestedVersion": "7.0.0",
               "resolvedVersion": "7.0.0"
-            },
-            {
-              "id": "Microsoft.NET.ILLink.Analyzers",
-              "requestedVersion": "[7.0.100-1.23211.1, )",
-              "resolvedVersion": "7.0.100-1.23211.1",
-              "autoReferenced": "true"
-            },
-            {
-              "id": "Microsoft.NET.ILLink.Tasks",
-              "requestedVersion": "[7.0.100-1.23211.1, )",
-              "resolvedVersion": "7.0.100-1.23211.1",
-              "autoReferenced": "true"
             },
             {
               "id": "Uno.Extensions.Configuration",
@@ -255,11 +237,6 @@
               "resolvedVersion": "5.0.19"
             },
             {
-              "id": "Uno.UniversalImageLoader",
-              "requestedVersion": "1.9.36",
-              "resolvedVersion": "1.9.36"
-            },
-            {
               "id": "Uno.WinUI",
               "requestedVersion": "5.0.19",
               "resolvedVersion": "5.0.19"
@@ -268,11 +245,6 @@
               "id": "Uno.WinUI.DevServer",
               "requestedVersion": "5.0.19",
               "resolvedVersion": "5.0.19"
-            },
-            {
-              "id": "Xamarin.Google.Android.Material",
-              "requestedVersion": "1.10.0.1",
-              "resolvedVersion": "1.10.0.1"
             }
           ]
         }
