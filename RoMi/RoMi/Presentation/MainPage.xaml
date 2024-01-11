@@ -88,6 +88,7 @@
                 Content="Download PDF File"
                 HorizontalAlignment="Center"
                 Command="{Binding DoDownloadPdfFile}"
+                Click="BtnShowHide_Click"
                 Margin="10"/>
 
         <TextBlock Text="Or open a local PDF file:"
@@ -99,7 +100,8 @@
                 FontSize="25"
                 Content="Open PDF File"
                 HorizontalAlignment="Center"
-                Command="{Binding DoOpenPdfFile}"/>
+                Command="{Binding DoOpenPdfFile}"
+                Click="BtnShowHide_Click"/>
 
         <TextBlock Text="RoMi MIDI PDF storage:"
                    HorizontalAlignment="Center"
