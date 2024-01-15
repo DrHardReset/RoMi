@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
-using static System.Net.Mime.MediaTypeNames;
 using Page = UglyToad.PdfPig.Content.Page;
 
 namespace RoMi.Business.Models
