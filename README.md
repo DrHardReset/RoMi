@@ -19,8 +19,8 @@ RoMi is licensed under the [GPLv3 License][license-link].
 I hope you'll find the app as useful as I do!
 
 <p float="left">
-	<img src="RoMi/.github/Images/mainview.png" width="400" align="top">
-	<img src="RoMi/.github/Images/midiview.png" width="400">
+	<img src="docs/mainview.png" width="400" align="top">
+	<img src="docs/midiview.png" width="400">
 </p>
 
 USED THIRD-PARTY LIBRARIES
@@ -51,3 +51,5 @@ Eddie Lotter's [MIDI SysEx Tutorial][eddies-tutorial]
 [managed-midi-license-link]: https://github.com/mangstadt/ez-vcard/blob/master/LICENSE
 
 [eddies-tutorial]: https://www.2writers.com/eddie/TutSysEx.htm
+
+<meta name="google-site-verification" content="h6SAio2nQP0lnXGMGO2Bev2Gzd3Uc9nYzNHzMR2TdBQ" />
