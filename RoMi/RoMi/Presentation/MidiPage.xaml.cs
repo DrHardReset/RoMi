@@ -1,3 +1,5 @@
+using Windows.ApplicationModel.DataTransfer;
+
 namespace RoMi.Presentation
 {
     public sealed partial class MidiPage : Page
@@ -9,8 +11,9 @@ namespace RoMi.Presentation
 
         private void CopyToClipboard_Click(object sender, RoutedEventArgs e)
         {
-            CalculatedSysex.SelectAll();
-            CalculatedSysex.CopySelectionToClipboard();
+            DataPackage dataPackage = new();
+            dataPackage.SetText(CalculatedSysex.Text);
+            Clipboard.SetContent(dataPackage);
         }
     }
 }

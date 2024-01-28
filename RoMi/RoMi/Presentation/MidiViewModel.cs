@@ -187,8 +187,8 @@ namespace RoMi.Presentation
             }
         }
 
-        private List<string> values = new();
-        public List<string> Values
+        private IList<string> values = new List<string>();
+        public IList<string> Values
         {
             get
             {
