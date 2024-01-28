@@ -21,6 +21,25 @@ namespace RoMi.Presentation
         [ObservableProperty]
         private bool isLoading = false;
 
+        private int isLoadingCounter = 0;
+        private int IsLoadingCounter
+        {
+            get { return isLoadingCounter; }
+            set
+            {
+                isLoadingCounter = value;
+
+                if (isLoadingCounter > 0)
+                {
+                    IsLoading = true;
+                }
+                else
+                {
+                    IsLoading = false;
+                }
+            }
+        }
+
         [ObservableProperty]
         private ObservableCollection<MainPageDeviceButtonData> mainPageDeviceButtonData = new();
 
@@ -57,15 +76,13 @@ namespace RoMi.Presentation
             await CreateAndOpenMidiDir();
             IReadOnlyList<StorageFile> files = await LocalMidiPdfFolder!.GetFilesAsync();
             List<Task> tasks = new List<Task>();
-            IsLoading = true;
 
             foreach (StorageFile file in files)
             {
                 tasks.Add(ParsePdfFile(file));
             }
 
-            await Task.WhenAll(tasks);
-            IsLoading = false;
+            _ = Task.WhenAll(tasks);
         }
 
         private async Task OpenPdfFile()
@@ -77,9 +94,7 @@ namespace RoMi.Presentation
                 return;
             }
 
-            IsLoading = true;
-            await ParsePdfFile(file);
-            IsLoading = false;
+            _ = ParsePdfFile(file);
         }
 
         private async Task DownloadPdfFile()
@@ -91,13 +106,13 @@ namespace RoMi.Presentation
                 return;
             }
 
-            IsLoading = true;
-            await ParsePdfFile(file);
-            IsLoading = false;
+            _ = ParsePdfFile(file);
         }
 
         private async Task ParsePdfFile(StorageFile file)
         {
+            IsLoadingCounter++;
+
             try
             {
                 MidiDocument midiDocument = await MidiDocumentationFile.Parse(file.Path);
@@ -115,8 +130,8 @@ namespace RoMi.Presentation
             catch (Exception ex)
             {
                 _ = navigator.ShowMessageDialogAsync(this, title: "Error parsing PDF file", content: $"The PDF file could not be parsed:\n{ex.Message}");
+                IsLoadingCounter--;
                 await file.DeleteAsync();
-                return;
             }
         }
 
