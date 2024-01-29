@@ -130,8 +130,11 @@ namespace RoMi.Presentation
             catch (Exception ex)
             {
                 _ = navigator.ShowMessageDialogAsync(this, title: "Error parsing PDF file", content: $"The PDF file could not be parsed:\n{ex.Message}");
-                IsLoadingCounter--;
                 await file.DeleteAsync();
+            }
+            finally
+            {
+                IsLoadingCounter--;
             }
         }
 

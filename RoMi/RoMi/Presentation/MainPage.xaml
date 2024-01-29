@@ -53,7 +53,7 @@
       </ItemsControl>
 
       <StackPanel Grid.Row="2">
-        <muxc:ProgressRing IsActive="{Binding IsLoading, Mode=OneWay}" Style="{StaticResource DefaultWuxProgressRingStyle}" />
+        <muxc:ProgressRing IsActive="true" />
       </StackPanel>
 
       <Button Grid.Row="3"
