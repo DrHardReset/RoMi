@@ -354,6 +354,21 @@ namespace RoMi.Business.Models
 
                                 valueDescriptionColumnRaw = currentRowParts[2];
                             }
+
+                            // Some description rows end with a unit
+                            // 3150,4000,5000,6300,8000,10000,12500,16000 [Hz]
+                            string pattern = @"(\[.*\])$";
+
+                            if (valueDescriptions.Count > 0 && Regex.IsMatch(valueDescriptions.Last(), pattern))
+                            {
+                                match = Regex.Match(valueDescriptionColumnRaw, pattern);
+
+                                if (match.Success && match.Groups.Count == 2)
+                                {
+                                    string unit = match.Groups[1].Value;
+                                    valueDescriptions = valueDescriptions.Select(x => x += " " + unit).ToList();
+                                }
+                            }
                         }
                         else
                         {
