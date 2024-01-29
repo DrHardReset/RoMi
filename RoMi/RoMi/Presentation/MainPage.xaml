@@ -53,7 +53,7 @@
       </ItemsControl>
 
       <StackPanel Grid.Row="2">
-        <muxc:ProgressRing IsActive="true" />
+        <muxc:ProgressRing IsActive="{Binding IsLoading, Mode=OneWay}" />
       </StackPanel>
 
       <Button Grid.Row="3"
