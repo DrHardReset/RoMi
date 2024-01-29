@@ -1,11 +1,15 @@
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace RoMi.Business.Models
 {
     public class DependencyReport
     {
+        private const string filePath = $"{nameof(RoMi)}.Assets.LibraryDependencyReport.json";
+
         [JsonPropertyName("version")]
         public int Version { get; set; } = 0;
         [JsonPropertyName("parameters")]
@@ -17,13 +21,23 @@ namespace RoMi.Business.Models
 
         public static async Task<DependencyReport?> Read()
         {
-            var executableDirectory = AppContext.BaseDirectory;
-            string path = Path.Combine(executableDirectory, @"Assets\LibraryDependencyReport.json"); // TODO: Check path for Android!
-            var jsonString = await File.ReadAllTextAsync(path, new UTF8Encoding());
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            using Stream stream = assembly.GetManifestResourceStream(filePath) ?? throw new Exception("Library dependency report resource file could not be found.");
+            using StreamReader reader = new(stream);
+            string fileContent = await reader.ReadToEndAsync();
+
+            Match match = Regex.Match(fileContent, @"(\{[\s\S]*\})");
+
+            if (!match.Success || match.Groups.Count < 2)
+            {
+                throw new Exception($"Library dependency report could not be parsed:\n{fileContent}");
+            }
+
+            string jsonString = match.Groups[1].Value;
             var jsonByte = Encoding.UTF8.GetBytes(jsonString);
 
-            using Stream stream = new MemoryStream(jsonByte);
-            return await JsonSerializer.DeserializeAsync<DependencyReport>(stream);
+            using Stream memoryStream = new MemoryStream(jsonByte);
+            return await JsonSerializer.DeserializeAsync<DependencyReport>(memoryStream);
         }
 
         public List<TopLevelPackage> GetAllDistinctTopLevelPackages()
