@@ -1,3 +1,4 @@
+using System.Data;
 using System.Text.RegularExpressions;
 using RoMi.Business.Converters;
 using Windows.Foundation.Collections;
@@ -30,13 +31,14 @@ namespace RoMi.Business.Models
             // Find the model bytes (4 for AX Edge, 3 for RD2000). Last match group ís empty for RD2000 -> check for not empty results
             ModelIdBytes = modelIdByteStrings.Cast<Group>().Skip(1).Where(o => o.Value != string.Empty).Select(o => o.Value.HexStringToByte()).ToArray();
 
-            int startIndex = midiDocumentationFileContent.IndexOf("Parameter Address Map");
+            Match match = GeneratedRegex.ModelIdBytesRegex().Match(midiDocumentationFileContent);
 
-            if (startIndex == -1)
+            if (!match.Success)
             {
                 throw new NotSupportedException("The MIDI PDF does not contain a 'Parameter Address Map' section.");
             }
 
+            int startIndex = match.Index;
             midiDocumentationFileContent = midiDocumentationFileContent[startIndex..];
 
             // Find relevant pages with tables
@@ -48,11 +50,11 @@ namespace RoMi.Business.Models
             int endIndex = matchEnd.Index;
             midiDocumentationFileContent = midiDocumentationFileContent.Substring(startIndex, endIndex - startIndex + matchEnd.Value.Length);
 
-            string[] rawTableParts = midiDocumentationFileContent.Split("\n*"); // table header always starts with the name of the table prefixed by "* "
+            string[] rawTableParts = GeneratedRegex.MidiTableNameRegex().Split(midiDocumentationFileContent); // table header always starts with the name of the table prefixed by "* "
 
             for (int i = 0; i < rawTableParts.Length; i++)
             {
-                // Get the name of the table. Use the device name for root table as for some devices (e.g. RD2000) no table header is provided.
+                // Get the name of the table. Use the device name for root table as for some devices (e.g. RD2000) no header for first table is provided.
                 string name;
                 
                 if (i == 0)
@@ -61,28 +63,21 @@ namespace RoMi.Business.Models
                 }
                 else
                 {
-                    name = rawTableParts[i][..rawTableParts[i].IndexOf("\n")];
-                    name = GeneratedRegex.MidiTableNameRegex().Replace(name, "").Trim();
+                    name = rawTableParts[i].Trim();
+                    i++;
                 }
-
-                // skip table header
-                int headerRowsToSkip = 4;
-
-                if (DeviceName == "RD-2000" && name == "Program")
-                {
-                    // table header rows are missing for RD2000 table "Program".
-                    headerRowsToSkip = 1;
-                }
-
-                string data = rawTableParts[i][(rawTableParts[i].IndexOfNth("\n", headerRowsToSkip))..];
 
                 // split single Rows
-                List<string> dataRows = data.Split("\n").ToList();
+                List<string> dataRows = rawTableParts[i].Split("\n").ToList();
 
-                // remove empty rows and separator rows:
-                // +------------------------------------------------------------------------------+
-                // |-------------+----------------------------------------------------------------|
+                // keep only relevant rows that contain whether start addresses or value descriptions:
                 dataRows.RemoveAll(x => !GeneratedRegex.MiditableContentRow().IsMatch(x));
+
+                // PDF parser randomly throws page number at end of line -> remove
+                dataRows = dataRows.Select(x =>
+                {
+                    return x[..(x.LastIndexOf('|') + 1)];
+                }).ToList();
 
                 MidiTable midiTable = new MidiTable(deviceName, name, dataRows);
                 MidiTables.Add(midiTable);

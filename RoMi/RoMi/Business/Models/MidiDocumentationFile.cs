@@ -10,8 +10,7 @@ namespace RoMi.Business.Models
         internal static async Task<MidiDocument> Parse(string pdfPath)
         {
             return await Task.Run(() => {
-                byte[] bytes = File.ReadAllBytes(pdfPath);
-                using PdfDocument document = PdfDocument.Open(bytes);
+                using PdfDocument document = PdfDocument.Open(pdfPath);
                 List<Page> pages = document.GetPages().ToList();
                 int pageStartIndex = 0;
                 string deviceName = "null";
@@ -21,6 +20,7 @@ namespace RoMi.Business.Models
                     throw new Exception();
                 }
 
+                // Find index of page that contains "Parameter Address Map" chapter
                 for (int i = 0; i < pages.Count; i++)
                 {
                     string text = ContentOrderTextExtractor.GetText(pages[i], false);
@@ -39,7 +39,7 @@ namespace RoMi.Business.Models
                         deviceName = matchCollection[1].Value;
                     }
 
-                    if (!Regex.IsMatch(text, @"\d+\. Parameter Address Map"))
+                    if (!GeneratedRegex.ParameterAddressMapCaption().IsMatch(text))
                     {
                         continue;
                     }
@@ -53,13 +53,23 @@ namespace RoMi.Business.Models
                     throw new Exception("Parameter Address Map could not be found.");
                 }
 
+                // get text of all pages starting at index of "Parameter Address Map"
                 string textContent = string.Empty;
 
                 for (int i = pageStartIndex; i < pages.Count; i++)
                 {
-                    textContent += ContentOrderTextExtractor.GetText(pages[i], false);
+                    string pageContent = ContentOrderTextExtractor.GetText(pages[i], false);
+
                     // PDF-parser result contains OS-specific line breaks -> always use linux style
-                    textContent = textContent.Replace("\r", "");
+                    pageContent = pageContent.Replace("\r", "");
+
+                    if (!pageContent.EndsWith("\n"))
+                    {
+                        // make sure each page ends with a line break, as tables beginning on a new page might be parsed as part of the table on the previous page
+                        pageContent += "\n";
+                    }
+
+                    textContent += pageContent;
                 }
 
                 return new MidiDocument(deviceName, textContent);

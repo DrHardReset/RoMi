@@ -10,7 +10,7 @@ I got the idea for the app when I was trying to remote control my Roland AX-Edge
 Just download the RoMi app, insert the midi implementation PDF and you're good to go!
 (Because I do not own the rights to the Roland PDFs, you need to download them yourself)
 
-The app is tested for Roland AX-Edge but should work with RD-88 and RD-2000, too.
+The app is tested for Roland AX-Edge but should work with RD-88, RD-2000 and FANTOM-06/07/08, too.
 
 RoMi is licensed under the [GPLv3 License][license-link].
 

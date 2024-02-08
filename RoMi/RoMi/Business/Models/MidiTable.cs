@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using System.Data;
 using RoMi.Business.Converters;
+using System.Linq;
 
 namespace RoMi.Business.Models
 {
@@ -145,62 +146,12 @@ namespace RoMi.Business.Models
 
                 try
                 {
-                    string[] currentRowParts = SplitDataRowPartsLeafTable(currentRow);
+                    string[] currentRowParts = SplitDataRowParts(currentRow);
 
                     if (IsTotalSizeRow(currentRowParts))
                     {
                         int expectedEntries = new StartAddress(currentRowParts[0]).ToIntegerRepresentation();
-
-                        if (deviceName == "RD-2000")
-                        {
-                            /*
-                             * There are entries missing in several tables of the RD-2000 documentation, so that the total size does not match the actual entry count.
-                             * The comparison of entry count is useful to determine parsing errors. -> manipulate the expected total size for the affected tables
-                             */
-                            if (Name == "System Common")
-                            {
-                                // Entry "00 0B" is missing
-                                expectedEntries--;
-                            }
-                            else if (Name == "Program Common")
-                            {
-                                /*
-                                 * Missing entries:
-                                 * 00 2F - 00 34    = 6
-                                 * 00 62            = 1
-                                 * 00 7F - 01 02    = 4
-                                 * 01 1A - 01 1B    = 2
-                                 */
-                                expectedEntries -= 13;
-                            }
-                            else if (Name == "Program Modulation FX, Program Tremolo/Amp Simulator")
-                            {
-                                // Entries 00 05 and 00 06 are missing
-                                expectedEntries -= 2;
-                            }
-                            else if (Name == "Program Internal Zone")
-                            {
-                                /*
-                                 * Missing entries:
-                                 * 00 16            = 1
-                                 * 00 17            = 1
-                                 * 00 1D - 00 1F    = 3
-                                 * 06 52 - 06 5E    = 13
-                                 * 06 71 - 06 73    = 3
-                                 */
-                                expectedEntries -= 21;
-                            }
-                            else if (Name == "Program External Zone")
-                            {
-                                /*
-                                 * Missing entries:
-                                 * 00 0C - 00 0D            = 2
-                                 * 00 41 - 00 45            = 5
-                                 * 
-                                 */
-                                expectedEntries -= 7;
-                            }
-                        }
+                        expectedEntries -= GetAmountOfMissingTableRows(deviceName);
 
                         int totalDatabyteCount = this.Select(x => ((MidiTableLeafEntry)x).ValueDataByteBitMasks.Count).Sum();
 
@@ -254,7 +205,7 @@ namespace RoMi.Business.Models
                             }
 
                             string nextRow = tableRows[rowIter];
-                            string[] nextRowParts = SplitDataRowPartsLeafTable(nextRow);
+                            string[] nextRowParts = SplitDataRowParts(nextRow);
 
                             valueDataBitsPerByte.Add(nextRowParts[1]);
 
@@ -283,7 +234,7 @@ namespace RoMi.Business.Models
                     }
                     else
                     {
-                        if (descriptionColumnRaw == "<Reserved>" || descriptionColumnRaw == "(reserve) <*>")
+                        if (descriptionColumnRaw == "<Reserved>" || descriptionColumnRaw == "(reserve) <*>" || descriptionColumnRaw == "Reserved")
                         {
                             // Example:  06 49 | 0aaa aaaa | <Reserved> |
                             description = descriptionColumnRaw;
@@ -308,7 +259,7 @@ namespace RoMi.Business.Models
                     if (rowIter < tableRows.Count)
                     {
                         currentRow = tableRows[rowIter];
-                        currentRowParts = SplitDataRowPartsLeafTable(currentRow);                        
+                        currentRowParts = SplitDataRowParts(currentRow);
                     }                    
                     
                     if (rowIter >= tableRows.Count || !IsLeafTableValueDescriptionRow(currentRowParts))
@@ -343,7 +294,7 @@ namespace RoMi.Business.Models
                                 }
 
                                 currentRow = tableRows[rowIter];
-                                currentRowParts = SplitDataRowPartsLeafTable(currentRow);
+                                currentRowParts = SplitDataRowParts(currentRow);
 
                                 if (!IsLeafTableValueDescriptionRow(currentRowParts))
                                 {
@@ -366,7 +317,9 @@ namespace RoMi.Business.Models
                                 if (match.Success && match.Groups.Count == 2)
                                 {
                                     string unit = match.Groups[1].Value;
-                                    valueDescriptions = valueDescriptions.Select(x => x += " " + unit).ToList();
+                                    string lastElement = valueDescriptions[^1]; // Keep last element as it already contains the unit
+                                    valueDescriptions = valueDescriptions.Take(valueDescriptions.Count - 1).Select(x => x += " " + unit).ToList();
+                                    valueDescriptions.Add(lastElement);
                                 }
                             }
                         }
@@ -449,7 +402,7 @@ namespace RoMi.Business.Models
                      */
                     
                     string nextFillUpRow = tableRows[++rowIter];
-                    string[] nextFillUpRowParts = SplitDataRowPartsLeafTable(nextFillUpRow);
+                    string[] nextFillUpRowParts = SplitDataRowParts(nextFillUpRow);
 
                     if (!IsFillUpRow(nextFillUpRowParts))
                     {
@@ -459,7 +412,7 @@ namespace RoMi.Business.Models
                     }
 
                     nextFillUpRow = tableRows[++rowIter];
-                    nextFillUpRowParts = SplitDataRowPartsLeafTable(nextFillUpRow);
+                    nextFillUpRowParts = SplitDataRowParts(nextFillUpRow);
 
                     if (rowIter >= tableRows.Count)
                     {
@@ -547,17 +500,6 @@ namespace RoMi.Business.Models
             }
         }
 
-        private string[] SplitDataRowPartsLeafTable(string dataRow)
-        {
-            if (!dataRow.EndsWith('|'))
-            {
-                // PDF parser randomly throws page number at end of line -> remove
-                dataRow = dataRow[..(dataRow.LastIndexOf('|') + 1)];
-            }
-
-            return SplitDataRowParts(dataRow);
-        }
-
         private bool IsTotalSizeRow(string[] rowParts)
         {
             if (rowParts.Length == 2 && rowParts[1] == "Total Size")
@@ -608,6 +550,158 @@ namespace RoMi.Business.Models
             }
 
             return false;
+        }
+
+        private int GetAmountOfMissingTableRows(string deviceName)
+        {
+            /*
+             * In some tables there are missing rows - more or less undocumented.
+             * In those cases the total size does not match the actual entry count.
+             * The comparison of entry count is useful to determine parsing errors. -> manipulate the expected total size for the affected tables
+             */
+
+            if (deviceName == "RD-2000")
+            {
+                switch (Name)
+                {
+                    case "System Common":
+                        // Entry "00 0B" is missing
+                        return 1;
+                    case "Program Common":
+                        /*
+                         * Missing entries:
+                         * 00 2F - 00 34    = 6
+                         * 00 62            = 1
+                         * 00 7F - 01 02    = 4
+                         * 01 1A - 01 1B    = 2
+                         */
+                        return 13;
+                    case "Program Modulation FX, Program Tremolo/Amp Simulator":
+                        // Entries 00 05 and 00 06 are missing
+                        return 2;
+                    case "Program Internal Zone":
+                        /*
+                         * Missing entries:
+                         * 00 16            = 1
+                         * 00 17            = 1
+                         * 00 1D - 00 1F    = 3
+                         * 06 52 - 06 5E    = 13
+                         * 06 71 - 06 73    = 3
+                         */
+                        return 21;
+                    case "Program External Zone":
+                        /*
+                         * Missing entries:
+                         * 00 0C - 00 0D     = 2
+                         * 00 41 - 00 45     = 5
+                         */
+                        return 7;
+                }
+            }
+
+            if (deviceName == "FANTOM-06/07/08")
+            {
+                switch (Name)
+                {
+                    case "System Common":
+                        // Entries "00 0F" and "00 10" are missing
+                        return 2;
+                    case "System Control":
+                        /*
+                         * Missing entries:
+                         * 00 13 - 00 17    = 5
+                         * 00 49 - 00 65    = 29
+                         * 01 32 - 01 40    = 15
+                         */
+                        return 49;
+                    case "Scene Common":
+                        /*
+                         * Missing entries:
+                         * 00 2B - 00 2F    = 5
+                         * 00 3D - 00 41    = 5
+                         * 01 13 - 01 15    = 3
+                         */
+                        return 13;
+                    case "Scene Zone":
+                        /*
+                         * Missing entries:
+                         * 00 1C - 00 22    = 7
+                         * 00 45 - 00 48    = 4
+                         */
+                        return 11;
+                    case "Zone Control":
+                        /*
+                         * Missing entries:
+                         * 00 25 - 00 2B    = 7
+                         * 00 57 - 00 5B    = 5
+                         * 00 6D - 00 6F    = 3
+                         */
+                        return 15;
+                    case "Scene Controller":
+                        /*
+                         * Missing entries:
+                         * 00 0B - 00 0F    = 5
+                         * 00 41 - 00 5D    = 29
+                         * 01 55 - 01 5B    = 7
+                         * 01 63 - 01 7F    = 29
+                         */
+                        return 70;
+                    case "Tone Common":
+                        /*
+                         * Missing entries:
+                         * 00 12 - 00 14    = 3
+                         * 00 2D - 00 33    = 7
+                         */
+                        return 10;
+                    case "Tone Synth Common":
+                        /*
+                         * Missing entries:
+                         * 00 06 - 00 08    = 3
+                         */
+                        return 3;
+                    case "Tone Synth Partial":
+                        /*
+                         * Missing entry:
+                         * 00 1C            = 1
+                         */
+                        return 1;
+                    case "SN-A Tone Common":
+                        /*
+                         * Missing entries:
+                         * 00 34 - 00 38    = 5
+                         */
+                        return 5;
+                    case "VTW Tone Common":
+                        /*
+                         * Missing entries:
+                         * 00 22 - 00 2F    = 14
+                         */
+                        return 14;
+                    case "VTW Tone Modify":
+                        /*
+                         * Missing entries:
+                         * 00 0A - 00 13    = 10
+                         * 00 19 - 00 1F    = 7
+                         */
+                        return 17;
+                    case "EXSN Tone Common":
+                        /*
+                         * Missing entries:
+                         * 00 1B - 00 28    = 14
+                         * 00 2C - 00 35    = 10
+                         */
+                        return 24;
+                    case "Drum Kit Common":
+                        /*
+                         * Missing entries:
+                         * 00 11 - 00 13    = 3
+                         * 00 16 - 00 18    = 3
+                         */
+                        return 6;
+                }
+            }
+
+            return 0;
         }
 
         public override string ToString()
