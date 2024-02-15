@@ -1,0 +1,121 @@
+﻿<Page x:Class="RoMi.Presentation.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:RoMi.Presentation"
+      xmlns:uen="using:Uno.Extensions.Navigation.UI"
+      xmlns:utu="using:Uno.Toolkit.UI"
+      xmlns:um="using:Uno.Material"
+      xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+      NavigationCacheMode="Required"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+  <ScrollViewer>
+    <Grid utu:SafeArea.Insets="All">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="100" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <utu:NavigationBar Content="{Binding Title}"
+                         Grid.Row="0">
+        <utu:NavigationBar.MainCommand>
+          <AppBarButton>
+            <AppBarButton.Icon>
+              <BitmapIcon UriSource="ms-appx:///RoMi/Assets/Icons/back.png" />
+            </AppBarButton.Icon>
+          </AppBarButton>
+        </utu:NavigationBar.MainCommand>
+      </utu:NavigationBar>
+
+      <ItemsControl Grid.Row="1"
+                    ItemsSource="{Binding MainPageDeviceButtonData}"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,0">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Button FontSize="25"
+                    HorizontalAlignment="Center"
+                    Margin="10"
+                    Content="{Binding Name}"
+                    Command="{Binding Command}"/>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <StackPanel Grid.Row="2">
+        <muxc:ProgressRing IsActive="{Binding IsLoading, Mode=OneWay}" />
+      </StackPanel>
+
+      <Button Grid.Row="3"
+              x:Name="BtnShowHide"
+              Content="+"
+              FontSize="25"
+              Height="100"
+              Width="100"
+              Click="BtnShowHide_Click"
+              HorizontalAlignment="Center" />
+
+      <StackPanel Grid.Row="4"
+                  Height="Auto"
+                  Name="StackPanelPdfInput"
+                  Visibility="Collapsed"
+                  Margin="0,0,0,30"
+                  HorizontalAlignment="Center">
+
+        <TextBlock Text="Enter the URL to a PDF file:"
+                   FontSize="25"
+                   HorizontalAlignment="Center"
+                   Margin="0,50,0,10"/>
+
+        <TextBox x:Name="PdfUrl"
+                 PlaceholderText="https://&lt;enter-a-roland-midi-implementation-pdf-url&gt;"
+                 Text="{Binding DownloadPdfUrl, Mode=TwoWay}"
+                 TextWrapping="Wrap"
+                 Margin="0,0,0,10"/>
+
+        <Button Width="300"
+                FontSize="25"
+                Content="Download PDF File"
+                HorizontalAlignment="Center"
+                Command="{Binding DoDownloadPdfFile}"
+                Click="BtnShowHide_Click"
+                Margin="10"/>
+
+        <TextBlock Text="Or open a local PDF file:"
+                   FontSize="25"
+                   HorizontalAlignment="Center"
+                   Margin="0,30,0,10"/>
+
+        <Button Width="300"
+                FontSize="25"
+                Content="Open PDF File"
+                HorizontalAlignment="Center"
+                Command="{Binding DoOpenPdfFile}"
+                Click="BtnShowHide_Click"/>
+
+        <TextBlock Text="RoMi MIDI PDF storage:"
+                   HorizontalAlignment="Center"
+                   Margin="0,50,0,0"/>
+
+        <TextBlock Text="{Binding LocalMidiPdfFolder.Path}"
+                   HorizontalAlignment="Center"/>
+      </StackPanel>
+
+      <Button Grid.Row="5"
+              FontSize="25"
+              Content="About"
+              Command="{Binding GoToAboutPage}"
+              HorizontalAlignment="Center"
+              Margin="0,30,0,0"/>
+
+    </Grid>
+  </ScrollViewer>
+</Page>

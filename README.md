@@ -1,5 +1,5 @@
 <p align="center" width="100%">
-    <img width="33%" src="RoMi/RoMi.Base/Icons/romi_logo.png">
+    <img width="33%" src="RoMi.Shared/Icons/romi_logo.png">
 </p>
 
 If you've ever wanted to control your Roland keyboard/synthesizer/workstation via MIDI and tried to calculate the sysex messages and checksum by just poking around the midi implementation charts, you know how time consuming and frustrating this can be.
