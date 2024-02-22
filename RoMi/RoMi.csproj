@@ -4,6 +4,8 @@
     <TargetFrameworks>$(TargetFrameworks);$(DotNetVersion);$(DotNetVersion)-android;$(DotNetVersion)-ios;$(DotNetVersion)-maccatalyst</TargetFrameworks>
     <TargetFrameworks Condition="'$(OverrideTargetFramework)'!=''">$(OverrideTargetFramework)</TargetFrameworks>
 
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
     <!-- Ensures the .xr.xml files are generated in a proper layout folder -->
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <!--
