@@ -12,7 +12,6 @@ global using Microsoft.UI.Xaml.Media;
 global using Microsoft.UI.Xaml.Navigation;
 global using Microsoft.Extensions.Options;
 global using RoMi.Business.Models;
-global using RoMi.Infrastructure;
 global using RoMi.Presentation;
 global using Uno.UI;
 global using Windows.ApplicationModel;
