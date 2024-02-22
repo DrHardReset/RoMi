@@ -21,6 +21,17 @@
     <!-- <WindowsSdkPackageVersion>10.0.22621.28</WindowsSdkPackageVersion> -->
   </PropertyGroup>
 
+  <!--
+    Differentiation of CommunityToolkit.WinUI.UI is needed for "IncrementalLoadingCollection" in MidiView.
+    Don't forget to add specific Version-Numbers in Directory.Packages.props.
+  -->
+  <ItemGroup Condition="$(TargetFramework.Contains('windows10'))">
+    <PackageReference Include="CommunityToolkit.WinUI.UI" />
+  </ItemGroup>
+  <ItemGroup Condition="!$(TargetFramework.Contains('windows10'))">
+    <PackageReference Include="Uno.CommunityToolkit.WinUI.UI" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="managed-midi" />
     <PackageReference Include="PdfPig" />

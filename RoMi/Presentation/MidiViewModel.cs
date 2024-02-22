@@ -1,6 +1,10 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Markup;
 using Commons.Music.Midi;
+using CommunityToolkit.Common.Collections;
+using CommunityToolkit.WinUI;
 using RoMi.Business.Converters;
 
 namespace RoMi.Presentation
@@ -183,12 +187,24 @@ namespace RoMi.Presentation
                     return;
                 }
 
-                Values = selectedLeafEntry.ValueDescriptions;
+                /*
+                 * Android has massive performance issues when loading a ComboBox with hundrets of entries.
+                 * if not android: Show ComboBox fully loaded
+                 * if android: show paged ListView
+                 */
+#if HAS_UNO
+                int itemsPerPage = 100;
+#else
+                int itemsPerPage = selectedLeafEntry.ValueDescriptions.Count;
+#endif
+
+                PagedListSource source = new PagedListSource(selectedLeafEntry.ValueDescriptions.Select(x => (object)x).ToList());
+                Values = new IncrementalLoadingCollection<PagedListSource, object>(source, itemsPerPage);
             }
         }
 
-        private IList<string> values = new List<string>();
-        public IList<string> Values
+        private IncrementalLoadingCollection<PagedListSource, object> values;
+        public IncrementalLoadingCollection<PagedListSource, object> Values
         {
             get
             {
@@ -200,6 +216,7 @@ namespace RoMi.Presentation
                 int currentSelectedValueIndex = ValuesSelectedIndex;
 
                 values = value;
+                _ = values.LoadMoreItemsAsync(1); // Loads first page of items
                 OnPropertyChanged();
 
                 ValuesSelectedIndex = Values.Count >= currentSelectedValueIndex + 1 ? currentSelectedValueIndex : 0;

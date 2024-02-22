@@ -6,7 +6,6 @@
     <Platforms>x86;x64;arm64</Platforms>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 
-
     <!-- Bundles the WinAppSDK binaries -->
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
 
