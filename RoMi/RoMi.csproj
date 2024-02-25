@@ -64,14 +64,22 @@
   <ItemGroup>
     <UnoDspImportColors Include="Styles\*.zip" Generator="Xaml" />
     <EmbeddedResource Include="appsettings.json" />
-    <EmbeddedResource Include="Assets\LibraryDependencyReport.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\LibraryDependencyReport.json" />
     <EmbeddedResource Include="appsettings.*.json" DependentUpon="appsettings.json" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Assets\LibraryDependencyReport.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Assets\LibraryDependencyReport.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	<Exec Command="powershell.exe -NonInteractive -executionpolicy Unrestricted &quot;&amp; '.\createLibraryDependencyReport.ps1' '$(SolutionDir)' '$(ProjectDir)'&quot;" />
+	  <Exec Command="powershell.exe -NonInteractive -executionpolicy Unrestricted &quot;&amp; '.\createLibraryDependencyReport.ps1' '$(SolutionDir)' '$(ProjectDir)'&quot;" />
   </Target>
 
 </Project>
