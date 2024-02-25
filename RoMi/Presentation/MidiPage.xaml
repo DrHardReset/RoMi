@@ -46,43 +46,49 @@
         </utu:NavigationBar.MainCommand>
       </utu:NavigationBar>
 
-      <StackPanel Grid.Row="1">
-        <TextBlock Text="Device ID"
-                   HorizontalAlignment="Center"/>
+      <StackPanel Grid.Row="1"
+                  Orientation="Horizontal"
+                  Margin="0,10,0,10"
+                  HorizontalAlignment="Center">
+        <TextBlock Text="Device ID: "
+                   Padding="20"/>
 
         <ComboBox ItemsSource="{Binding DeviceId}"
-                  SelectedItem="{Binding SelectedDeviceId, Mode=TwoWay}"
-                  HorizontalAlignment="Center" />
+                  SelectedItem="{Binding SelectedDeviceId, Mode=TwoWay}" />
       </StackPanel>
 
       <ComboBox Grid.Row="2"
+                Margin="0,10,0,10"
                 ItemsSource="{Binding RootTable}"
                 SelectedIndex="{Binding RootTableSelectedIndex, Mode=TwoWay}"
                 DisplayMemberPath="Description"
                 HorizontalAlignment="Center" />
 
       <ComboBox Grid.Row="3"
+                Margin="0,10,0,10"
                 ItemsSource="{Binding BranchTable}"
                 SelectedIndex="{Binding BranchTableSelectedIndex, Mode=TwoWay}"
                 DisplayMemberPath="Description"
                 HorizontalAlignment="Center" />
 
       <ComboBox Grid.Row="4"
+                Margin="0,10,0,10"
                 ItemsSource="{Binding LeafTable}"
                 SelectedIndex="{Binding LeafTableSelectedIndex, Mode=TwoWay}"
                 DisplayMemberPath="Description"
                 HorizontalAlignment="Center" />
 
-      <win:ComboBox Grid.Row="5"
+      <not_win:ComboBox Grid.Row="5"
+                Margin="0,10,0,10"
                 ItemsSource="{Binding Values}"
                 SelectedIndex="{Binding ValuesSelectedIndex, Mode=TwoWay}"
                 HorizontalAlignment="Center" />
 
-      <not_win:ListView Grid.Row="5"
+      <win:ListView Grid.Row="5"
                     ItemsSource="{Binding Values}"
                     SelectedIndex="{Binding ValuesSelectedIndex, Mode=TwoWay}"
                     Height="150"
-                    Margin="0,0,0,20"
+                    Margin="10,0,0,10"
                     SelectionMode="Single"
                     HorizontalAlignment="Center"
                     ScrollViewer.VerticalScrollBarVisibility="Visible">
@@ -91,9 +97,9 @@
             <TextBlock
                 Text="{Binding}"
                 Height="15"
-                Width="200"
                 FontWeight="Medium"
-                Margin="10,0,0,0" />
+                TextAlignment="Center"
+                Margin="10,0,10,0" />
           </DataTemplate>
         </ListView.ItemTemplate>
         <ListView.Style>
@@ -103,11 +109,12 @@
             <Setter Property="CornerRadius" Value="8,8,8,8"/>
           </Style>
         </ListView.Style>
-      </not_win:ListView>
+      </win:ListView>
 
       <TextBlock Name="CalculatedSysex"
                   Grid.Row="6"
                   FontSize="25"
+                  Margin="0,10,0,10"
                   Text="{Binding SysExMessage, Converter={StaticResource byteArrayToString}}"
                   HorizontalAlignment="Center">
       </TextBlock>
@@ -115,10 +122,12 @@
       <Button Grid.Row="7"
               Content="Copy to clipboard"
               Click="CopyToClipboard_Click"
-              HorizontalAlignment="Center" />
+              HorizontalAlignment="Center"
+              Margin="10,10,0,10"/>
 
       <ListView Grid.Row="8"
-                HorizontalAlignment="Center">
+                HorizontalAlignment="Center"
+                Margin="10,10,0,10">
         <ListView.ItemsPanel>
           <ItemsPanelTemplate>
             <ItemsWrapGrid Orientation="Horizontal"/>
