@@ -21,14 +21,13 @@
     <Grid utu:SafeArea.Insets="All">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
-        <RowDefinition />
-        <RowDefinition />
-        <RowDefinition />
-        <RowDefinition />
-        <RowDefinition />
         <RowDefinition Height="Auto" />
-        <RowDefinition />
-        <RowDefinition />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
 
       <Grid.ColumnDefinitions>
@@ -46,40 +45,46 @@
         </utu:NavigationBar.MainCommand>
       </utu:NavigationBar>
 
-      <StackPanel Grid.Row="1"
-                  Orientation="Horizontal"
-                  Margin="0,10,0,10"
-                  HorizontalAlignment="Center">
-        <TextBlock Text="Device ID: "
+      <Grid Grid.Row="1"
+            Margin="0,5,0,5">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0"
+                   Text="Device ID:"
                    Padding="20"/>
 
-        <ComboBox ItemsSource="{Binding DeviceId}"
+        <ComboBox Grid.Column="1"
+                  ItemsSource="{Binding DeviceId}"
                   SelectedItem="{Binding SelectedDeviceId, Mode=TwoWay}" />
-      </StackPanel>
+      </Grid>
 
       <ComboBox Grid.Row="2"
-                Margin="0,10,0,10"
+                Margin="0,5,0,5"
                 ItemsSource="{Binding RootTable}"
                 SelectedIndex="{Binding RootTableSelectedIndex, Mode=TwoWay}"
                 DisplayMemberPath="Description"
                 HorizontalAlignment="Center" />
 
       <ComboBox Grid.Row="3"
-                Margin="0,10,0,10"
+                Margin="0,5,0,5"
                 ItemsSource="{Binding BranchTable}"
                 SelectedIndex="{Binding BranchTableSelectedIndex, Mode=TwoWay}"
                 DisplayMemberPath="Description"
                 HorizontalAlignment="Center" />
 
       <ComboBox Grid.Row="4"
-                Margin="0,10,0,10"
+                Margin="0,5,0,5"
                 ItemsSource="{Binding LeafTable}"
                 SelectedIndex="{Binding LeafTableSelectedIndex, Mode=TwoWay}"
                 DisplayMemberPath="Description"
                 HorizontalAlignment="Center" />
 
       <win:ComboBox Grid.Row="5"
-                Margin="0,10,0,10"
+                Margin="0,5,0,5"
                 ItemsSource="{Binding Values}"
                 SelectedIndex="{Binding ValuesSelectedIndex, Mode=TwoWay}"
                 HorizontalAlignment="Center" />
@@ -88,7 +93,7 @@
                     ItemsSource="{Binding Values}"
                     SelectedIndex="{Binding ValuesSelectedIndex, Mode=TwoWay}"
                     Height="150"
-                    Margin="10,10,10,10"
+                    Margin="10,5,10,5"
                     SelectionMode="Single"
                     HorizontalAlignment="Center"
                     ScrollViewer.VerticalScrollBarVisibility="Visible">
@@ -96,7 +101,7 @@
           <DataTemplate>
             <TextBlock
                 Text="{Binding}"
-                Height="15"
+                Height="18"
                 FontWeight="Medium"
                 TextAlignment="Center"
                 Margin="10,0,10,0" />
@@ -112,40 +117,38 @@
       </not_win:ListView>
 
       <TextBlock Name="CalculatedSysex"
-                  Grid.Row="6"
-                  FontSize="25"
-                  Margin="0,10,0,10"
-                  Text="{Binding SysExMessage, Converter={StaticResource byteArrayToString}}"
-                  HorizontalAlignment="Center">
+                 Grid.Row="6"
+                 FontSize="25"
+                 Margin="10,5,10,5"
+                 Text="{Binding SysExMessage, Converter={StaticResource byteArrayToString}}"
+                 HorizontalAlignment="Center">
       </TextBlock>
 
-      <Button Grid.Row="7"
-              Content="Copy to clipboard"
-              Click="CopyToClipboard_Click"
-              HorizontalAlignment="Center"
-              Margin="10,10,0,10"/>
+      <Grid Grid.Row="7"
+            Margin="0,5,0,5">
 
-      <ListView Grid.Row="8"
-                HorizontalAlignment="Center"
-                Margin="10,10,0,10">
-        <ListView.ItemsPanel>
-          <ItemsPanelTemplate>
-            <ItemsWrapGrid Orientation="Horizontal"/>
-          </ItemsPanelTemplate>
-        </ListView.ItemsPanel>
-        <ListViewItem MinWidth="200">
-          <ComboBox ItemsSource="{Binding MidiPortDetails}"
-                    SelectedItem="{Binding SelectedMidiPortDetails, Mode=TwoWay}"
-                    DisplayMemberPath="Name"
-                    VerticalAlignment="Center" />
-        </ListViewItem>
-        <ListViewItem MinWidth="200">
-          <Button Content="Send to device"
-                  Command="{Binding DoSendSysexToDevice}"
-                  VerticalAlignment="Center"
-                  Margin="10,0,0,0"/>
-        </ListViewItem>
-      </ListView>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Button Grid.Column="0"
+                Content="📋"
+                Click="CopyToClipboard_Click"
+                HorizontalAlignment="Center" />
+
+        <ComboBox Grid.Column="1"
+                  ItemsSource="{Binding MidiPortDetails}"
+                  SelectedItem="{Binding SelectedMidiPortDetails, Mode=TwoWay}"
+                  DisplayMemberPath="Name"
+                  HorizontalAlignment="Center" />
+
+        <Button Grid.Column="2"
+                Content="Send"
+                Command="{Binding DoSendSysexToDevice}"
+                HorizontalAlignment="Center" />
+      </Grid>
 
     </Grid>
   </ScrollViewer>
