@@ -49,17 +49,19 @@
             Margin="0,5,0,5">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <TextBlock Grid.Column="0"
                    Text="Device ID:"
-                   Padding="20"/>
+                   Padding="20"
+                   HorizontalAlignment="Right" />
 
         <ComboBox Grid.Column="1"
                   ItemsSource="{Binding DeviceId}"
-                  SelectedItem="{Binding SelectedDeviceId, Mode=TwoWay}" />
+                  SelectedItem="{Binding SelectedDeviceId, Mode=TwoWay}"
+                  HorizontalAlignment="Center" />
       </Grid>
 
       <ComboBox Grid.Row="2"
@@ -136,7 +138,7 @@
         <Button Grid.Column="0"
                 Content="📋"
                 Click="CopyToClipboard_Click"
-                HorizontalAlignment="Center" />
+                HorizontalAlignment="Right" />
 
         <ComboBox Grid.Column="1"
                   ItemsSource="{Binding MidiPortDetails}"
@@ -147,7 +149,7 @@
         <Button Grid.Column="2"
                 Content="Send"
                 Command="{Binding DoSendSysexToDevice}"
-                HorizontalAlignment="Center" />
+                HorizontalAlignment="Left" />
       </Grid>
 
     </Grid>
