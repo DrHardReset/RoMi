@@ -216,10 +216,12 @@ namespace RoMi.Presentation
                 int currentSelectedValueIndex = ValuesSelectedIndex;
 
                 values = value;
+                values.OnEndLoading = () => {
+                    ValuesSelectedIndex = Values.Count >= currentSelectedValueIndex + 1 ? currentSelectedValueIndex : 0;
+                };
+
                 _ = values.LoadMoreItemsAsync(1); // Loads first page of items
                 OnPropertyChanged();
-
-                ValuesSelectedIndex = Values.Count >= currentSelectedValueIndex + 1 ? currentSelectedValueIndex : 0;
             }
         }
 
