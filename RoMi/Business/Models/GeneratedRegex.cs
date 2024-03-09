@@ -10,8 +10,22 @@ namespace RoMi.Business.Models
         [GeneratedRegex(@"\(Model\s?ID [=\:] ([0-9a-fA-F]{2})H?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)?\)")] // "H" is missing after third byte in AX Edge documentation.
         internal static partial Regex ModelIdBytesRegex();
 
-        [GeneratedRegex(@"^\* \[?(.*?)\]?(?:[\r\n])", RegexOptions.Multiline)]
-        internal static partial Regex MidiTableNameRegex();
+        /// <summary>
+        /// Matches a table including it's table name row. First group is the name, second group is the table. Examples:
+        /// AX-Edge (ModelID = 00H 00H 00 52H)
+        /// +------------------------------------------------------------------------------+
+        ///
+        /// AX-Edge:
+        /// * [Program]
+        /// +------------------------------------------------------------------------------+
+        ///
+        /// RD-2000:
+        /// * Program
+        /// +-------------+----------------------------------------------------------------|
+        /// </summary>
+        /// <returns></returns>
+        [GeneratedRegex(@"[\*\s\[]*(.*?)\]?\n(\+[-\+]{78}[\+\|][\s\S]*?\+-{78}\+)", RegexOptions.Multiline)]
+        internal static partial Regex MidiTableNameAndRowsRegex();
 
         /// <summary>
         /// Matches rows that contain "content of interest" for parsing the MIDI sysex infos.

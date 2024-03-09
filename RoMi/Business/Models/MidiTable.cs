@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Data;
 using RoMi.Business.Converters;
-using System.Linq;
 
 namespace RoMi.Business.Models
 {
@@ -140,6 +139,8 @@ namespace RoMi.Business.Models
 
         private void ParseLeafTableRows(string deviceName, List<string> tableRows)
         {
+            int ignoredTableRows = 0;
+
             for (int rowIter = 0; rowIter < tableRows.Count; rowIter++)
             {
                 string currentRow = tableRows[rowIter];
@@ -151,6 +152,7 @@ namespace RoMi.Business.Models
                     if (IsTotalSizeRow(currentRowParts))
                     {
                         int expectedEntries = new StartAddress(currentRowParts[0]).ToIntegerRepresentation();
+                        expectedEntries -= ignoredTableRows;
                         expectedEntries -= GetAmountOfMissingTableRows(deviceName);
 
                         int totalDatabyteCount = this.Select(x => ((MidiTableLeafEntry)x).ValueDataByteBitMasks.Count).Sum();
@@ -234,17 +236,68 @@ namespace RoMi.Business.Models
                     }
                     else
                     {
-                        if (descriptionColumnRaw == "<Reserved>" || descriptionColumnRaw == "(reserve) <*>" || descriptionColumnRaw == "Reserved")
+                        if (IsReservedValueDescriptionEntry(descriptionColumnRaw))
                         {
-                            // Example:  06 49 | 0aaa aaaa | <Reserved> |
                             description = descriptionColumnRaw;
                             values = new List<int>();
                         }
-                        else if (Name == "Sympathetic Resonance" && descriptionColumnRaw == "Rev HF Damp")
+                        else if (deviceName == "RD-88" && Name == "Sympathetic Resonance" && descriptionColumnRaw == "Rev HF Damp")
                         {
-                            // RD-88 Table [Sympathetic Resonance] entry "Rev HF Damp" contains no value Range
+                            // RD-88 Table "Sympathetic Resonance" entry "Rev HF Damp" contains no value Range
                             description = descriptionColumnRaw;
                             values = MidiTableLeafEntry.AssembleValueList(0, 31);
+                        }
+                        else if (deviceName == "FA-06/07/08")
+                        {
+                            if (Name == "System Common" && descriptionColumnRaw == "(0 - 1)")
+                            {
+                                // FA-06/07/08 Table "System Common" contains an entry without a Name
+                                ignoredTableRows++;
+                                rowIter++;
+                                continue;
+                            }
+
+                            if (Name == "TFX" && descriptionColumnRaw == "(0 - 127)")
+                            {
+                                // FA-06/07/08 Table "TFX" contains multiple entries without a Name
+                                ignoredTableRows += 4;
+                                rowIter += 7;
+                                continue;
+                            }
+
+                            if (Name == "Studio Set Common" && descriptionColumnRaw == "(0 - 15)")
+                            {
+                                // FA-06/07/08 Table "Studio Set Common" contains an entry without a Name
+                                ignoredTableRows++;
+                                rowIter++;
+                                continue;
+                            }
+
+                            if (Name == "Studio Set Controller" && descriptionColumnRaw == "(0 - 15)")
+                            {
+                                // FA-06/07/08 Table "Studio Set Controller" contains an entry without a Name
+                                ignoredTableRows++;
+                                rowIter++;
+                                continue;
+                            }
+
+                            if (Name == "PCM Drum Kit Common" && startAddress == "00 0D")
+                            {
+                                // FA-06/07/08 Table "PCM Drum Kit Common" contains multiple entries without a Name
+                                ignoredTableRows += 4;
+                                rowIter += 3;
+                                continue;
+                            }
+
+                            if (Name == "PCM Drum Kit Partial" && startAddress == "01 42")
+                            {
+                                // FA-06/07/08 Table "PCM Drum Kit Partial" contains wrong formatted reserved entry
+                                ignoredTableRows++;
+                                rowIter++;
+                                continue;
+                            }
+
+                            throw new Exception("This leaf table row falls through the workarounds for table rows not containing a value range: " + descriptionColumnRaw);
                         }
                         else
                         {
@@ -348,6 +401,20 @@ namespace RoMi.Business.Models
                                     higherMatch = higherMatch.Replace("R", "");
                                 }
 
+                                if (deviceName == "FA-06/07/08")
+                                {
+                                    // Multiple entries contain string values that cannot be automatically interpreted  -> ignore, e.g. Velocity Range Lower/Upper
+                                    if (higherMatch == "") // UPPER
+                                    {
+                                        higherMatch = "127";
+                                    }
+
+                                    if (lowerMatch == "") // LOWER
+                                    {
+                                        lowerMatch = "1";
+                                    }
+                                }
+
                                 double valueDescriptionLow = Convert.ToDouble(lowerMatch);
                                 double valueDescriptionHigh = Convert.ToDouble(higherMatch);
                                 string unit = string.Empty;
@@ -392,15 +459,17 @@ namespace RoMi.Business.Models
                         break;
                     }
 
+                    #region Entry fill up
+
                     /* 
-                     * At this point rows may accure that only contain ':'. In this case we need to fill up repetitive entries (example from RD2000 documentation)
+                     * At this point rows may occure that only contain ':'. In this case we need to fill up repetitive entries (example from RD2000 documentation)
                      * | 00 11 | 0aaa aaaa | Voice Reserve 2 (0 - 64) |
                      * | | | 0 - 63, FULL |
                      * | : | | |                                            <--- fill up from 11 to 1F
                      * | 00 1F | 0aaa aaaa | Voice Reserve 16 (0 - 64) |
                      * | | | 0 - 63, FULL |
                      */
-                    
+
                     string nextFillUpRow = tableRows[++rowIter];
                     string[] nextFillUpRowParts = SplitDataRowParts(nextFillUpRow);
 
@@ -428,44 +497,100 @@ namespace RoMi.Business.Models
                         nextStartAddress = nextFillUpRowParts[0][2..];
                     }
 
-                    if (this.Count < 2)
+                    // do the actual fill up:
+                    if (IsReservedValueDescriptionEntry(leafEntry.Description))
                     {
-                        throw new Exception($"There must be at lest 2 leaf table rows before the fill up row in table {Name} for entry '{leafEntry.Description}' to calculate the offset.");
+                        /*
+                         * Fill up example for reserved rows (FA-06/07/08 [ Studio Set Common]):
+                         * | 00 24 | 0aaa aaaa | (reserve) <*> |
+                         * | : | | |
+                         * | 00 33 | 0aaa aaaa | (reserve) <*> |
+                        */
+                        if (this.Count < 1)
+                        {
+                            throw new Exception($"There must be at lest 1 leaf table row before the fill up row in table {Name} for entry '{leafEntry.Description}' to calculate the number of fill up rows.");
+                        }
+
+                        StartAddress startAddressFillUpEnd = new StartAddress(nextStartAddress);
+                        int highAddress = startAddressFillUpEnd.ToIntegerRepresentation();
+                        byte[] addressOffset = [0, 0, 0, 1];
+                        int lastFillUpAddress = highAddress - addressOffset.ToIntegerRepresentation(StartAddress.MaxAddressByteCount);
+                        string newDescription = leafEntry.Description;
+
+                        while (this.Last().StartAddress.ToIntegerRepresentation() <= lastFillUpAddress)
+                        {
+                            StartAddress newStartAddress = new StartAddress(this.Last().StartAddress.BytesCopy());
+                            newStartAddress.Increment(addressOffset);
+                            MidiTableLeafEntry newFillUpBranchEntry = new MidiTableLeafEntry(newStartAddress, newDescription, leafEntry.ValueDataByteBitMasks, leafEntry.Values, leafEntry.ValueDescriptions);
+                            Add(newFillUpBranchEntry);
+                        }
+
+                        /*
+                         * Some reserved fill up entries end with a useless value description row -> skip it. Example FA-06/07/08 [Studio Set Part]:
+                         * | 00 1D | 0aaa aaaa | (reserve) <*> |
+                         * | : | | |
+                         * | 00 20 | 0aaa aaaa | (reserve) <*> |
+                         * | | | 0 - 127 |
+                         */
+                        if (rowIter < tableRows.Count)
+                        {
+                            string[] nextRowParts = SplitDataRowParts(tableRows[rowIter]);
+
+                            if (!IsLeafTableValueDescriptionRow(nextRowParts))
+                            {
+                                rowIter--;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        /*
+                         * Most fill up entries contain an integer that should incremented from first to last entry:
+                         * | 05 3E | 0000 aaaa | Individual Note Voicing Character 1 (59 - 69) |
+                         * | 05 3F | 0000 aaaa | Individual Note Voicing Character 2 (59 - 69) |
+                         * | : | | |
+                         * | 06 3D | 0000 aaaa | Individual Note Voicing Character 128 (59 - 69) |
+                         */
+
+                        if (this.Count < 2)
+                        {
+                            throw new Exception($"There must be at lest 2 leaf table rows before the fill up row in table {Name} for entry '{leafEntry.Description}' to calculate the offset.");
+                        }
+
+                        StartAddress startAddressFillUpEnd = new StartAddress(nextStartAddress);
+
+                        int highAddress = startAddressFillUpEnd.ToIntegerRepresentation();
+                        byte[] addressOffset = StartAddress.CalculateOffset(this[Count - 2].StartAddress, leafEntry.StartAddress);
+                        int lastFillUpAddress = highAddress - addressOffset.ToIntegerRepresentation(StartAddress.MaxAddressByteCount);
+
+                        string regex = "(\\d+).*?$";
+                        match = Regex.Match(leafEntry.Description, regex);
+
+                        if (!match.Success)
+                        {
+                            throw new Exception("The description of the previous table entry should contain a number which should be incremented for the fill up entry.");
+                        }
+
+                        string currentNumberString = match.Groups[^1].Value;
+                        int currentNumber = Convert.ToInt32(currentNumberString);
+
+                        while (this.Last().StartAddress.ToIntegerRepresentation() <= lastFillUpAddress)
+                        {
+                            string replacement = (++currentNumber).ToString("D" + currentNumberString.Length);
+                            string newDescription = Regex.Replace(leafEntry.Description, currentNumberString, replacement);
+
+                            StartAddress newStartAddress = new StartAddress(this.Last().StartAddress.BytesCopy());
+                            newStartAddress.Increment(addressOffset);
+                            MidiTableLeafEntry newFillUpBranchEntry = new MidiTableLeafEntry(newStartAddress, newDescription, leafEntry.ValueDataByteBitMasks, leafEntry.Values, leafEntry.ValueDescriptions);
+                            Add(newFillUpBranchEntry);
+                        }
+
+                        // RowIter now points to description row of fill up End entry -> Skip it.
+                        // If current entry is a multi byte entry, rowIter must skip rows with data byte definitions
+                        rowIter += leafEntry.ValueDataByteBitMasks.Count;
                     }
 
-                    StartAddress startAddressFillUpEnd = new StartAddress(nextStartAddress);
-
-                    int highAddress = startAddressFillUpEnd.ToIntegerRepresentation();
-                    byte[] addressOffset = StartAddress.CalculateOffset(this[Count -2].StartAddress, leafEntry.StartAddress);
-                    int lastFillUpAddress = highAddress - addressOffset.ToIntegerRepresentation(StartAddress.MaxAddressByteCount);
-
-                    string newDescription = leafEntry.Description;
-                    string regex = "(\\d+).*?$";
-                    string lastEntryDescription = leafEntry.Description;
-                    match = Regex.Match(lastEntryDescription, regex);
-
-                    if (!match.Success)
-                    {
-                        throw new Exception("The description of the previous table entry should contain a number which should be incremented for the fill up entry.");
-                    }
-
-                    string currentNumberString = match.Groups[^1].Value;
-                    int currentNumber = Convert.ToInt32(currentNumberString);
-
-                    while (this.Last().StartAddress.ToIntegerRepresentation() <= lastFillUpAddress)
-                    {
-                        string replacement = (++currentNumber).ToString("D" + currentNumberString.Length);
-                        newDescription = Regex.Replace(lastEntryDescription, currentNumberString, replacement);
-
-                        StartAddress newStartAddress = new StartAddress(this.Last().StartAddress.BytesCopy());
-                        newStartAddress.Increment(addressOffset);
-                        MidiTableLeafEntry newFillUpBranchEntry = new MidiTableLeafEntry(newStartAddress, newDescription, leafEntry.ValueDataByteBitMasks, leafEntry.Values, leafEntry.ValueDescriptions);
-                        Add(newFillUpBranchEntry);
-                    }
-
-                    // RowIter now points to description row of fill up End entry -> Skip it.
-                    // If current entry is a multi byte entry, rowIter must skip rows with data byte definitions
-                    rowIter += leafEntry.ValueDataByteBitMasks.Count;
+                    #endregion Entry fill up
                 }
                 catch (Exception ex)
                 {
@@ -522,7 +647,7 @@ namespace RoMi.Business.Models
                  * | 00 02 | 0000 cccc | |
                  * | 00 03 | 0000 dddd | Master Tune (24 - 2024) | <--- this is last row with command
                  */
-                return true;
+                    return true;
             }
 
             return false;
@@ -546,6 +671,18 @@ namespace RoMi.Business.Models
             {
                 // Example for a fill up row. The first column must only contain ':':
                 // | : | | |
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsReservedValueDescriptionEntry(string valueDescription)
+        {
+            // Example: | 06 49 | 0aaa aaaa | <Reserved> |
+            //          | 00 07 | 0aaa aaaa | (reserve) <*> |
+            if (valueDescription == "<Reserved>" || valueDescription == "(reserve) <*>" || valueDescription == "Reserved")
+            {
                 return true;
             }
 

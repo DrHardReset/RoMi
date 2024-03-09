@@ -1,7 +1,6 @@
 using System.Data;
 using System.Text.RegularExpressions;
 using RoMi.Business.Converters;
-using Windows.Foundation.Collections;
 
 namespace RoMi.Business.Models
 {
@@ -41,34 +40,32 @@ namespace RoMi.Business.Models
             int startIndex = match.Index;
             midiDocumentationFileContent = midiDocumentationFileContent[startIndex..];
 
-            // Find relevant pages with tables
-            // first needed info is the model id which is followed by the first upper table border
-            Match matchStart = Regex.Match(midiDocumentationFileContent, @".*\n\+------------------------------------------------------------------------------\+");
-            startIndex = matchStart.Index;
+            // Find and parse tables
+            MatchCollection matchCollection = GeneratedRegex.MidiTableNameAndRowsRegex().Matches(midiDocumentationFileContent);
 
-            Match matchEnd = Regex.Match(midiDocumentationFileContent, "Total Size.*", RegexOptions.RightToLeft);
-            int endIndex = matchEnd.Index;
-            midiDocumentationFileContent = midiDocumentationFileContent.Substring(startIndex, endIndex - startIndex + matchEnd.Value.Length);
-
-            string[] rawTableParts = GeneratedRegex.MidiTableNameRegex().Split(midiDocumentationFileContent); // table header always starts with the name of the table prefixed by "* "
-
-            for (int i = 0; i < rawTableParts.Length; i++)
+            if (matchCollection.Count == 0)
             {
+                throw new Exception("The tables could not be parsed.");
+            }
+
+            for (int i = 0; i < matchCollection.Count; i++)
+            {
+                Match tableMatch = matchCollection[i];
+
                 // Get the name of the table. Use the device name for root table as for some devices (e.g. RD2000) no header for first table is provided.
                 string name;
-                
+
                 if (i == 0)
                 {
                     name = deviceName;
                 }
                 else
                 {
-                    name = rawTableParts[i].Trim();
-                    i++;
+                    name = tableMatch.Groups[1].Value.Trim();
                 }
 
                 // split single Rows
-                List<string> dataRows = rawTableParts[i].Split("\n").ToList();
+                List<string> dataRows = tableMatch.Groups[2].Value.Split("\n").ToList();
 
                 // keep only relevant rows that contain whether start addresses or value descriptions:
                 dataRows.RemoveAll(x => !GeneratedRegex.MiditableContentRow().IsMatch(x));
@@ -156,7 +153,5 @@ namespace RoMi.Business.Models
 
             return checkSum;
         }
-
-
     }
 }
