@@ -28,6 +28,7 @@
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
 
       <Grid.ColumnDefinitions>
@@ -73,25 +74,34 @@
 
       <ComboBox Grid.Row="3"
                 Margin="0,5,0,5"
-                ItemsSource="{Binding BranchTable}"
-                SelectedIndex="{Binding BranchTableSelectedIndex, Mode=TwoWay}"
+                ItemsSource="{Binding BranchTable1}"
+                SelectedIndex="{Binding BranchTableSelectedIndex1, Mode=TwoWay}"
                 DisplayMemberPath="Description"
-                HorizontalAlignment="Center" />
+                HorizontalAlignment="Center"
+                SelectionChanged="ComboBoxBranchTable_SelectionChanged" />
 
       <ComboBox Grid.Row="4"
+                Margin="0,5,0,5"
+                ItemsSource="{Binding BranchTable2}"
+                SelectedIndex="{Binding BranchTableSelectedIndex2, Mode=TwoWay}"
+                DisplayMemberPath="Description"
+                HorizontalAlignment="Center"
+                SelectionChanged="ComboBoxBranchTable_SelectionChanged" />
+
+      <ComboBox Grid.Row="5"
                 Margin="0,5,0,5"
                 ItemsSource="{Binding LeafTable}"
                 SelectedIndex="{Binding LeafTableSelectedIndex, Mode=TwoWay}"
                 DisplayMemberPath="Description"
                 HorizontalAlignment="Center" />
 
-      <win:ComboBox Grid.Row="5"
+      <win:ComboBox Grid.Row="6"
                 Margin="0,5,0,5"
                 ItemsSource="{Binding Values}"
                 SelectedIndex="{Binding ValuesSelectedIndex, Mode=TwoWay}"
                 HorizontalAlignment="Center" />
 
-      <not_win:ListView Grid.Row="5"
+      <not_win:ListView Grid.Row="6"
                     ItemsSource="{Binding Values}"
                     SelectedIndex="{Binding ValuesSelectedIndex, Mode=TwoWay}"
                     Height="150"
@@ -119,14 +129,14 @@
       </not_win:ListView>
 
       <TextBlock Name="CalculatedSysex"
-                 Grid.Row="6"
+                 Grid.Row="7"
                  FontSize="25"
                  Margin="10,5,10,5"
                  Text="{Binding SysExMessage, Converter={StaticResource byteArrayToString}}"
                  HorizontalAlignment="Center">
       </TextBlock>
 
-      <Grid Grid.Row="7"
+      <Grid Grid.Row="8"
             Margin="0,5,0,5">
 
         <Grid.ColumnDefinitions>

@@ -1,3 +1,5 @@
+using Commons.Music.Midi;
+
 namespace RoMi.Business.Models
 {
     /// <summary>
@@ -6,6 +8,8 @@ namespace RoMi.Business.Models
     public class MidiTableBranchEntry : MidiTableEntry
     {
         public string LeafName { get; set; } = string.Empty;
+
+        public MidiTableBranchEntry() : base ("000000", string.Empty) { }
 
         public MidiTableBranchEntry(string startAddress, string description) : base(startAddress, description)
         {
@@ -40,7 +44,12 @@ namespace RoMi.Business.Models
 
         public override string ToString()
         {
-            return base.ToString() + " " + LeafName;
+            if (!string.IsNullOrEmpty(LeafName))
+            {
+                return base.ToString() + " " + LeafName;
+            }
+
+            return string.Empty;
         }
     }
 }

@@ -13,6 +13,12 @@ namespace RoMi.Business.Models
         {
             Name = tableName;
 
+            if (deviceName == "FANTOM-06/07/08" && Name == "System Control")
+            {
+                // Entry "Setup" of table "System Controller" references table 'System Controller' which is named "System Control" -> rename
+                Name = "System Controller";
+            }
+
             if (data == null)
             {
                 return;
@@ -743,7 +749,7 @@ namespace RoMi.Business.Models
                     case "System Common":
                         // Entries "00 0F" and "00 10" are missing
                         return 2;
-                    case "System Control":
+                    case "System Controller":
                         /*
                          * Missing entries:
                          * 00 13 - 00 17    = 5

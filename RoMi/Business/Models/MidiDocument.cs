@@ -80,10 +80,10 @@ namespace RoMi.Business.Models
                 MidiTables.Add(midiTable);
             }
 
-            MidiTables.RemoveTablesWithMissingSubTables();
+            MidiTables.RemoveTablesWithMissingSubTables(deviceName);
         }
 
-        internal static byte[] CalculateSysex(byte[] modelIdBytes, byte deviceId, MidiTableBranchEntry firstBranch, MidiTableBranchEntry secondBranch, MidiTableLeafEntry leafEntry, int value)
+        internal static byte[] CalculateSysex(byte[] modelIdBytes, byte deviceId, MidiTableBranchEntry root, MidiTableBranchEntry branch1, MidiTableBranchEntry branch2, MidiTableLeafEntry leafEntry, int value)
         {
             List<byte> sysexData = new List<byte>()
             {
@@ -95,7 +95,7 @@ namespace RoMi.Business.Models
             sysexData.AddRange(modelIdBytes);
             sysexData.Add(commandId);
 
-            byte[] accumulatedStartAddress = AccumulateStartAddreses(firstBranch, secondBranch, leafEntry);
+            byte[] accumulatedStartAddress = AccumulateStartAddreses(root, branch1, branch2, leafEntry);
             sysexData.AddRange(accumulatedStartAddress);
 
             List<byte> valueBytes = CalculateValueBytes(leafEntry, value);
@@ -109,11 +109,12 @@ namespace RoMi.Business.Models
             return sysexData.ToArray();
         }
 
-        private static byte[] AccumulateStartAddreses(MidiTableBranchEntry firstBranch, MidiTableBranchEntry secondBranch, MidiTableLeafEntry leafEntry)
+        private static byte[] AccumulateStartAddreses(MidiTableBranchEntry root, MidiTableBranchEntry branch1, MidiTableBranchEntry branch2, MidiTableLeafEntry leaf)
         {
-            byte[] accumulatedAddress = firstBranch.StartAddress.BytesCopy();
-            accumulatedAddress.Add(secondBranch.StartAddress.Bytes, StartAddress.MaxAddressByteCount);
-            accumulatedAddress.Add(leafEntry.StartAddress.Bytes, StartAddress.MaxAddressByteCount);
+            byte[] accumulatedAddress = root.StartAddress.BytesCopy();
+            accumulatedAddress.Add(branch1.StartAddress.Bytes, StartAddress.MaxAddressByteCount);
+            accumulatedAddress.Add(branch2.StartAddress.Bytes, StartAddress.MaxAddressByteCount);
+            accumulatedAddress.Add(leaf.StartAddress.Bytes, StartAddress.MaxAddressByteCount);
             return accumulatedAddress;
         }
 

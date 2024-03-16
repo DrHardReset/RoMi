@@ -90,60 +90,108 @@ public class MidiViewModel : INotifyPropertyChanged
             if (childTable.MidiTableType == MidiTableType.LeafTable)
             {
                 /*
-                 * Insert dummy table which disables Branch Picker in View if selected root table's child reference is a leaf table.
-                 * For example the "Setup" entry of Root table directly references the Leaf table [Setup]
+                 * Insert dummy table which disables Branch ComboBox in View if selected root table's child reference is a leaf table.
+                 * Example: AX-Edge's "Setup" entry of Root table directly references the Leaf table [Setup]
                  */
-                MidiTableBranchEntry midiTableDummyEntry = new("000000", string.Empty)
+                BranchTable1 = new(string.Empty, string.Empty, null)
                 {
-                    Description = " ", // Does not work with empty string
-                    LeafName = childTable.Name
+                    new MidiTableBranchEntry()
                 };
-
-                MidiTable midiTableDummy = new(string.Empty, string.Empty, null)
-                {
-                    midiTableDummyEntry
-                };
-                BranchTable = midiTableDummy;
+                BranchTable2 = BranchTable1;
                 LeafTable = childTable;
                 return;
             }
 
-            BranchTable = midiDocument.MidiTables[targetTableIndex];
+            BranchTable1 = midiDocument.MidiTables[targetTableIndex];
         }
     }
 
-    private MidiTable branchTable;
-    public MidiTable BranchTable
+    private MidiTable branchTable1;
+    public MidiTable BranchTable1
     {
         get
         {
-            return branchTable;
+            return branchTable1;
         }
         set
         {
-            int currentSelectedBranchTableIndex = BranchTableSelectedIndex;
+            int currentSelectedBranchTableIndex = BranchTableSelectedIndex1;
 
-            branchTable = value;
+            branchTable1 = value;
             OnPropertyChanged();
 
             // Try to assign previous BranchTableSelectedIndex to new table. This may be useful when switching from table "Program Tone 01" to "Program Tone 02" as it keeps selected entries of sub tables.
-            BranchTableSelectedIndex = branchTable.Count >= currentSelectedBranchTableIndex + 1 ? currentSelectedBranchTableIndex : 0;
+            BranchTableSelectedIndex1 = branchTable1.Count >= currentSelectedBranchTableIndex + 1 ? currentSelectedBranchTableIndex : 0;
         }
     }
 
-    private int branchTableSelectedIndex = 0;
-    public int BranchTableSelectedIndex
+    private int branchTableSelectedIndex1 = 0;
+    public int BranchTableSelectedIndex1
     {
         get
         {
-            return branchTableSelectedIndex;
+            return branchTableSelectedIndex1;
         }
         set
         {
-            branchTableSelectedIndex = value == -1 ? 0 : value;
+            branchTableSelectedIndex1 = value == -1 ? 0 : value;
             OnPropertyChanged();
 
-            string childBranchName = ((MidiTableBranchEntry)BranchTable[branchTableSelectedIndex]).LeafName;
+            string childBranchName = ((MidiTableBranchEntry)BranchTable1[branchTableSelectedIndex1]).LeafName;
+            int targetTableIndex = midiDocument.MidiTables.GetTableIndexByName(childBranchName);
+            MidiTable childTable = midiDocument.MidiTables[targetTableIndex];
+
+            if (childTable.MidiTableType is MidiTableType.BranchTable)
+            {
+                BranchTable2 = midiDocument.MidiTables[targetTableIndex];
+            }
+            else
+            {
+                /*
+                 * Insert dummy table which disables second Branch ComboBox in View if (like in most cases) there is only one branch table between root and leaf table.
+                 */
+                BranchTable2 = new(string.Empty, string.Empty, null)
+                {
+                    new MidiTableBranchEntry()
+                };
+
+                LeafTable = midiDocument.MidiTables[targetTableIndex];
+            }
+        }
+    }
+
+    private MidiTable branchTable2;
+    public MidiTable BranchTable2
+    {
+        get
+        {
+            return branchTable2;
+        }
+        set
+        {
+            int currentSelectedBranchTableIndex = BranchTableSelectedIndex2;
+
+            branchTable2 = value;
+            OnPropertyChanged();
+
+            // Try to assign previous BranchTableSelectedIndex to new table. This may be useful when switching from table "Program Tone 01" to "Program Tone 02" as it keeps selected entries of sub tables.
+            BranchTableSelectedIndex2 = branchTable2.Count >= currentSelectedBranchTableIndex + 1 ? currentSelectedBranchTableIndex : 0;
+        }
+    }
+
+    private int branchTableSelectedIndex2 = 0;
+    public int BranchTableSelectedIndex2
+    {
+        get
+        {
+            return branchTableSelectedIndex2;
+        }
+        set
+        {
+            branchTableSelectedIndex2 = value == -1 ? 0 : value;
+            OnPropertyChanged();
+
+            string childBranchName = ((MidiTableBranchEntry)BranchTable2[branchTableSelectedIndex2]).LeafName;
             int targetTableIndex = midiDocument.MidiTables.GetTableIndexByName(childBranchName);
             LeafTable = midiDocument.MidiTables[targetTableIndex];
         }
@@ -163,7 +211,7 @@ public class MidiViewModel : INotifyPropertyChanged
             leafTable = value;
             OnPropertyChanged();
 
-            // Not sure if it really makes sense her, but as we try to assign previous SelectedIndex for Branch Table we do it here, too.
+            // Not sure if it really makes sense here, but as we try to assign previous SelectedIndex for Branch Table we do it here, too.
             LeafTableSelectedIndex = leafTable.Count >= currentSelectedLeafTableIndex + 1 ? currentSelectedLeafTableIndex : 0;
         }
     }
@@ -265,7 +313,7 @@ public class MidiViewModel : INotifyPropertyChanged
         SelectedMidiPortDetails = MidiPortDetails.FirstOrDefault();
         DoSendSysexToDevice = new AsyncRelayCommand(SendSysexToDevice);
 
-        if (rootTable is null || branchTable is null || leafTable is null || values is null)
+        if (rootTable is null || branchTable1 is null || leafTable is null || values is null)
         {
             throw new Exception("Error while initiating comboboxes.");
         }
@@ -279,7 +327,8 @@ public class MidiViewModel : INotifyPropertyChanged
         byte selectedDeviceId = (byte)(SelectedDeviceId - 1); // the documentation states that 0x10 == 17 -> subtract 1 of the integer value
 
         if (RootTable[RootTableSelectedIndex] is not MidiTableBranchEntry rootEntry ||
-            BranchTable[BranchTableSelectedIndex] is not MidiTableBranchEntry branchEntry ||
+            BranchTable1[BranchTableSelectedIndex1] is not MidiTableBranchEntry branchEntry1 ||
+            BranchTable2[BranchTableSelectedIndex2] is not MidiTableBranchEntry branchEntry2 ||
             LeafTable[LeafTableSelectedIndex] is not MidiTableLeafEntry leafEntry ||
             leafEntry.Values.Count == 0)
         {
@@ -288,7 +337,7 @@ public class MidiViewModel : INotifyPropertyChanged
         }
 
         int value = leafEntry.Values[ValuesSelectedIndex];
-        SysExMessage = MidiDocument.CalculateSysex(midiDocument.ModelIdBytes, selectedDeviceId, rootEntry, branchEntry, leafEntry, value);
+        SysExMessage = MidiDocument.CalculateSysex(midiDocument.ModelIdBytes, selectedDeviceId, rootEntry, branchEntry1, branchEntry2, leafEntry, value);
     }
 
     public async Task SendSysexToDevice()

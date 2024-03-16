@@ -1,4 +1,4 @@
-﻿using RoMi.Business.Converters;
+using RoMi.Business.Converters;
 
 namespace RoMi.Business.Models
 {
@@ -24,7 +24,12 @@ namespace RoMi.Business.Models
 
         public override string ToString()
         {
-            return " " + StartAddress.Bytes.ByteArrayToHexString() + " " + Description;
+            if (!string.IsNullOrEmpty(Description))
+            {
+                return StartAddress.Bytes.ByteArrayToHexString() + " " + Description;
+            }
+
+            return string.Empty;
         }
     }
 }
