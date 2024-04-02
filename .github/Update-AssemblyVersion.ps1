@@ -3,7 +3,7 @@
 function getVersion()
 {
     $tag = iex "git describe --long --tags --always"
-    $a = [regex]"v\d+\.\d+\.\d+\-\d+"
+    $a = [regex]"v?\d+\.\d+\.\d+\-\d+"
     $b = $a.Match($tag)
     $b = $b.Captures[0].value
     $b = $b -replace '-', '.'
