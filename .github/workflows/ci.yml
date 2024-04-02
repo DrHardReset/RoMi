@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  release:
+    types:
+      - created
   push:
     branches:
       - main
@@ -15,13 +18,31 @@ env:
   STEP_TIMEOUT_MINUTES: 60
 
 jobs:
-  smoke_test:
-    name: Smoke Test (Debug Build of RoMi)
+  create_release_artifacts:
+    name: Create release artifacts
     runs-on: windows-latest
+    
+    env:
+      Project_Name: ${{ github.event.repository.name }}
+      Build_Path: ${{ github.workspace }}\RoMi.Windows\bin\x64\Debug\net8.0-windows10.0.19041.0\win-x64
+      Release_Path: ${{ github.workspace }}\RoMi.Windows\bin\x64\Debug\net8.0-windows10.0.19041.0\RoMi
+      Release_FileName: ${{ github.event.repository.name }}.zip
+      Release_Zip_Path: "value not set"
+
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      # Replace "\" with "/" as release-script in last step does not allow "\".
+      # The newly set env variable value is only visible in the next steps but not in this step.
+      - name: Set Release_Zip_Path env variable
+        run: |
+          $ChangedReleaseFullPath = "${{env.Release_Path}}\${{env.Release_FileName}}" -replace "\\", "/"
+          echo "Release_Zip_Path=$ChangedReleaseFullPath" >> $env:GITHUB_ENV
+
+      - name: Set assembly version
+        run: ./.github/Update-AssemblyVersion.ps1 '${{ env.Project_Name }}' '${{ github.workspace }}'
 
       - name: Install Dependencies
         timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
@@ -30,7 +51,32 @@ jobs:
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.3.1
-
+      
       - name: Build RoMi (Debug)
         shell: pwsh
-        run: msbuild ./RoMi/RoMi.csproj /r
+        run: msbuild ./RoMi.Windows/RoMi.Windows.csproj /r /property:Platform=x64
+
+      - name: zip artifact for deployment
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          echo "Zip-Path-Debug: ${{ env.Release_Zip_Path }}"
+          Rename-Item -Path ${{ env.Build_Path }} -NewName ${{ env.Project_Name }}
+          Compress-Archive -Path ${{ env.Release_Path }} -DestinationPath "${{ env.Release_Zip_Path }}"
+
+      # Upload the zipped artifacts: https://github.com/marketplace/actions/upload-a-build-artifact
+      - name: Upload zipped artifacts
+        uses: actions/upload-artifact@v3
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: ${{ env.Project_Name }}
+          path: ${{ env.Release_Zip_Path }}
+        
+      # Create the new release (needs a new tag to be created before)
+      - name: Release with Notes
+        #Action needs read and write permissions to be granted in project settings.
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ env.Release_Zip_Path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

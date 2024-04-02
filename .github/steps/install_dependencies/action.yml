@@ -40,4 +40,5 @@ runs:
             $targets = "--target all"
         }
 
-        uno-check -v --ci --non-interactive --fix $targets --skip vswin --skip vsmac --skip xcode --skip vswinworkloads --skip androidemulator --skip dotnetnewunotemplates
+        $params = "-v --ci --non-interactive --fix $targets --skip vswin --skip vsmac --skip xcode --skip vswinworkloads --skip androidemulator --skip dotnetnewunotemplates".Split(" ")
+        & uno-check -p $params
