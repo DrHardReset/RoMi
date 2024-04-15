@@ -128,7 +128,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _ = navigator.ShowMessageDialogAsync(this, title: "Error parsing PDF file", content: $"The PDF file could not be parsed:\n{ex.Message}");
+            _ = navigator.ShowMessageDialogAsync(this, title: $"Error parsing PDF file {file.Name}", content: $"The PDF file could not be parsed:\n{ex.Message}");
             await file.DeleteAsync();
         }
         finally

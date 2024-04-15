@@ -70,12 +70,6 @@ namespace RoMi.Business.Models
                 // keep only relevant rows that contain whether start addresses or value descriptions:
                 dataRows.RemoveAll(x => !GeneratedRegex.MiditableContentRow().IsMatch(x));
 
-                // PDF parser randomly throws page number at end of line -> remove
-                dataRows = dataRows.Select(x =>
-                {
-                    return x[..(x.LastIndexOf('|') + 1)];
-                }).ToList();
-
                 MidiTable midiTable = new MidiTable(deviceName, name, dataRows);
                 MidiTables.Add(midiTable);
             }

@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using System.Data;
 using RoMi.Business.Converters;
+using System.Collections;
 
 namespace RoMi.Business.Models
 {
@@ -13,7 +14,7 @@ namespace RoMi.Business.Models
         {
             Name = tableName;
 
-            if (deviceName == "FANTOM-06/07/08" && Name == "System Control")
+            if ((deviceName == "FANTOM-06/07/08" || deviceName == "FANTOM-6/7/8") && Name == "System Control")
             {
                 // Entry "Setup" of table "System Controller" references table 'System Controller' which is named "System Control" -> rename
                 Name = "System Controller";
@@ -108,9 +109,8 @@ namespace RoMi.Business.Models
                         int lastFillUpAddress = highAddress - addressOffset.ToIntegerRepresentation(StartAddress.MaxAddressByteCount);
 
                         string newDescription = lastEntry.Description;
-                        string regex = "(\\d+).*?$";
                         string lastEntryDescription = lastEntry.Description;
-                        Match match = Regex.Match(lastEntryDescription, regex);
+                        Match match = GeneratedRegex.MidiTableEntryFillUpDescriptionNumberRegex().Match(lastEntryDescription);
 
                         if (!match.Success)
                         {
@@ -229,12 +229,63 @@ namespace RoMi.Business.Models
 
                     // Description column contains the general description, the value range and for some entries the unit. All of them need to be separated.
                     string descriptionColumnRaw = currentRowParts[2].Trim();
+
+                    if (IsReservedValueDescriptionEntry(descriptionColumnRaw))
+                    {
+                        ignoredTableRows += valueDataBitsPerByte.Count;
+
+                        if (rowIter < tableRows.Count)
+                        {
+                            string followUpRow = tableRows[rowIter + 1];
+
+                            if (IsFillUpRow(followUpRow))
+                            {
+                                /*
+                                 * Fill up reserved addresses. Example:
+                                 * | 00 1A | 0aaa aaaa | Reserved (0 - 127) |
+                                 * : : : :
+                                 * | 00 29 | 0aaa aaaa | Noise Level (0 - 127) |
+                                 */
+                                rowIter++;
+                                followUpRow = tableRows[rowIter + 1];
+                                string[] nextFillUpRowPartsReserve = SplitDataRowParts(followUpRow);
+                                string nextStartAddressReserve = nextFillUpRowPartsReserve[0];
+                                StartAddress startAddressReservedFillUpEnd = new StartAddress(nextStartAddressReserve);
+                                int reservedHighAddress = startAddressReservedFillUpEnd.ToIntegerRepresentation();
+                                int reservedLowAddress = new StartAddress(startAddress).ToIntegerRepresentation();
+                                int rows = reservedHighAddress - reservedLowAddress - 1; // -1 as the actual reserved row was already added to row counter.
+                                ignoredTableRows += rows;
+                            }
+                        }
+
+                        /*
+                         * Some reserved fill up entries end with a useless value description row -> skip it. Example FA-06/07/08 [Studio Set Part]:
+                         * | 00 1D | 0aaa aaaa | (reserve) <*> |
+                         * | : | | |
+                         * | 00 20 | 0aaa aaaa | (reserve) <*> |
+                         * | | | 0 - 127 |
+                         */
+                        if (rowIter < tableRows.Count)
+                        {
+                            string[] nextRowParts = SplitDataRowParts(tableRows[rowIter + 1]);
+
+                            if (IsLeafTableValueDescriptionRow(nextRowParts))
+                            {
+                                rowIter++;
+                            }
+                        }
+
+                        continue;
+                    }
+
+
                     Match match = GeneratedRegex.MidiTableLeafEntryDescriptionRegex().Match(descriptionColumnRaw);
                     string description;
                     List<int> values;
 
                     if (match.Success && match.Groups.Count == 4)
                     {
+                        // regular row with low and high value
                         description = match.Groups[1].Value.Trim();
                         int valueLow = Convert.ToInt32(match.Groups[2].Value);
                         int valueHigh = Convert.ToInt32(match.Groups[3].Value);
@@ -242,12 +293,8 @@ namespace RoMi.Business.Models
                     }
                     else
                     {
-                        if (IsReservedValueDescriptionEntry(descriptionColumnRaw))
-                        {
-                            description = descriptionColumnRaw;
-                            values = new List<int>();
-                        }
-                        else if (deviceName == "RD-88" && Name == "Sympathetic Resonance" && descriptionColumnRaw == "Rev HF Damp")
+                        // treatment of extraordinary rows 
+                        if (deviceName == "RD-88" && Name == "Sympathetic Resonance" && descriptionColumnRaw == "Rev HF Damp")
                         {
                             // RD-88 Table "Sympathetic Resonance" entry "Rev HF Damp" contains no value Range
                             description = descriptionColumnRaw;
@@ -311,126 +358,135 @@ namespace RoMi.Business.Models
                         }
                     }
 
-                    // Parse the value descriptions:
+                    // Check and parse separate value description rows if they exist:
                     List<string> valueDescriptions = new List<string>();
-                    rowIter++;
 
                     if (rowIter < tableRows.Count)
                     {
+                        rowIter++;
                         currentRow = tableRows[rowIter];
-                        currentRowParts = SplitDataRowParts(currentRow);
-                    }                    
-                    
-                    if (rowIter >= tableRows.Count || !IsLeafTableValueDescriptionRow(currentRowParts))
-                    {
-                        /*
-                         * There is no extra row with value descriptions
-                         * reset the iterator for the next for-loop-iteration
-                         */
-                        rowIter--;
-                    }
-                    else
-                    {
-                        // There is at least one extra row with value description to be parsed
-                        string valueDescriptionColumnRaw = currentRowParts[2];
 
-                        if (valueDescriptionColumnRaw.Contains(','))
+                        if (IsFillUpRow(currentRow))
                         {
-                            // | | | OFF, ON, TONE |
-                            valueDescriptions = new List<string>();
-
-                            while (rowIter < tableRows.Count)
-                            {
-                                // iterate over to following rows as long as the descriptoin column contains comas.
-                                string[] descriptionParts = valueDescriptionColumnRaw.Trim(',').Split(',');
-                                valueDescriptions.AddRange(descriptionParts);
-                                rowIter++;
-
-                                if (rowIter >= tableRows.Count)
-                                {
-                                    // reached end of table
-                                    break;
-                                }
-
-                                currentRow = tableRows[rowIter];
-                                currentRowParts = SplitDataRowParts(currentRow);
-
-                                if (!IsLeafTableValueDescriptionRow(currentRowParts))
-                                {
-                                    // We found the next normal row and must reset the iterator for the next for-loop-iteration
-                                    rowIter--;
-                                    break;
-                                }
-
-                                valueDescriptionColumnRaw = currentRowParts[2];
-                            }
-
-                            // Some description rows end with a unit
-                            // 3150,4000,5000,6300,8000,10000,12500,16000 [Hz]
-                            string pattern = @"(\[.*\])$";
-
-                            if (valueDescriptions.Count > 0 && Regex.IsMatch(valueDescriptions.Last(), pattern))
-                            {
-                                match = Regex.Match(valueDescriptionColumnRaw, pattern);
-
-                                if (match.Success && match.Groups.Count == 2)
-                                {
-                                    string unit = match.Groups[1].Value;
-                                    string lastElement = valueDescriptions[^1]; // Keep last element as it already contains the unit
-                                    valueDescriptions = valueDescriptions.Take(valueDescriptions.Count - 1).Select(x => x += " " + unit).ToList();
-                                    valueDescriptions.Add(lastElement);
-                                }
-                            }
+                            /*
+                             * The next row is a fill up row for reserved addresses.
+                             * reset the iterator as fill up rows are parsed later.
+                             */
+                            rowIter--;
                         }
                         else
                         {
-                            // | | | -3 - 3 |
-                            // | | | -24 - +24 [dB] |
-                            // | | | -24.0 - +24.0 [dB] |
-                            // | | | L64 - 63R |
-                            match = Regex.Match(valueDescriptionColumnRaw, @"(L?[-0-9\.]*) - (R?[\+0-9\.]*)\s?(\[.*\])?");
+                            currentRowParts = SplitDataRowParts(currentRow);
 
-                            if (match.Success && (match.Groups.Count == 3 || match.Groups.Count == 4) && match.Groups[2].Value != string.Empty)
+                            if (!IsLeafTableValueDescriptionRow(currentRowParts))
                             {
-                                // Treat L(eft) and R(ight) letters as negative and positive numbers for more easy use
-                                string lowerMatch = match.Groups[1].Value;
+                                /*
+                                 * There is no extra row with value descriptions
+                                 * reset the iterator for the next for-loop-iteration
+                                 */
+                                rowIter--;
+                            }
+                            else
+                            {
+                                // There is at least one extra row with value description to be parsed
+                                string valueDescriptionColumnRaw = currentRowParts[2];
 
-                                if (lowerMatch.StartsWith('L'))
+                                if (valueDescriptionColumnRaw.Contains(','))
                                 {
-                                    lowerMatch = lowerMatch.Replace('L', '-');
-                                }
+                                    // | | | OFF, ON, TONE |
+                                    valueDescriptions = new List<string>();
 
-                                string higherMatch = match.Groups[2].Value;
-
-                                if (higherMatch.StartsWith('R'))
-                                {
-                                    higherMatch = higherMatch.Replace("R", "");
-                                }
-
-                                if (deviceName == "FA-06/07/08")
-                                {
-                                    // Multiple entries contain string values that cannot be automatically interpreted  -> ignore, e.g. Velocity Range Lower/Upper
-                                    if (higherMatch == "") // UPPER
+                                    while (rowIter < tableRows.Count)
                                     {
-                                        higherMatch = "127";
+                                        // iterate over to following rows as long as the descriptoin column contains comas.
+                                        string[] descriptionParts = valueDescriptionColumnRaw.Trim(',').Split(',');
+                                        valueDescriptions.AddRange(descriptionParts);
+                                        rowIter++;
+
+                                        if (rowIter >= tableRows.Count)
+                                        {
+                                            // reached end of table
+                                            break;
+                                        }
+
+                                        currentRow = tableRows[rowIter];
+                                        currentRowParts = SplitDataRowParts(currentRow);
+
+                                        if (!IsLeafTableValueDescriptionRow(currentRowParts))
+                                        {
+                                            // We found the next normal row and must reset the iterator for the next for-loop-iteration
+                                            rowIter--;
+                                            break;
+                                        }
+
+                                        valueDescriptionColumnRaw = currentRowParts[2];
                                     }
 
-                                    if (lowerMatch == "") // LOWER
+                                    // Some description rows end with a unit
+                                    if (valueDescriptions.Count > 0 && GeneratedRegex.MidiTableLeafEntryValueUnitRegex().IsMatch(valueDescriptions.Last()))
                                     {
-                                        lowerMatch = "1";
+                                        match = GeneratedRegex.MidiTableLeafEntryValueUnitRegex().Match(valueDescriptionColumnRaw);
+
+                                        if (match.Success && match.Groups.Count == 2)
+                                        {
+                                            string unit = match.Groups[1].Value;
+                                            string lastElement = valueDescriptions[^1]; // Keep last element as it already contains the unit
+                                            valueDescriptions = valueDescriptions.Take(valueDescriptions.Count - 1).Select(x => x += " " + unit).ToList();
+                                            valueDescriptions.Add(lastElement);
+                                        }
                                     }
                                 }
-
-                                double valueDescriptionLow = Convert.ToDouble(lowerMatch);
-                                double valueDescriptionHigh = Convert.ToDouble(higherMatch);
-                                string unit = string.Empty;
-
-                                if (match.Groups.Count == 4)
+                                else
                                 {
-                                    unit = " " + match.Groups[3].Value;
-                                }
+                                    // | | | -3 - 3 |
+                                    // | | | -24 - +24 [dB] |
+                                    // | | | -24.0 - +24.0 [dB] |
+                                    // | | | L64 - 63R |
+                                    match = GeneratedRegex.MidiTableLeafEntryDescriptionRowPartsRegex().Match(valueDescriptionColumnRaw);
 
-                                valueDescriptions = MidiTableLeafEntry.AssembleDescriptionValues(valueDescriptionLow, valueDescriptionHigh, values.Count, unit);
+                                    if (match.Success && (match.Groups.Count == 3 || match.Groups.Count == 4) && match.Groups[2].Value != string.Empty)
+                                    {
+                                        // Treat L(eft) and R(ight) letters as negative and positive numbers for more easy use
+                                        string lowerMatch = match.Groups[1].Value;
+
+                                        if (lowerMatch.StartsWith('L'))
+                                        {
+                                            lowerMatch = lowerMatch.Replace('L', '-');
+                                        }
+
+                                        string higherMatch = match.Groups[2].Value;
+
+                                        if (higherMatch.StartsWith('R'))
+                                        {
+                                            higherMatch = higherMatch.Replace("R", "");
+                                        }
+
+                                        if (deviceName == "FA-06/07/08")
+                                        {
+                                            // Multiple entries contain string values that cannot be automatically interpreted  -> ignore, e.g. Velocity Range Lower/Upper
+                                            if (higherMatch == "") // UPPER
+                                            {
+                                                higherMatch = "127";
+                                            }
+
+                                            if (lowerMatch == "") // LOWER
+                                            {
+                                                lowerMatch = "1";
+                                            }
+                                        }
+
+                                        double valueDescriptionLow = Convert.ToDouble(lowerMatch);
+                                        double valueDescriptionHigh = Convert.ToDouble(higherMatch);
+                                        string unit = string.Empty;
+
+                                        if (match.Groups.Count == 4)
+                                        {
+                                            unit = " " + match.Groups[3].Value;
+                                        }
+
+                                        valueDescriptions = MidiTableLeafEntry.AssembleDescriptionValues(valueDescriptionLow, valueDescriptionHigh, values.Count, unit);
+                                    }
+                                }
                             }
                         }
                     }
@@ -477,9 +533,8 @@ namespace RoMi.Business.Models
                      */
 
                     string nextFillUpRow = tableRows[++rowIter];
-                    string[] nextFillUpRowParts = SplitDataRowParts(nextFillUpRow);
 
-                    if (!IsFillUpRow(nextFillUpRowParts))
+                    if (!IsFillUpRow(nextFillUpRow))
                     {
                         // No fill up needed -> Reset the iterator for the next for-loop-iteration
                         rowIter--;
@@ -487,7 +542,7 @@ namespace RoMi.Business.Models
                     }
 
                     nextFillUpRow = tableRows[++rowIter];
-                    nextFillUpRowParts = SplitDataRowParts(nextFillUpRow);
+                    string[] nextFillUpRowParts = SplitDataRowParts(nextFillUpRow);
 
                     if (rowIter >= tableRows.Count)
                     {
@@ -504,97 +559,58 @@ namespace RoMi.Business.Models
                     }
 
                     // do the actual fill up:
-                    if (IsReservedValueDescriptionEntry(leafEntry.Description))
+                    /*
+                     * Most fill up entries contain an integer that should incremented from first to last entry:
+                     * | 05 3E | 0000 aaaa | Individual Note Voicing Character 1 (59 - 69) |
+                     * | 05 3F | 0000 aaaa | Individual Note Voicing Character 2 (59 - 69) |
+                     * | : | | |
+                     * | 06 3D | 0000 aaaa | Individual Note Voicing Character 128 (59 - 69) |
+                     */
+                    byte[] addressOffset;
+
+                    if (this.Count == 0)
                     {
-                        /*
-                         * Fill up example for reserved rows (FA-06/07/08 [ Studio Set Common]):
-                         * | 00 24 | 0aaa aaaa | (reserve) <*> |
-                         * | : | | |
-                         * | 00 33 | 0aaa aaaa | (reserve) <*> |
-                        */
-                        if (this.Count < 1)
-                        {
-                            throw new Exception($"There must be at lest 1 leaf table row before the fill up row in table {Name} for entry '{leafEntry.Description}' to calculate the number of fill up rows.");
-                        }
-
-                        StartAddress startAddressFillUpEnd = new StartAddress(nextStartAddress);
-                        int highAddress = startAddressFillUpEnd.ToIntegerRepresentation();
-                        byte[] addressOffset = [0, 0, 0, 1];
-                        int lastFillUpAddress = highAddress - addressOffset.ToIntegerRepresentation(StartAddress.MaxAddressByteCount);
-                        string newDescription = leafEntry.Description;
-
-                        while (this.Last().StartAddress.ToIntegerRepresentation() <= lastFillUpAddress)
-                        {
-                            StartAddress newStartAddress = new StartAddress(this.Last().StartAddress.BytesCopy());
-                            newStartAddress.Increment(addressOffset);
-                            MidiTableLeafEntry newFillUpBranchEntry = new MidiTableLeafEntry(newStartAddress, newDescription, leafEntry.ValueDataByteBitMasks, leafEntry.Values, leafEntry.ValueDescriptions);
-                            Add(newFillUpBranchEntry);
-                        }
-
-                        /*
-                         * Some reserved fill up entries end with a useless value description row -> skip it. Example FA-06/07/08 [Studio Set Part]:
-                         * | 00 1D | 0aaa aaaa | (reserve) <*> |
-                         * | : | | |
-                         * | 00 20 | 0aaa aaaa | (reserve) <*> |
-                         * | | | 0 - 127 |
-                         */
-                        if (rowIter < tableRows.Count)
-                        {
-                            string[] nextRowParts = SplitDataRowParts(tableRows[rowIter]);
-
-                            if (!IsLeafTableValueDescriptionRow(nextRowParts))
-                            {
-                                rowIter--;
-                            }
-                        }
+                        throw new Exception($"There must be at least 1 leaf table row before the fill up row in table {Name} for entry '{leafEntry.Description}' to calculate the offset.");
+                    }
+                    else if (this.Count == 1)
+                    {
+                        // Calculate the start address offset
+                        addressOffset = Enumerable.Repeat(0, StartAddress.MaxAddressByteCount).Select(x => (byte)x).ToArray();
+                        addressOffset[addressOffset.Length - 1] = (byte)leafEntry.ValueDataByteBitMasks.Count;
                     }
                     else
                     {
-                        /*
-                         * Most fill up entries contain an integer that should incremented from first to last entry:
-                         * | 05 3E | 0000 aaaa | Individual Note Voicing Character 1 (59 - 69) |
-                         * | 05 3F | 0000 aaaa | Individual Note Voicing Character 2 (59 - 69) |
-                         * | : | | |
-                         * | 06 3D | 0000 aaaa | Individual Note Voicing Character 128 (59 - 69) |
-                         */
-
-                        if (this.Count < 2)
-                        {
-                            throw new Exception($"There must be at lest 2 leaf table rows before the fill up row in table {Name} for entry '{leafEntry.Description}' to calculate the offset.");
-                        }
-
-                        StartAddress startAddressFillUpEnd = new StartAddress(nextStartAddress);
-
-                        int highAddress = startAddressFillUpEnd.ToIntegerRepresentation();
-                        byte[] addressOffset = StartAddress.CalculateOffset(this[Count - 2].StartAddress, leafEntry.StartAddress);
-                        int lastFillUpAddress = highAddress - addressOffset.ToIntegerRepresentation(StartAddress.MaxAddressByteCount);
-
-                        string regex = "(\\d+).*?$";
-                        match = Regex.Match(leafEntry.Description, regex);
-
-                        if (!match.Success)
-                        {
-                            throw new Exception("The description of the previous table entry should contain a number which should be incremented for the fill up entry.");
-                        }
-
-                        string currentNumberString = match.Groups[^1].Value;
-                        int currentNumber = Convert.ToInt32(currentNumberString);
-
-                        while (this.Last().StartAddress.ToIntegerRepresentation() <= lastFillUpAddress)
-                        {
-                            string replacement = (++currentNumber).ToString("D" + currentNumberString.Length);
-                            string newDescription = Regex.Replace(leafEntry.Description, currentNumberString, replacement);
-
-                            StartAddress newStartAddress = new StartAddress(this.Last().StartAddress.BytesCopy());
-                            newStartAddress.Increment(addressOffset);
-                            MidiTableLeafEntry newFillUpBranchEntry = new MidiTableLeafEntry(newStartAddress, newDescription, leafEntry.ValueDataByteBitMasks, leafEntry.Values, leafEntry.ValueDescriptions);
-                            Add(newFillUpBranchEntry);
-                        }
-
-                        // RowIter now points to description row of fill up End entry -> Skip it.
-                        // If current entry is a multi byte entry, rowIter must skip rows with data byte definitions
-                        rowIter += leafEntry.ValueDataByteBitMasks.Count;
+                        addressOffset = StartAddress.CalculateOffset(this[Count - 2].StartAddress, leafEntry.StartAddress);
                     }
+
+                    StartAddress startAddressFillUpEnd = new StartAddress(nextStartAddress);
+                    int highAddress = startAddressFillUpEnd.ToIntegerRepresentation();
+                    int lastFillUpAddress = highAddress - addressOffset.ToIntegerRepresentation(StartAddress.MaxAddressByteCount);
+
+                    match = GeneratedRegex.MidiTableEntryFillUpDescriptionNumberRegex().Match(leafEntry.Description);
+
+                    if (!match.Success)
+                    {
+                        throw new Exception("The description of the previous table entry should contain a number which should be incremented for the fill up entry.");
+                    }
+
+                    string currentNumberString = match.Groups[^1].Value;
+                    int currentNumber = Convert.ToInt32(currentNumberString);
+
+                    while (this.Last().StartAddress.ToIntegerRepresentation() <= lastFillUpAddress)
+                    {
+                        string replacement = (++currentNumber).ToString("D" + currentNumberString.Length);
+                        string newDescription = Regex.Replace(leafEntry.Description, currentNumberString, replacement);
+
+                        StartAddress newStartAddress = new StartAddress(this.Last().StartAddress.BytesCopy());
+                        newStartAddress.Increment(addressOffset);
+                        MidiTableLeafEntry newFillUpBranchEntry = new MidiTableLeafEntry(newStartAddress, newDescription, leafEntry.ValueDataByteBitMasks, leafEntry.Values, leafEntry.ValueDescriptions);
+                        Add(newFillUpBranchEntry);
+                    }
+
+                    // RowIter now points to description row of fill up End entry -> Skip it.
+                    // If current entry is a multi byte entry, rowIter must skip rows with data byte definitions
+                    rowIter += leafEntry.ValueDataByteBitMasks.Count;
 
                     #endregion Entry fill up
                 }
@@ -605,7 +621,7 @@ namespace RoMi.Business.Models
             }
         }
 
-        private static string[] SplitDataRowParts(string dataRow)
+        private string[] SplitDataRowParts(string dataRow)
         {
             try
             {
@@ -613,6 +629,7 @@ namespace RoMi.Business.Models
 
                 if (dataRow.StartsWith("|") && dataRow.EndsWith("|"))
                 {
+                    // Remove leading and trailing "|"
                     dataRowCleaned = dataRowCleaned[1..^1];
                 }
 
@@ -663,7 +680,7 @@ namespace RoMi.Business.Models
         {
             if (rowParts.Length == 3 && rowParts[0] == string.Empty && rowParts[1] == string.Empty)
             {
-                // Example for a leaf table description row. The value bit column must end with an "a":
+                // Example for a leaf table description row:
                 // | | | PROGRAM, REMAIN |
                 return true;
             }
@@ -671,28 +688,14 @@ namespace RoMi.Business.Models
             return false;
         }
 
-        private bool IsFillUpRow(string[] rowParts)
+        private bool IsFillUpRow(string dataRow)
         {
-            if (rowParts[0] == ":")
-            {
-                // Example for a fill up row. The first column must only contain ':':
-                // | : | | |
-                return true;
-            }
-
-            return false;
+            return GeneratedRegex.MidiTableLeafEntryFillUpRowRegex().IsMatch(dataRow);
         }
 
         private bool IsReservedValueDescriptionEntry(string valueDescription)
         {
-            // Example: | 06 49 | 0aaa aaaa | <Reserved> |
-            //          | 00 07 | 0aaa aaaa | (reserve) <*> |
-            if (valueDescription == "<Reserved>" || valueDescription == "(reserve) <*>" || valueDescription == "Reserved")
-            {
-                return true;
-            }
-
-            return false;
+            return GeneratedRegex.MidiTableLeafEntryReservedValueDescriptionRegex().IsMatch(valueDescription);
         }
 
         private int GetAmountOfMissingTableRows(string deviceName)
@@ -739,108 +742,6 @@ namespace RoMi.Business.Models
                          * 00 41 - 00 45     = 5
                          */
                         return 7;
-                }
-            }
-
-            if (deviceName == "FANTOM-06/07/08")
-            {
-                switch (Name)
-                {
-                    case "System Common":
-                        // Entries "00 0F" and "00 10" are missing
-                        return 2;
-                    case "System Controller":
-                        /*
-                         * Missing entries:
-                         * 00 13 - 00 17    = 5
-                         * 00 49 - 00 65    = 29
-                         * 01 32 - 01 40    = 15
-                         */
-                        return 49;
-                    case "Scene Common":
-                        /*
-                         * Missing entries:
-                         * 00 2B - 00 2F    = 5
-                         * 00 3D - 00 41    = 5
-                         * 01 13 - 01 15    = 3
-                         */
-                        return 13;
-                    case "Scene Zone":
-                        /*
-                         * Missing entries:
-                         * 00 1C - 00 22    = 7
-                         * 00 45 - 00 48    = 4
-                         */
-                        return 11;
-                    case "Zone Control":
-                        /*
-                         * Missing entries:
-                         * 00 25 - 00 2B    = 7
-                         * 00 57 - 00 5B    = 5
-                         * 00 6D - 00 6F    = 3
-                         */
-                        return 15;
-                    case "Scene Controller":
-                        /*
-                         * Missing entries:
-                         * 00 0B - 00 0F    = 5
-                         * 00 41 - 00 5D    = 29
-                         * 01 55 - 01 5B    = 7
-                         * 01 63 - 01 7F    = 29
-                         */
-                        return 70;
-                    case "Tone Common":
-                        /*
-                         * Missing entries:
-                         * 00 12 - 00 14    = 3
-                         * 00 2D - 00 33    = 7
-                         */
-                        return 10;
-                    case "Tone Synth Common":
-                        /*
-                         * Missing entries:
-                         * 00 06 - 00 08    = 3
-                         */
-                        return 3;
-                    case "Tone Synth Partial":
-                        /*
-                         * Missing entry:
-                         * 00 1C            = 1
-                         */
-                        return 1;
-                    case "SN-A Tone Common":
-                        /*
-                         * Missing entries:
-                         * 00 34 - 00 38    = 5
-                         */
-                        return 5;
-                    case "VTW Tone Common":
-                        /*
-                         * Missing entries:
-                         * 00 22 - 00 2F    = 14
-                         */
-                        return 14;
-                    case "VTW Tone Modify":
-                        /*
-                         * Missing entries:
-                         * 00 0A - 00 13    = 10
-                         * 00 19 - 00 1F    = 7
-                         */
-                        return 17;
-                    case "EXSN Tone Common":
-                        /*
-                         * Missing entries:
-                         * 00 1B - 00 28    = 14
-                         * 00 2C - 00 35    = 10
-                         */
-                        return 24;
-                    case "Drum Kit Common":
-                        /*
-                         * Missing entries:
-                         * 00 11 - 00 13    = 3
-                         * 00 16 - 00 18    = 3
-                         */
-                        return 6;
                 }
             }
 
