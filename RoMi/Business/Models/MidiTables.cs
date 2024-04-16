@@ -59,6 +59,13 @@ namespace RoMi.Business.Models
                             continue;
                         }
 
+                        if (deviceName == "JUPITER-X/Xm" && leafName == "Editor")
+                        {
+                            // Root table entry "Editor" does not reference a table
+                            this[midiTableIndex].RemoveAt(midiTableEntryIndex);
+                            continue;
+                        }
+
                         throw new Exception($"Table '{midiTableBranchEntry.Description}' references a table named '{leafName}' which could not be found in the table list.");
                     }
                 }
