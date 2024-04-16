@@ -12,10 +12,11 @@ Just download the RoMi app, insert the midi implementation PDF and you're good t
 
 The app is tested for Roland AX-Edge only, but should generally work with the following devices:
 - AX-Edge
-- RD-88
-- RD-2000
 - FANTOM-06/07/08
-- FA-06/07/08
+- FANTOM-6/7/8
+- JUPITER-X/Xm
+- RD-2000
+- RD-88
 
 RoMi is licensed under the [GPLv3 License][license-link].
 

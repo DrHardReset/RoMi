@@ -40,6 +40,39 @@ namespace RoMi.Business.Models
             int startIndex = match.Index;
             midiDocumentationFileContent = midiDocumentationFileContent[startIndex..];
 
+            #region Workaround for unexpected table formatting
+
+            switch (DeviceName)
+            {
+                case "FA-06/07/08":
+                    midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                        "(ModelID = 00H 00H 77H)",
+                        "(ModelID = 00H 00H 77H)\n");
+                    midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                        "|-------------+----------------------------------------------------------------|\n* System",
+                        "+------------------------------------------------------------------------------+\n* System");
+
+                    throw new NotSupportedException("FA-06/07/08 is currently not supported as the table mapping is not clear for some entries.");
+                case "JUPITER-X/Xm":
+                    midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                        "* [Setup]\n9\nJUPITER-X/Xm MIDI Implementation",
+                        "* [Setup]");
+                    midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                        "* [User Pattern]\n16\nJUPITER-X/Xm MIDI Implementation",
+                        "* [User Pattern]");
+                    break;
+                case "FANTOM-6/7/8":
+                    midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                       "[V-Piano Tone] |\n+------------------------------------------------------------------------------+",
+                       "[V-Piano Tone] |\n|------------------------------------------------------------------------------|");
+                    midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                       "[EXSN Tone] |\n|-------------+----------------------------------------------------------------|",
+                       "[EXSN Tone] |\n+------------------------------------------------------------------------------+");
+                    break;
+            }
+            
+            #endregion
+
             // Find and parse tables
             MatchCollection matchCollection = GeneratedRegex.MidiTableNameAndRowsRegex().Matches(midiDocumentationFileContent);
 
