@@ -293,10 +293,10 @@ namespace RoMi.Business.Models
                     }
                     else
                     {
-                        // treatment of extraordinary rows 
+                        // treatment of extraordinary rows
                         if (deviceName == "RD-88" && Name == "Sympathetic Resonance" && descriptionColumnRaw == "Rev HF Damp")
                         {
-                            // RD-88 Table "Sympathetic Resonance" entry "Rev HF Damp" contains no value Range
+                            // RD-88 table "Sympathetic Resonance" entry "Rev HF Damp" contains no value Range
                             description = descriptionColumnRaw;
                             values = MidiTableLeafEntry.AssembleValueList(0, 31);
                         }
@@ -304,7 +304,7 @@ namespace RoMi.Business.Models
                         {
                             if (Name == "System Common" && descriptionColumnRaw == "(0 - 1)")
                             {
-                                // FA-06/07/08 Table "System Common" contains an entry without a Name
+                                // FA-06/07/08 table "System Common" contains an entry without a Name
                                 ignoredTableRows++;
                                 rowIter++;
                                 continue;
@@ -312,7 +312,7 @@ namespace RoMi.Business.Models
 
                             if (Name == "TFX" && descriptionColumnRaw == "(0 - 127)")
                             {
-                                // FA-06/07/08 Table "TFX" contains multiple entries without a Name
+                                // FA-06/07/08 table "TFX" contains multiple entries without a Name
                                 ignoredTableRows += 4;
                                 rowIter += 7;
                                 continue;
@@ -320,7 +320,7 @@ namespace RoMi.Business.Models
 
                             if (Name == "Studio Set Common" && descriptionColumnRaw == "(0 - 15)")
                             {
-                                // FA-06/07/08 Table "Studio Set Common" contains an entry without a Name
+                                // FA-06/07/08 table "Studio Set Common" contains an entry without a Name
                                 ignoredTableRows++;
                                 rowIter++;
                                 continue;
@@ -328,7 +328,7 @@ namespace RoMi.Business.Models
 
                             if (Name == "Studio Set Controller" && descriptionColumnRaw == "(0 - 15)")
                             {
-                                // FA-06/07/08 Table "Studio Set Controller" contains an entry without a Name
+                                // FA-06/07/08 table "Studio Set Controller" contains an entry without a Name
                                 ignoredTableRows++;
                                 rowIter++;
                                 continue;
@@ -336,7 +336,7 @@ namespace RoMi.Business.Models
 
                             if (Name == "PCM Drum Kit Common" && startAddress == "00 0D")
                             {
-                                // FA-06/07/08 Table "PCM Drum Kit Common" contains multiple entries without a Name
+                                // FA-06/07/08 table "PCM Drum Kit Common" contains multiple entries without a Name
                                 ignoredTableRows += 4;
                                 rowIter += 3;
                                 continue;
@@ -344,10 +344,38 @@ namespace RoMi.Business.Models
 
                             if (Name == "PCM Drum Kit Partial" && startAddress == "01 42")
                             {
-                                // FA-06/07/08 Table "PCM Drum Kit Partial" contains wrong formatted reserved entry
+                                // FA-06/07/08 table "PCM Drum Kit Partial" contains wrong formatted reserved entry
                                 ignoredTableRows++;
                                 rowIter++;
                                 continue;
+                            }
+
+                            throw new Exception("This leaf table row falls through the workarounds for table rows not containing a value range: " + descriptionColumnRaw);
+                        }
+                        else if (deviceName == "INTEGRA-7")
+                        {
+                            if (Name == "PCM Synth Tone Common 2" && descriptionColumnRaw == "(0 - 255)")
+                            {
+                                // INTEGRA-7 table "PCM Synth Tone Common 2" contains a multibyte entry without a Name
+                                ignoredTableRows += 2;
+                                continue;
+                            }
+
+                            if (Name == "PCM Drum Kit Common")
+                            {
+                                if (startAddress == "00 0D" || startAddress == "00 10")
+                                {
+                                    // INTEGRA-7 table "PCM Drum Kit Common" contains entries without a Name
+                                    ignoredTableRows++;
+                                    continue;
+                                }
+
+                                if (startAddress == "00 0E")
+                                {
+                                    // INTEGRA-7 table "PCM Drum Kit Common" contains a multibyte entry without a Name
+                                    ignoredTableRows += 2;
+                                    continue;
+                                }
                             }
 
                             throw new Exception("This leaf table row falls through the workarounds for table rows not containing a value range: " + descriptionColumnRaw);
@@ -462,6 +490,20 @@ namespace RoMi.Business.Models
                                         }
 
                                         if (deviceName == "FA-06/07/08")
+                                        {
+                                            // Multiple entries contain string values that cannot be automatically interpreted  -> ignore, e.g. Velocity Range Lower/Upper
+                                            if (higherMatch == "") // UPPER
+                                            {
+                                                higherMatch = "127";
+                                            }
+
+                                            if (lowerMatch == "") // LOWER
+                                            {
+                                                lowerMatch = "1";
+                                            }
+                                        }
+
+                                        if (deviceName == "INTEGRA-7")
                                         {
                                             // Multiple entries contain string values that cannot be automatically interpreted  -> ignore, e.g. Velocity Range Lower/Upper
                                             if (higherMatch == "") // UPPER

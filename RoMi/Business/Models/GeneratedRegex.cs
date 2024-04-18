@@ -7,7 +7,11 @@ namespace RoMi.Business.Models
         [GeneratedRegex(@"\d+\. (Parameter Address Map|System Exclusive Address Map)")] // parameter address caption
         internal static partial Regex ParameterAddressMapCaption();
 
-        [GeneratedRegex(@"\(Model\s?ID [=\:] ([0-9a-fA-F]{2})H?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)?\)")] // "H" is missing after third byte in AX Edge documentation.
+        /// <summary>
+        /// Regex pattern for extraction of model id bytes.
+        /// "H" is missing after third byte in AX Edge documentation.
+        /// </summary>
+        [GeneratedRegex(@"\(Model\s?ID [=\:] ([0-9a-fA-F]{2})H?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)\)")]
         internal static partial Regex ModelIdBytesRegex();
 
         /// <summary>
