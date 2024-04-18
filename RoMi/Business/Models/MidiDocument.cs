@@ -42,6 +42,9 @@ namespace RoMi.Business.Models
 
             #region Workaround for unexpected table formatting
 
+            // Insert missing new lines:
+            midiDocumentationFileContent = Regex.Replace(midiDocumentationFileContent, @"(?<!\n)(\+-{78}\+)", "\n$1");
+
             switch (DeviceName)
             {
                 case "FA-06/07/08":
@@ -49,6 +52,7 @@ namespace RoMi.Business.Models
                         "(ModelID = 00H 00H 77H)",
                         "(ModelID = 00H 00H 77H)\n");
                     midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                        // Table markers at wrong position
                         "|-------------+----------------------------------------------------------------|\n* System",
                         "+------------------------------------------------------------------------------+\n* System");
 
@@ -62,6 +66,7 @@ namespace RoMi.Business.Models
                         "* [User Pattern]");
                     break;
                 case "FANTOM-6/7/8":
+                    // Table markers at wrong position
                     midiDocumentationFileContent = midiDocumentationFileContent.Replace(
                        "[V-Piano Tone] |\n+------------------------------------------------------------------------------+",
                        "[V-Piano Tone] |\n|------------------------------------------------------------------------------|");
