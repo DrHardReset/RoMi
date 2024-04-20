@@ -313,7 +313,7 @@ public class MidiViewModel : INotifyPropertyChanged
         SelectedMidiPortDetails = MidiPortDetails.FirstOrDefault();
         DoSendSysexToDevice = new AsyncRelayCommand(SendSysexToDevice);
 
-        if (rootTable is null || branchTable1 is null || leafTable is null || values is null)
+        if (rootTable is null || branchTable1 is null || branchTable2 is null || leafTable is null || values is null)
         {
             throw new Exception("Error while initiating comboboxes.");
         }

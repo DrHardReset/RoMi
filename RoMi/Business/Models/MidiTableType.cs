@@ -1,9 +1,8 @@
-﻿namespace RoMi.Business.Models
+﻿namespace RoMi.Business.Models;
+
+public enum MidiTableType
 {
-    public enum MidiTableType
-    {
-        RootTable,
-        BranchTable,
-        LeafTable
-    }
+    RootTable,
+    BranchTable,
+    LeafTable
 }

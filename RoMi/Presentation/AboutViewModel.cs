@@ -1,33 +1,32 @@
 using System.Collections.ObjectModel;
 
-namespace RoMi.Presentation
+namespace RoMi.Presentation;
+
+public partial class AboutViewModel : ObservableObject
 {
-    public partial class AboutViewModel : ObservableObject
+    public ObservableCollection<TopLevelPackage> Packages { get; set; }
+
+    public AboutViewModel(INavigator navigator)
     {
-        public ObservableCollection<TopLevelPackage> Packages { get; set; }
+        DependencyReport? dependencyReport;
 
-        public AboutViewModel(INavigator navigator)
+        try
         {
-            DependencyReport? dependencyReport;
-
-            try
-            {
-                dependencyReport = DependencyReport.Read().Result;
-            }
-            catch (Exception ex)
-            {
-                _ = navigator.ShowMessageDialogAsync(this, title: "Error parsing dependency report file", content: $"{ex}");
-                Packages = new ObservableCollection<TopLevelPackage>();
-                Packages.Add(new TopLevelPackage() { Id = "Package references could not be loaded." });
-                return;
-            }
-
+            dependencyReport = DependencyReport.Read().Result;
+        }
+        catch (Exception ex)
+        {
+            _ = navigator.ShowMessageDialogAsync(this, title: "Error parsing dependency report file", content: $"{ex}");
             Packages = new ObservableCollection<TopLevelPackage>();
+            Packages.Add(new TopLevelPackage() { Id = "Package references could not be loaded." });
+            return;
+        }
 
-            if (dependencyReport != null)
-            {
-                Packages.AddRange(dependencyReport.GetAllDistinctTopLevelPackages());
-            }
+        Packages = new ObservableCollection<TopLevelPackage>();
+
+        if (dependencyReport != null)
+        {
+            Packages.AddRange(dependencyReport.GetAllDistinctTopLevelPackages());
         }
     }
 }
