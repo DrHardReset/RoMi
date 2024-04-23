@@ -11,6 +11,7 @@ public class MidiViewModel : INotifyPropertyChanged
 {
     private readonly INavigator navigator;
 
+    private IMidiOutput? midiOutput = null;
     public List<IMidiPortDetails> MidiPortDetails { get; }
     private IMidiPortDetails? selectedMidiPortDetails;
     public IMidiPortDetails? SelectedMidiPortDetails
@@ -23,9 +24,12 @@ public class MidiViewModel : INotifyPropertyChanged
         {
             selectedMidiPortDetails = value;
             OnPropertyChanged();
+            _ = DisposeMidiOutput();
         }
     }
+
     public ICommand DoSendSysexToDevice { get; }
+    public ICommand OnNavigatedFrom { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
     private readonly MidiDocument midiDocument;
@@ -312,6 +316,7 @@ public class MidiViewModel : INotifyPropertyChanged
         MidiPortDetails = MidiAccessManager.Default.Outputs.ToList();
         SelectedMidiPortDetails = MidiPortDetails.FirstOrDefault();
         DoSendSysexToDevice = new AsyncRelayCommand(SendSysexToDevice);
+        OnNavigatedFrom = new AsyncRelayCommand(DisposeMidiOutput);
 
         if (rootTable is null || branchTable1 is null || branchTable2 is null || leafTable is null || values is null)
         {
@@ -342,11 +347,15 @@ public class MidiViewModel : INotifyPropertyChanged
 
     public async Task SendSysexToDevice()
     {
+        /*
+         * The Uno project suggests to use "Windows.Devices.Midi". But this library does not read the proper MIDI device names for my gear.
+         * The "managed-midi" library does a better job for device names.
+         */
         if (SelectedMidiPortDetails == null)
         {
             if (MidiPortDetails == null || MidiPortDetails.Count == 0)
             {
-                _ = navigator.ShowMessageDialogAsync(this, title: "No MIDI output device available.");
+                _ = navigator.ShowMessageDialogAsync(this, title: "No MIDI output device available. (Going back to main view and reopening MIDI view refreshes the MIDI device list)");
                 return;
             }
 
@@ -358,25 +367,28 @@ public class MidiViewModel : INotifyPropertyChanged
         {
             await Task.Run(async () =>
             {
-                var accessManager = MidiAccessManager.Default;
-                var output = accessManager.OpenOutputAsync(SelectedMidiPortDetails.Id).Result;
-                // Workaround: After first call of OpenOutputAsync the call of output.Send always fails. Closing and reopening the output helps.
-                await output.CloseAsync();
-                output = accessManager.OpenOutputAsync(SelectedMidiPortDetails.Id).Result;
+                if (midiOutput?.Connection != MidiPortConnectionState.Open)
+                {
+                    var accessManager = MidiAccessManager.Default;
+                    midiOutput = await accessManager.OpenOutputAsync(SelectedMidiPortDetails.Id);
+                }
 
-                try
-                {
-                    output.Send(SysExMessage, 0, SysExMessage.Length, 0);
-                }
-                finally
-                {
-                    await output.CloseAsync();
-                }
+                midiOutput.Send(SysExMessage, 0, SysExMessage.Length, 0);
             });
         }
         catch(Exception ex)
         {
             _ = navigator.ShowMessageDialogAsync(this, title: "Sending MIDI message failed.", content: $"Sending MIDI message {SysExMessage.ByteArrayToHexString()} to device {SelectedMidiPortDetails.Name} failed.\n{ex}");
         }
+    }
+
+    private async Task DisposeMidiOutput()
+    {
+        if (midiOutput == null)
+        {
+            return;
+        }
+
+        await midiOutput.CloseAsync();
     }
 }
