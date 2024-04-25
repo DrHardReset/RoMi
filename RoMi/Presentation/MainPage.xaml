@@ -65,6 +65,7 @@
 
       <StackPanel Grid.Row="4"
                   Height="Auto"
+                  Width="Auto"
                   Name="StackPanelPdfInput"
                   Visibility="Collapsed"
                   Margin="0,0,0,30"
@@ -75,8 +76,15 @@
                    HorizontalAlignment="Center"
                    Margin="0,50,0,10"/>
 
+        <ComboBox x:Name="CobDeviceSelection"
+                  ItemsSource="{Binding SupportedDeviceDict}"
+                  DisplayMemberPath="Key"
+                  SelectionChanged="CobDeviceSelection_SelectionChanged"
+                  HorizontalAlignment="Center"
+                  Margin="0,0,0,10"/>
+
         <TextBox x:Name="PdfUrl"
-                 PlaceholderText="https://&lt;enter-a-roland-midi-implementation-pdf-url&gt;"
+                 PlaceholderText="Enter MIDI PDF URL"
                  Text="{Binding DownloadPdfUrl, Mode=TwoWay}"
                  TextWrapping="Wrap"
                  Margin="0,0,0,10"/>
