@@ -8,6 +8,8 @@ public sealed partial class MainPage : Page
 
         // Loaded event does not fire on Android -> use DataContextChanged
         DataContextChanged += MainPage_Loaded;
+
+        CobDeviceSelection.SelectedIndex = 0;
     }
 
     private void MainPage_Loaded(FrameworkElement sender, DataContextChangedEventArgs e)
@@ -34,5 +36,15 @@ public sealed partial class MainPage : Page
             StackPanelPdfInput.Visibility = Visibility.Visible;
             BtnShowHide.Content = "-";
         }
+    }
+
+    private void CobDeviceSelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count == 0)
+        {
+            return;
+        }
+
+        PdfUrl.Text = ((KeyValuePair<string, string>)e.AddedItems[0]).Value;
     }
 }

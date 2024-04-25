@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using RoMi.Assets;
 using Windows.Storage.Pickers;
 
 namespace RoMi.Presentation;
@@ -9,6 +10,8 @@ public partial class MainViewModel : ObservableObject
     private readonly INavigator navigator;
     private readonly IHttpClientFactory httpClientFactory;
     private HttpClient? httpClient = null;
+    [ObservableProperty]
+    public static SortedDictionary<string, string> supportedDeviceDict;
     private readonly string midiDirName = "midi_pdfs";
 
     [ObservableProperty]
@@ -62,6 +65,12 @@ public partial class MainViewModel : ObservableObject
         OnPageLoaded = new AsyncRelayCommand(OpenMidiDirPdfs);
         DoOpenPdfFile = new AsyncRelayCommand(OpenPdfFile);
         DoDownloadPdfFile = new AsyncRelayCommand(DownloadPdfFile);
+
+        SupportedDeviceDict = new SortedDictionary<string, string>()
+        {
+            { "<URLs of officially supported devices>", string.Empty }
+        };
+        SupportedDeviceDict.AddRange(SupportedDevices.Devices.ToDictionary());
     }
 
     private async Task CreateAndOpenMidiDir()
