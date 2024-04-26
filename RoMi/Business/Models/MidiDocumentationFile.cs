@@ -13,32 +13,34 @@ internal static class MidiDocumentationFile
             using PdfDocument document = PdfDocument.Open(pdfPath);
             List<Page> pages = document.GetPages().ToList();
             int pageStartIndex = 0;
-            string deviceName = "null";
+            string? deviceName = null;
 
             if (pages.Count == 0)
             {
                 throw new Exception();
             }
 
-            // Find index of page that contains "Parameter Address Map" chapter
+            // Find model id and index of page that contains "Parameter Address Map" chapter
             for (int i = 0; i < pages.Count; i++)
             {
                 string text = ContentOrderTextExtractor.GetText(pages[i], false);
                 // PDF-parser result contains OS-specific line breaks -> always use linux style
                 text = text.Replace("\r", "");
 
-                if (i == 0) // device name (Model) is expected to be found on first page
+                // 1. Find the model id
+                if (string.IsNullOrEmpty(deviceName))
                 {
                     GroupCollection matchCollection = Regex.Match(text, @"Model:\s*(.*)[\n]+").Groups;
 
                     if (matchCollection.Count != 2)
                     {
-                        throw new Exception("Device name (Model) could not be found.");
+                        continue;
                     }
 
                     deviceName = matchCollection[1].Value;
                 }
 
+                // 2. Find the parameter address map caption
                 if (!GeneratedRegex.ParameterAddressMapCaption().IsMatch(text))
                 {
                     continue;
@@ -46,6 +48,11 @@ internal static class MidiDocumentationFile
 
                 pageStartIndex = i;
                 break;
+            }
+
+            if (string.IsNullOrEmpty(deviceName))
+            {
+                throw new Exception("Device name (Model) could not be found.");
             }
 
             if (pageStartIndex == 0)
