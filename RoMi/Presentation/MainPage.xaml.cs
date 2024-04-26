@@ -1,3 +1,5 @@
+using Windows.ApplicationModel.DataTransfer;
+
 namespace RoMi.Presentation;
 
 public sealed partial class MainPage : Page
@@ -46,5 +48,12 @@ public sealed partial class MainPage : Page
         }
 
         PdfUrl.Text = ((KeyValuePair<string, string>)e.AddedItems[0]).Value;
+    }
+
+    private void CopyToClipboard_Click(object sender, RoutedEventArgs e)
+    {
+        DataPackage dataPackage = new();
+        dataPackage.SetText(MidiFolderPath.Text);
+        Clipboard.SetContent(dataPackage);
     }
 }

@@ -110,11 +110,18 @@
                 Click="BtnShowHide_Click"/>
 
         <TextBlock Text="RoMi MIDI PDF storage:"
-                   HorizontalAlignment="Center"
-                   Margin="0,50,0,0"/>
+                    HorizontalAlignment="Center"
+                    Margin="0,50,0,0"/>
 
-        <TextBlock Text="{Binding LocalMidiPdfFolder.Path}"
-                   HorizontalAlignment="Center"/>
+        <TextBlock x:Name="MidiFolderPath"
+                    Text="{Binding LocalMidiPdfFolder.Path}"
+                    HorizontalAlignment="Center"/>
+
+        <Button Content="📋"
+                Click="CopyToClipboard_Click"
+                HorizontalAlignment="Center"
+                Margin="0,10,0,0"/>
+
       </StackPanel>
 
       <Button Grid.Row="5"
