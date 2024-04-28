@@ -4,7 +4,7 @@ namespace RoMi.Presentation;
 
 public sealed partial class MidiPage : Page
 {
-    MidiViewModel viewModel;
+    MidiViewModel? viewModel;
 
     public MidiPage()
     {
@@ -26,7 +26,7 @@ public sealed partial class MidiPage : Page
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         base.OnNavigatedFrom(e);
-        viewModel.OnNavigatedFrom.Execute(null);
+        viewModel?.OnNavigatedFrom.Execute(null);
     }
 
     private void CopyToClipboard_Click(object sender, RoutedEventArgs e)

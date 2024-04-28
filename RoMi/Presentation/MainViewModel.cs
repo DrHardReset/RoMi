@@ -11,7 +11,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IHttpClientFactory httpClientFactory;
     private HttpClient? httpClient = null;
     [ObservableProperty]
-    public static SortedDictionary<string, string> supportedDeviceDict;
+    public static SortedDictionary<string, string>? supportedDeviceDict;
     private readonly string midiDirName = "midi_pdfs";
 
     [ObservableProperty]

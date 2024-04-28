@@ -33,10 +33,12 @@ internal partial class GeneratedRegex
     /// <summary>
     /// Matches rows that contain "content of interest" for parsing the MIDI sysex infos.
     /// The first collumn of a "content" row must contain an address. Examples:
+    /// <![CDATA[
     /// | 00 00 00 | Program Common [Program Common] |
     /// | : | |
     /// |# 00 0E | 0000 aaaa | |
     /// : : : :
+    /// ]]>
     /// </summary>
     [GeneratedRegex(@"^[\|:]\s*#?\s*[0-9a-fA-F:\s]*[\|:]")]
     internal static partial Regex MiditableContentRow();
@@ -51,10 +53,12 @@ internal partial class GeneratedRegex
 
     /// <summary>
     /// Matches the relevant column and parts of a value description row. Examples:
+    /// <![CDATA[
     /// | | | -3 - 3 |
     /// | | | -24 - +24 [dB] |
     /// | | | -24.0 - +24.0 [dB] |
     /// | | | L64 - 63R |
+    /// ]]>
     /// </summary>
     [GeneratedRegex(@"(L?[-0-9\.]*) - (R?[\+0-9\.]*)\s?(\[.*\])?")]
     internal static partial Regex MidiTableLeafEntryDescriptionRowPartsRegex();
@@ -68,19 +72,23 @@ internal partial class GeneratedRegex
 
     /// <summary>
     /// Matches rows that contain reserved entry addresses. Examples:
+    /// <![CDATA[
     /// | 06 49 | 0aaa aaaa | <Reserved> |
     /// | 00 20 | 0000 aaaa | (Reserved) |
     /// | 00 07 | 0aaa aaaa | (reserve) <*> |
     /// | 00 02 | 0aaa aaaa | reserved(0 - 127) |
     /// | 00 1B | 0aaa aaaa | Reserved |
+    /// ]]>
     /// </summary>
     [GeneratedRegex(@"^[<\(]?[Rr]eserve")]
     internal static partial Regex MidiTableLeafEntryReservedValueDescriptionRegex();
 
     /// <summary>
     /// Matches rows that contain fill up markers. Examples:
+    /// <![CDATA[
     /// | : | | |
     /// : : : :
+    /// ]]>
     /// </summary>
     [GeneratedRegex(@"^[\|:]\s+:")]
     internal static partial Regex MidiTableLeafEntryFillUpRowRegex();
