@@ -16,7 +16,7 @@
         Link="AppHead.xaml.cs" />
     <UnoIcon Include="$(MSBuildThisFileDirectory)Icons\romi_logo.png"
         ForegroundFile="$(MSBuildThisFileDirectory)Icons\romi_logo.png"
-        ForegroundScale="1"
+        AndroidForegroundScale="1"
         WindowsForegroundScale="1"
         Color="#00000000" />
     <UnoSplashScreen
