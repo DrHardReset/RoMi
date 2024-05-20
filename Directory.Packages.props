@@ -12,7 +12,7 @@
     <PackageVersion Include="SkiaSharp.Skottie" Version="2.88.8" />
     <PackageVersion Include="SkiaSharp.Views.Uno.WinUI" Version="2.88.8" />
     <PackageVersion Include="Uno.Core.Extensions.Logging.Singleton" Version="4.0.1" />
-    <PackageVersion Include="Uno.Extensions.Core.WinUI" Version="4.1.14" />
+    <PackageVersion Include="Uno.Extensions.Core.WinUI" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Configuration" Version="4.1.14" />
     <PackageVersion Include="Uno.Extensions.Hosting" Version="4.0.0" />
     <PackageVersion Include="Uno.Extensions.Hosting.WinUI" Version="4.1.14" />
