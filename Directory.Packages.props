@@ -16,7 +16,7 @@
     <PackageVersion Include="Uno.Extensions.Core.WinUI" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Hosting" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Hosting.WinUI" Version="4.1.14" />
-    <PackageVersion Include="Uno.Extensions.Http" Version="4.1.14" />
+    <PackageVersion Include="Uno.Extensions.Http" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Http.WinUI" Version="4.1.14" />
     <PackageVersion Include="Uno.Extensions.Http.Refit" Version="4.1.14" />
     <PackageVersion Include="Uno.Extensions.Localization" Version="4.1.23" />
@@ -27,7 +27,7 @@
     <PackageVersion Include="Uno.Extensions.Navigation.WinUI" Version="4.1.14" />
     <PackageVersion Include="Uno.Extensions.Navigation.Toolkit.WinUI" Version="4.1.14" />
     <PackageVersion Include="Uno.Extensions.Serialization" Version="4.1.23" />
-    <PackageVersion Include="Uno.Extensions.Serialization.Http" Version="4.1.14" />
+    <PackageVersion Include="Uno.Extensions.Serialization.Http" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Serialization.Refit" Version="4.1.23" />
     <PackageVersion Include="Uno.Material.WinUI" Version="5.0.13" />
     <PackageVersion Include="Uno.Dsp.Tasks" Version="1.2.9" />
