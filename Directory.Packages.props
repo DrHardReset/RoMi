@@ -12,15 +12,15 @@
     <PackageVersion Include="SkiaSharp.Skottie" Version="2.88.8" />
     <PackageVersion Include="SkiaSharp.Views.Uno.WinUI" Version="2.88.8" />
     <PackageVersion Include="Uno.Core.Extensions.Logging.Singleton" Version="4.0.1" />
-    <PackageVersion Include="Uno.Extensions.Core.WinUI" Version="4.1.14" />
     <PackageVersion Include="Uno.Extensions.Configuration" Version="4.1.23" />
+    <PackageVersion Include="Uno.Extensions.Core.WinUI" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Hosting" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Hosting.WinUI" Version="4.1.14" />
     <PackageVersion Include="Uno.Extensions.Http" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Http.WinUI" Version="4.1.14" />
     <PackageVersion Include="Uno.Extensions.Http.Refit" Version="4.1.14" />
-    <PackageVersion Include="Uno.Extensions.Localization" Version="4.0.0" />
-    <PackageVersion Include="Uno.Extensions.Localization.WinUI" Version="4.1.14" />
+    <PackageVersion Include="Uno.Extensions.Localization" Version="4.1.23" />
+    <PackageVersion Include="Uno.Extensions.Localization.WinUI" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Logging.OSLog" Version="1.7.0" />
     <PackageVersion Include="Uno.Extensions.Logging.WinUI" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Navigation" Version="4.0.0" />
@@ -36,8 +36,8 @@
     <PackageVersion Include="Uno.Resizetizer" Version="1.4.8" />
     <PackageVersion Include="Uno.UI.Adapter.Microsoft.Extensions.Logging" Version="5.2.132" />
     <PackageVersion Include="Uno.UniversalImageLoader" Version="1.9.36" />
-    <PackageVersion Include="Uno.WinUI" Version="5.2.95" />
-    <PackageVersion Include="Uno.WinUI.Lottie" Version="5.2.95" />
+    <PackageVersion Include="Uno.WinUI" Version="5.2.132" />
+    <PackageVersion Include="Uno.WinUI.Lottie" Version="5.2.108" />
     <PackageVersion Include="Uno.WinUI.DevServer" Version="$(UnoVersion)" />
     <PackageVersion Include="Uno.WinUI.Skia.Linux.FrameBuffer" Version="$(UnoVersion)" />
     <PackageVersion Include="Xamarin.Google.Android.Material" Version="1.10.0.3" />
