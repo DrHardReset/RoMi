@@ -18,7 +18,7 @@
     <PackageVersion Include="Uno.Extensions.Hosting.WinUI" Version="4.1.14" />
     <PackageVersion Include="Uno.Extensions.Http" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Http.WinUI" Version="4.1.14" />
-    <PackageVersion Include="Uno.Extensions.Http.Refit" Version="4.1.14" />
+    <PackageVersion Include="Uno.Extensions.Http.Refit" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Localization" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Localization.WinUI" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Logging.OSLog" Version="1.7.0" />
