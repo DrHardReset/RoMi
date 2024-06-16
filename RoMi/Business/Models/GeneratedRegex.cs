@@ -15,20 +15,47 @@ internal partial class GeneratedRegex
     internal static partial Regex ModelIdBytesRegex();
 
     /// <summary>
-    /// Matches a table including it's table name row. First group is the name, second group is the table. Examples:
-    /// AX-Edge (ModelID = 00H 00H 00 52H)
+    /// Matches a table header row. Example:
     /// +------------------------------------------------------------------------------+
-    ///
+    /// </summary>
+    [GeneratedRegex(@"\+-{78}\+")]
+    internal static partial Regex MidiMapStartMarkerRegex();
+
+    /// <summary>
+    /// Matches a table header row that is not preceded by a newline. Example:
+    /// +------------------------------------------------------------------------------+
+    /// </summary>
+    [GeneratedRegex(@"(?<!\n)(\+-{78}\+)")]
+    internal static partial Regex MidiMapStartMarkerFixRegex();
+
+    /// <summary>
+    /// Matches a table footer row. Example:
+    /// +------------------------------------------------------------------------------+
+    /// </summary>
+    [GeneratedRegex(@"\+-{78}\+", RegexOptions.RightToLeft)]
+    internal static partial Regex MidiMapEndMarkerRegex();
+
+    /// <summary>
+    /// Matches a table name row. Examples:
     /// AX-Edge:
     /// * [Program]
-    /// +------------------------------------------------------------------------------+
     ///
     /// RD-2000:
     /// * Program
-    /// +-------------+----------------------------------------------------------------|
     /// </summary>
-    [GeneratedRegex(@"[\*\s\[]*(.*?)\]?\n(\+[-\+]{78}[\+\|][\s\S]*?\+-{78}\+)", RegexOptions.Multiline)]
-    internal static partial Regex MidiTableNameAndRowsRegex();
+    [GeneratedRegex(@"(?=^\*\s\[?.*?\]?\n)", RegexOptions.Multiline)]
+    internal static partial Regex MidiTableNameRegex();
+
+    /// <summary>
+    /// Extracts a table name. Examples:
+    /// AX-Edge:
+    /// * [Program]
+    ///
+    /// RD-2000:
+    /// * Program
+    /// </summary>
+    [GeneratedRegex(@"\* \[?(.*?)\]?\n")]
+    internal static partial Regex MidiTableNameExtractRegex();
 
     /// <summary>
     /// Matches rows that contain "content of interest" for parsing the MIDI sysex infos.
@@ -40,7 +67,7 @@ internal partial class GeneratedRegex
     /// : : : :
     /// ]]>
     /// </summary>
-    [GeneratedRegex(@"^[\|:]\s*#?\s*[0-9a-fA-F:\s]*[\|:]")]
+    [GeneratedRegex(@"^[\|:]\s*?#?\s*[0-9a-fA-F:\s]*?[\|:].*[\|:]", RegexOptions.Multiline)]
     internal static partial Regex MiditableContentRow();
 
     /// <summary>
@@ -80,7 +107,7 @@ internal partial class GeneratedRegex
     /// | 00 1B | 0aaa aaaa | Reserved |
     /// ]]>
     /// </summary>
-    [GeneratedRegex(@"^[<\(]?[Rr]eserve")]
+    [GeneratedRegex(@"(^[<\(]?[Rr]eserve|N/A\(fixed value\))")]
     internal static partial Regex MidiTableLeafEntryReservedValueDescriptionRegex();
 
     /// <summary>

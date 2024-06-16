@@ -30,33 +30,33 @@ public class MidiDocument
         // Find the model bytes (4 for AX Edge, 3 for RD2000). Last match group ís empty for RD2000 -> check for not empty results
         ModelIdBytes = modelIdByteStrings.Cast<Group>().Skip(1).Where(o => o.Value != string.Empty).Select(o => o.Value.HexStringToByte()).ToArray();
 
-        Match match = GeneratedRegex.ModelIdBytesRegex().Match(midiDocumentationFileContent);
+        Match match = GeneratedRegex.MidiMapStartMarkerRegex().Match(midiDocumentationFileContent);
 
         if (!match.Success)
         {
-            throw new NotSupportedException("The MIDI PDF does not contain a 'Parameter Address Map' section.");
+            throw new NotSupportedException("The MIDI PDF does not seem to contain a 'Parameter Address Map' section.");
         }
 
         int startIndex = match.Index;
-        midiDocumentationFileContent = midiDocumentationFileContent[startIndex..];
+
+        match = GeneratedRegex.MidiMapEndMarkerRegex().Match(midiDocumentationFileContent);
+
+        if (!match.Success)
+        {
+            throw new NotSupportedException("The end of the 'Parameter Address Map' section could not be found.");
+        }
+
+        int endIndex = match.Index;
+        midiDocumentationFileContent = midiDocumentationFileContent[startIndex..endIndex];
 
         #region Workaround for unexpected table formatting
 
         // Insert missing new lines:
-        midiDocumentationFileContent = Regex.Replace(midiDocumentationFileContent, @"(?<!\n)(\+-{78}\+)", "\n$1");
+        midiDocumentationFileContent = GeneratedRegex.MidiMapStartMarkerFixRegex().Replace(midiDocumentationFileContent, "\n$1");
 
+        // Fix more PDF issues:
         switch (DeviceName)
         {
-            case "FA-06/07/08":
-                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
-                    "(ModelID = 00H 00H 77H)",
-                    "(ModelID = 00H 00H 77H)\n");
-                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
-                    // Table markers at wrong position
-                    "|-------------+----------------------------------------------------------------|\n* System",
-                    "+------------------------------------------------------------------------------+\n* System");
-
-                throw new NotSupportedException("FA-06/07/08 is currently not supported as the table mapping is not clear for some entries.");
             case "JUPITER-X/Xm":
                 midiDocumentationFileContent = midiDocumentationFileContent.Replace(
                     "* [Setup]\n9\nJUPITER-X/Xm MIDI Implementation",
@@ -65,31 +65,19 @@ public class MidiDocument
                     "* [User Pattern]\n16\nJUPITER-X/Xm MIDI Implementation",
                     "* [User Pattern]");
                 break;
-            case "FANTOM-6/7/8":
-                // Table markers at wrong position
-                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
-                   "[V-Piano Tone] |\n+------------------------------------------------------------------------------+",
-                   "[V-Piano Tone] |\n|------------------------------------------------------------------------------|");
-                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
-                   "[EXSN Tone] |\n|-------------+----------------------------------------------------------------|",
-                   "[EXSN Tone] |\n+------------------------------------------------------------------------------+");
-                break;
         }
-        
+
         #endregion
 
-        // Find and parse tables
-        MatchCollection matchCollection = GeneratedRegex.MidiTableNameAndRowsRegex().Matches(midiDocumentationFileContent);
+        string[] tablesRawSplit = GeneratedRegex.MidiTableNameRegex().Split(midiDocumentationFileContent);
 
-        if (matchCollection.Count == 0)
+        if (tablesRawSplit.Length <= 0)
         {
             throw new Exception("The tables could not be parsed.");
         }
 
-        for (int i = 0; i < matchCollection.Count; i++)
+        for (int i = 0; i < tablesRawSplit.Length; i++)
         {
-            Match tableMatch = matchCollection[i];
-
             // Get the name of the table. Use the device name for root table as for some devices (e.g. RD2000) no header for first table is provided.
             string name;
 
@@ -99,14 +87,23 @@ public class MidiDocument
             }
             else
             {
-                name = tableMatch.Groups[1].Value.Trim();
+                match = GeneratedRegex.MidiTableNameExtractRegex().Match(tablesRawSplit[i]);
+
+                if (!match.Success)
+                {
+                    throw new NotSupportedException("Failed to parse table name header.");
+                }
+
+                name = match.Groups[1].Value.Trim();
             }
 
-            // split single Rows
-            List<string> dataRows = tableMatch.Groups[2].Value.Split("\n").ToList();
+            // split single Rows and keep only relevant rows that contain whether start addresses or value descriptions:
+            List<string> dataRows = GeneratedRegex.MiditableContentRow().Matches(tablesRawSplit[i]).Select(x => x.Value.Trim()).ToList();
 
-            // keep only relevant rows that contain whether start addresses or value descriptions:
-            dataRows.RemoveAll(x => !GeneratedRegex.MiditableContentRow().IsMatch(x));
+            if (dataRows.Count == 0)
+            {
+                throw new Exception($"No useful rows could be found in table '{name}'.");
+            }
 
             MidiTable midiTable = new MidiTable(deviceName, name, dataRows);
             MidiTables.Add(midiTable);

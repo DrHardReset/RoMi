@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using Uno;
 
 namespace RoMi.Business.Models;
 
@@ -23,7 +22,7 @@ public class MidiTables : List<MidiTable>
 
         if (index < 0)
         {
-            throw new KeyNotFoundException("Table index '" + name + "' could not be found in table list.");
+            throw new KeyNotFoundException("Table index for '" + name + "' could not be found in table list.");
         }
 
         return index;
@@ -75,7 +74,7 @@ public class MidiTables : List<MidiTable>
                         if (leafName.StartsWith("Temporary"))
                         {
                             int temporaryEntryNameIndex = GetTableIndexByName(leafName.Replace("Temporary ", ""));
-                            this[temporaryEntryNameIndex].Name = "Temporary " + leafName;
+                            this[temporaryEntryNameIndex].Name = leafName;
                         }
                     } catch (KeyNotFoundException)
                     {
