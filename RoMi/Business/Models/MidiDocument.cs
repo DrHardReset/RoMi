@@ -109,7 +109,7 @@ public class MidiDocument
             MidiTables.Add(midiTable);
         }
 
-        MidiTables.RemoveTablesWithMissingSubTables(deviceName);
+        MidiTables.FixTablesWithMissingSubTables(deviceName);
     }
 
     internal static byte[] CalculateSysex(byte[] modelIdBytes, byte deviceId, MidiTableBranchEntry root, MidiTableBranchEntry branch1, MidiTableBranchEntry branch2, MidiTableLeafEntry leafEntry, int value)

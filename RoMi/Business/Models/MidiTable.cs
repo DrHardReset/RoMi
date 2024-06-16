@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Data;
 using RoMi.Business.Converters;
-using System.Collections;
 
 namespace RoMi.Business.Models;
 
@@ -13,12 +12,6 @@ public class MidiTable : List<MidiTableEntry>
     public MidiTable(string deviceName, string tableName, List<string>? data)
     {
         Name = tableName;
-
-        if ((deviceName == "FANTOM-06/07/08" || deviceName == "FANTOM-6/7/8") && Name == "System Control")
-        {
-            // Entry "Setup" of table "System Controller" references table 'System Controller' which is named "System Control" -> rename
-            Name = "System Controller";
-        }
 
         if (data == null)
         {

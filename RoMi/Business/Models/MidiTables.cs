@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace RoMi.Business.Models;
 
@@ -31,7 +32,7 @@ public class MidiTables : List<MidiTable>
     /// <summary>
     /// Removes tables which's child tables do not exist. Example: AX-Edge table "Editor" references table [Edit] which does not exist in documentation.
     /// </summary>
-    public void RemoveTablesWithMissingSubTables(string deviceName)
+    public void FixTablesWithMissingSubTables(string deviceName)
     {
         for (int midiTableIndex = 0; midiTableIndex < Count; midiTableIndex++)
         {
@@ -63,6 +64,13 @@ public class MidiTables : List<MidiTable>
                         // Root table entry "Editor" does not reference a table
                         this[midiTableIndex].RemoveAt(midiTableEntryIndex);
                         continue;
+                    }
+
+                    if ((deviceName == "FANTOM-06/07/08" || deviceName == "FANTOM-6/7/8") && leafName == "System Controller")
+                    {
+                        // Entry "Setup" of table "System Controller" references table 'System Controller' which is named "System Control" -> rename
+                        midiTableBranchEntry.LeafName = "System Control";
+                        GetTableIndexByName(midiTableBranchEntry.LeafName);
                     }
 
                     try
