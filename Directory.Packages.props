@@ -36,8 +36,8 @@
     <PackageVersion Include="Uno.Resizetizer" Version="1.4.8" />
     <PackageVersion Include="Uno.UI.Adapter.Microsoft.Extensions.Logging" Version="5.2.139" />
     <PackageVersion Include="Uno.UniversalImageLoader" Version="1.9.36" />
-    <PackageVersion Include="Uno.WinUI" Version="5.2.139" />
-    <PackageVersion Include="Uno.WinUI.Lottie" Version="5.2.108" />
+    <PackageVersion Include="Uno.WinUI" Version="5.3.114" />
+    <PackageVersion Include="Uno.WinUI.Lottie" Version="5.3.114" />
     <PackageVersion Include="Uno.WinUI.DevServer" Version="$(UnoVersion)" />
     <PackageVersion Include="Uno.WinUI.Skia.Linux.FrameBuffer" Version="$(UnoVersion)" />
     <PackageVersion Include="Xamarin.Google.Android.Material" Version="1.10.0.3" />
