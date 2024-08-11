@@ -41,25 +41,7 @@ public class MidiTableLeafEntry : MidiTableEntry
 
         if (values.Count > 0 && completeBitmask < values.Last())
         {
-            /*
-             * There are table entries with wrong bitmasks:
-             * | 00 09 | 0000 000a | Click Type (0 - 3) |
-             * Try to correct them at least for single byte entries by analyzing the value list.
-             */
-
-            if (ValueDataByteBitMasks.Count > 1)
-            {
-                throw new Exception($"The highest entry of the value list '{values.Last()}' for {description} does not fit to bitmask {completeBitmask}. As thsi is a multi nyte entry no correction is implemented.");
-            }
-
-            uint newBitmask = Bitmask((int)Math.Log(values.Last(), 2) + 1);
-
-            if (newBitmask < values.Last())
-            {
-                throw new NotSupportedException($"The highest entry of the value list '{values.Last()}' for {description} does not fit to bitmask {completeBitmask}.");
-            }
-
-            ValueDataByteBitMasks[0] = newBitmask;
+            throw new Exception($"The amount of {values.Count} values exceeds the corresponding bitmask '{string.Join("", ValueDataByteBitMasks)}'.");
         }
 
         Values = values;

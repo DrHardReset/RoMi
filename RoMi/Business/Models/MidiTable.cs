@@ -9,33 +9,103 @@ public class MidiTable : List<MidiTableEntry>
     public MidiTableType MidiTableType { get; set; }
     public string Name { get; set; } = string.Empty;
 
-    public MidiTable(string deviceName, string tableName, List<string>? data)
+    /// <summary>
+    /// Constructor for dummy entries in the viewmodel.
+    /// </summary>
+    public MidiTable() { }
+
+    public MidiTable(MidiTableType midiTableType, string deviceName, string tableName, List<string> data)
     {
         Name = tableName;
 
-        if (data == null)
+        switch (midiTableType)
         {
-            return;
-        }
-
-        string startAddress1 = data[0].Split("|")[1].Replace(" ", "");
-
-        switch (startAddress1.Length)
-        {
-            case 8: // 00000000
-                MidiTableType = MidiTableType.RootTable;
+            case MidiTableType.RootTable:
                 ParseBranchTableRows(data);
                 break;
-            case 6: // 000000
-                MidiTableType = MidiTableType.BranchTable;
+            case MidiTableType.BranchTable:
                 ParseBranchTableRows(data);
                 break;
             default:
-            case 4: // 0000
-            case 5: // #0000
-                MidiTableType = MidiTableType.LeafTable;
+            case MidiTableType.LeafTable:
                 ParseLeafTableRows(deviceName, data);
                 break;
+        }
+    }
+
+    public static MidiValueList ParseDescriptionTable(string tableName, List<string> tableRows)
+    {
+        MidiValueList midiValueList = new();
+
+        for (int rowIter = 0; rowIter < tableRows.Count; rowIter++)
+        {
+            string currentRow = tableRows[rowIter];
+
+            try
+            {
+                string[] currentRowParts = SplitDataRowParts(currentRow);
+                string description;
+                string? category = null;
+
+                switch (currentRowParts.Length)
+                {
+                    case 2:
+                        description = currentRowParts[1];
+                        break;
+                    case 3:
+                        description = currentRowParts[2];
+                        category = currentRowParts[1];
+                        break;
+                    default:
+                        throw new Exception("MIDI value row does not consist of at 2 or 3 columns.");
+                }
+
+                if (!int.TryParse(currentRowParts[0], out int value))
+                {
+                    throw new Exception($"First column does not contain an integer: {currentRowParts[0]}");
+                }
+
+                MidiValue midiValue = new MidiValue(value, description, category);
+                midiValueList.Add(midiValue);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Parsing of value table row '{currentRow}' failed.", ex);
+            }
+        }
+
+        if (midiValueList.Count == 0)
+        {
+            throw new Exception($"Value description table '{tableName}' could not be parsed.");
+        }
+
+        return midiValueList;
+    }
+
+    private static string[] SplitDataRowParts(string dataRow)
+    {
+        try
+        {
+            string dataRowCleaned = dataRow;
+
+            if (dataRow.StartsWith("|") && dataRow.EndsWith("|"))
+            {
+                // Remove leading and trailing "|"
+                dataRowCleaned = dataRowCleaned[1..^1];
+            }
+
+            string[] rowParts = dataRowCleaned.Split("|").Select(x => x.Trim(' ')).ToArray();
+
+            if (rowParts.Length < 2)
+            {
+                throw new NotSupportedException($"Splitted row should consist of at least 2 parts but conists of {rowParts.Length}");
+            }
+
+            return rowParts;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Table row could not be splitted: {dataRow}", ex);
         }
     }
 
@@ -170,6 +240,22 @@ public class MidiTable : List<MidiTableEntry>
 
                 if (currentRowParts[0] == string.Empty)
                 {
+                    if (deviceName == "GT-1000 / GT-1000CORE")
+                    {
+                        switch (Name)
+                        {
+                            case "SystemControl2":
+                                // there are hint rows that must be skipped
+                                continue;
+                            case "PcmapPc":
+                                // there are 2 separate value description rows for the two devices which are currently ignored
+                                continue;
+                            case "PatchEfct":
+                                // there are hint rows that must be skipped
+                                continue;
+                        }
+                    }
+
                     throw new Exception("First row part must not be empty.");
                 }
 
@@ -282,6 +368,14 @@ public class MidiTable : List<MidiTableEntry>
                     description = match.Groups[1].Value.Trim();
                     int valueLow = Convert.ToInt32(match.Groups[2].Value);
                     int valueHigh = Convert.ToInt32(match.Groups[3].Value);
+
+                    if (valueHigh >= 2147483591 - 1)
+                    {
+                        // TODO: MidiTableLeafEntry.AssembleValueList needs to be redesigned as all value lists get completely initialized in RAM regardless if used later or not. Maybe just store min and max
+                        // TODO: So far only "GT-1000 / GT-1000CORE" table "PatchLed" contains a value that is bigger than 2147483590.
+                        valueHigh = 100;
+                    }
+
                     values = MidiTableLeafEntry.AssembleValueList(valueLow, valueHigh);
                 }
                 else
@@ -542,6 +636,16 @@ public class MidiTable : List<MidiTableEntry>
                     valueDescriptions = values.Select(x => x.ToString()).ToList();
                 }
 
+                if (deviceName == "AX-Edge" && Name == "Tone Synth Partial" && description == "Click Type")
+                {
+                    /*
+                    * The table entry has a wrong bitmask:
+                    * | 00 09 | 0000 000a | Click Type (0 - 3) |
+                    * Correct it.
+                    */
+                    valueDataBitsPerByte = ["0000 00aa"];
+                }
+
                 MidiTableLeafEntry leafEntry = new MidiTableLeafEntry(startAddress, description, valueDataBitsPerByte, values, valueDescriptions);
 
                 if (!this.Any(x => x.StartAddress.Equals(leafEntry.StartAddress)))
@@ -577,6 +681,13 @@ public class MidiTable : List<MidiTableEntry>
                 }
 
                 nextFillUpRow = tableRows[++rowIter];
+
+                if (IsFillUpRow(nextFillUpRow))
+                {
+                    // GT-1000 / GT-1000CORE uses double fill up rows in table "PcmapPc"
+                    nextFillUpRow = tableRows[++rowIter];
+                }
+
                 string[] nextFillUpRowParts = SplitDataRowParts(nextFillUpRow);
 
                 if (rowIter >= tableRows.Count)
@@ -591,6 +702,11 @@ public class MidiTable : List<MidiTableEntry>
                 {
                     // This is the first row of a "big value" entry -> data byte count needs to be determined
                     nextStartAddress = nextFillUpRowParts[0][2..];
+                }
+
+                if (string.IsNullOrWhiteSpace(nextStartAddress))
+                {
+                    throw new Exception("No valid startaddress for fill up entry could be parsed off row: " + nextFillUpRow);
                 }
 
                 // do the actual fill up:
@@ -653,33 +769,6 @@ public class MidiTable : List<MidiTableEntry>
             {
                 throw new Exception("Parsing leaf table row '" + currentRow + "' failed.", ex);
             }
-        }
-    }
-
-    private string[] SplitDataRowParts(string dataRow)
-    {
-        try
-        {
-            string dataRowCleaned = dataRow;
-
-            if (dataRow.StartsWith("|") && dataRow.EndsWith("|"))
-            {
-                // Remove leading and trailing "|"
-                dataRowCleaned = dataRowCleaned[1..^1];
-            }
-
-            string[] rowParts = dataRowCleaned.Split("|").Select(x => x.Trim(' ')).ToArray();
-
-            if (rowParts.Length < 2)
-            {
-                throw new NotSupportedException($"Splitted row should consist of at least 2 parts but conists of {rowParts.Length}");
-            }
-
-            return rowParts;
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Table row could not be splitted: {dataRow}", ex);
         }
     }
 
@@ -778,6 +867,10 @@ public class MidiTable : List<MidiTableEntry>
                      */
                     return 7;
             }
+        }
+        if (deviceName == "GT-1000 / GT-1000CORE" && Name == "PatchStompBox2")
+        {
+            return 3;
         }
 
         return 0;

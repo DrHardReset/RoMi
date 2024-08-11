@@ -1,4 +1,4 @@
-﻿namespace RoMi.Business.Models;
+namespace RoMi.Business.Models;
 
 public enum MidiTableType
 {

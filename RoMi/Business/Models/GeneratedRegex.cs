@@ -43,7 +43,10 @@ internal partial class GeneratedRegex
     /// RD-2000:
     /// * Program
     /// </summary>
-    [GeneratedRegex(@"(?=^\*\s\[?.*?\]?\n)", RegexOptions.Multiline)]
+    ///
+    /// GT-1000 value description table:
+    /// *1 KNOB SETTING TABLE
+    [GeneratedRegex(@"(?=^\*\s\[?.*?\]?\n|^\*\d.*\n)", RegexOptions.Multiline)]
     internal static partial Regex MidiTableNameRegex();
 
     /// <summary>
@@ -54,7 +57,10 @@ internal partial class GeneratedRegex
     /// RD-2000:
     /// * Program
     /// </summary>
-    [GeneratedRegex(@"\* \[?(.*?)\]?\n")]
+    ///
+    /// GT-1000 value description table:
+    /// *1 KNOB SETTING TABLE
+    [GeneratedRegex(@"\* \[?(.*?)\]?\n|(\*\d [\w\s]+)\n")]
     internal static partial Regex MidiTableNameExtractRegex();
 
     /// <summary>
@@ -67,15 +73,16 @@ internal partial class GeneratedRegex
     /// : : : :
     /// ]]>
     /// </summary>
-    [GeneratedRegex(@"^[\|:]\s*?#?\s*[0-9a-fA-F:\s]*?[\|:].*[\|:]", RegexOptions.Multiline)]
+    [GeneratedRegex(@"^[\|:]#?\s*[0-9a-fA-F:\s]*?[\|:].*[\|:]", RegexOptions.Multiline)]
     internal static partial Regex MiditableContentRow();
 
     /// <summary>
     /// Matches rows that contain a leaf entry description. Examples:
     /// | 00 1A | 0000 bbbb | Mic Noise Supressor Threshold (-32 - 64) |
     /// | 00 03 | 0000 dddd | Master Tune (24 - 2024) |
+    /// | 00 00 | 00aa aaaa | Manual Num1 Function (DOWN on GT-1000CORE)(0 - 59) |
     /// </summary>
-    [GeneratedRegex(@"(.*) \((-?\d+) -\s?(\d+)\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    [GeneratedRegex(@"(.*)[ )]\((-?\d+) -\s?(\d+)\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     internal static partial Regex MidiTableLeafEntryDescriptionRegex();
 
     /// <summary>
@@ -125,7 +132,9 @@ internal partial class GeneratedRegex
     /// | 00 00 | 0aaa aaaa | volume 1 (14 - 64) |
     /// -> the 1 of 'volume 1'
     /// The first digit found in the description is taken.
+    /// Another example:
+    /// |       00 03 | 0000 dddd | Program Change#1                         (0 - 499) |
     /// </summary>
-    [GeneratedRegex(@"[a-zA-z\s\[(](\d+).*?$")]
+    [GeneratedRegex(@"[a-zA-z\s\[(#](\d+).*?$")]
     internal static partial Regex MidiTableEntryFillUpDescriptionNumberRegex();
 }

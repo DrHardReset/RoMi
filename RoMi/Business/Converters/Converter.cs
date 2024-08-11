@@ -53,20 +53,29 @@ public static class Converter
     /// </summary>
     public static int ToIntegerRepresentation(this byte[] givenBytes, int MaxAddressByteCount)
     {
-        int sum = 0;
+        //int sum = 0;
+
+        //for (int i = 0; i < MaxAddressByteCount; i++)
+        //{
+        //    if (i == MaxAddressByteCount - 1)
+        //    {
+        //        sum += givenBytes[i];
+        //        break;
+        //    }
+
+        //    sum += givenBytes[i] * Convert.ToInt32(Math.Pow(128, MaxAddressByteCount - 1 - i));
+        //}
+
+        //return sum;
+
+        int result = 0;
 
         for (int i = 0; i < MaxAddressByteCount; i++)
         {
-            if (i == MaxAddressByteCount - 1)
-            {
-                sum += givenBytes[i];
-                break;
-            }
-
-            sum += givenBytes[i] * Convert.ToInt32(Math.Pow(128, MaxAddressByteCount - 1 - i));
+            result += givenBytes[i] << (7 * (MaxAddressByteCount - 1 - i));
         }
 
-        return sum;
+        return result;
     }
 
     /// <summary>
@@ -80,17 +89,40 @@ public static class Converter
     /// <param name="value">The integer value to convert.</param>
     public static byte[] From7bitIntegerRepresentation(this int value, int MaxAddressByteCount)
     {
-        byte[] bytes = new byte[MaxAddressByteCount];
+        //byte[] bytes = new byte[MaxAddressByteCount];
 
-        for (int i = 0; i < MaxAddressByteCount; i++)
+        //for (int i = 0; i < MaxAddressByteCount; i++)
+        //{
+        //    if (i == MaxAddressByteCount - 1)
+        //    {
+        //        bytes[i] = (byte)(value % 128);
+        //        break;
+        //    }
+
+        //    bytes[i] = Convert.ToByte(value / Math.Pow(128, MaxAddressByteCount - 1 - i));
+        //}
+
+        //return bytes;
+
+        if (value < 0)
         {
-            if (i == MaxAddressByteCount - 1)
-            {
-                bytes[i] = (byte)(value % 128);
-                break;
-            }
+            throw new ArgumentOutOfRangeException(nameof(value), "Der Dezimalwert muss nicht-negativ sein.");
+        }
 
-            bytes[i] = Convert.ToByte(value / Math.Pow(128, MaxAddressByteCount - 1 - i));
+        var requiredLength = (int)Math.Ceiling(Math.Log(value + 1, 128));
+
+        if (requiredLength > MaxAddressByteCount)
+        {
+            throw new ArgumentException("Der Dezimalwert kann nicht in das angegebene Array umgewandelt werden, da das Array zu klein ist.");
+        }
+
+        var bytes = new byte[MaxAddressByteCount];
+        int index = MaxAddressByteCount - 1;
+
+        while (value > 0 && index >= 0)
+        {
+            bytes[index--] = (byte)(value & 0x7F); // 0x7F = 127, maskiert die unteren 7 Bits
+            value >>= 7;
         }
 
         return bytes;

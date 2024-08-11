@@ -1,6 +1,7 @@
 using System.Data;
 using System.Text.RegularExpressions;
 using RoMi.Business.Converters;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RoMi.Business.Models;
 
@@ -19,6 +20,7 @@ public class MidiDocument
     public MidiDocument(string deviceName, string midiDocumentationFileContent)
     {
         DeviceName = deviceName;
+        List<MidiValueList> midiValueLists = new List<MidiValueList>();
 
         GroupCollection modelIdByteStrings = GeneratedRegex.ModelIdBytesRegex().Match(midiDocumentationFileContent).Groups;
 
@@ -65,6 +67,12 @@ public class MidiDocument
                     "* [User Pattern]\n16\nJUPITER-X/Xm MIDI Implementation",
                     "* [User Pattern]");
                 break;
+            case "GT-1000 / GT-1000CORE":
+                // as it is getting harder to find a regex that works for all PDFs we just delete this content as it will match wrongly.
+                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                    "* AIRD PREAMP (valeu 1018-1023) automatically change each target to the AIRD\nPREAMP 1 or 2 whether which one is active.",
+                    "");
+                break;
         }
 
         #endregion
@@ -94,18 +102,70 @@ public class MidiDocument
                     throw new NotSupportedException("Failed to parse table name header.");
                 }
 
-                name = match.Groups[1].Value.Trim();
+                if (match.Groups[1].Success)
+                {
+                    name = match.Groups[1].Value.Trim();
+                }
+                else if (match.Groups[2].Success)
+                {
+                    name = match.Groups[2].Value.Trim();
+                }
+                else
+                {
+                    throw new NotImplementedException("Failed to parse table name header although regex matched.");
+                }
             }
 
             // split single Rows and keep only relevant rows that contain whether start addresses or value descriptions:
             List<string> dataRows = GeneratedRegex.MiditableContentRow().Matches(tablesRawSplit[i]).Select(x => x.Value.Trim()).ToList();
+
+            if (deviceName == "GT-1000 / GT-1000CORE")
+            {
+                if (name == "PatchEfct")
+                {
+                    // Table contains empty rows which are currently not filtered by GeneratedRegex.MiditableContentRow.
+                    dataRows.Remove(x => x == "|             |           |                                                    |");
+                }
+
+                if (dataRows.Count == 0)
+                {
+                    // Table "*4 CHAIN ELEMENT TABLE" is followed by multiple comment rows which need to be ignored, e.g.:
+                    continue;
+                }
+            }
 
             if (dataRows.Count == 0)
             {
                 throw new Exception($"No useful rows could be found in table '{name}'.");
             }
 
-            MidiTable midiTable = new MidiTable(deviceName, name, dataRows);
+            string startAddress1 = dataRows[0].Split("|")[1].Replace(" ", "");
+
+            if (startAddress1 == "0" || (!startAddress1.StartsWith("0") && !startAddress1.StartsWith("#")))
+            {
+                // TODO: Use the valuelist und leaftable
+                midiValueLists.Add(MidiTable.ParseDescriptionTable(name, dataRows));
+                continue;
+            }
+
+            MidiTableType midiTableType;
+
+            switch (startAddress1.Length)
+            {
+                case 8: // 00000000
+                    midiTableType = MidiTableType.RootTable;
+                    break;
+                case 6: // 000000
+                    midiTableType = MidiTableType.BranchTable;
+                    break;
+                default:
+                case 4: // 0000
+                case 5: // #0000
+                    midiTableType = MidiTableType.LeafTable;
+                    break;
+            }
+
+            MidiTable midiTable = new MidiTable(midiTableType, deviceName, name, dataRows);
             MidiTables.Add(midiTable);
         }
 
