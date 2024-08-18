@@ -376,6 +376,25 @@ public class MidiTable : List<MidiTableEntry>
                         valueHigh = 100;
                     }
 
+                    if (deviceName == "AX-Edge")
+                    {
+                        if (Name == "Tone Synth Partial" && description == "Click Type")
+                        {
+                            /*
+                            * The table entry has a wrong bitmask:
+                            * | 00 09 | 0000 000a | Click Type (0 - 3) |
+                            * Correct it.
+                            */
+                            valueDataBitsPerByte = ["0000 00aa"];
+                        }
+
+                        if (Name == "System Control" && description == "Assignable Button(5) Function" && this.FirstOrDefault(x => x.Description == "Assignable Button(5) Function") != null)
+                        {
+                            // Table contains duplicate entries for "Assignable Button(5) Function".
+                            continue;
+                        }
+                    }
+
                     values = MidiTableLeafEntry.AssembleValueList(valueLow, valueHigh);
                 }
                 else
@@ -474,7 +493,7 @@ public class MidiTable : List<MidiTableEntry>
                 }
 
                 // Check and parse separate value description rows if they exist:
-                List<string> valueDescriptions = new List<string>();
+                List<string> valueDescriptions = [];
 
                 if (rowIter < tableRows.Count)
                 {
@@ -613,6 +632,7 @@ public class MidiTable : List<MidiTableEntry>
                                         unit = " " + match.Groups[3].Value;
                                     }
 
+                                    // TODO: This should be moved to getter of valueDescriptions
                                     valueDescriptions = MidiTableLeafEntry.AssembleDescriptionValues(valueDescriptionLow, valueDescriptionHigh, values.Count, unit);
                                 }
                             }
@@ -620,39 +640,26 @@ public class MidiTable : List<MidiTableEntry>
                     }
                 }
 
-                if (valueDescriptions.Count == 0)
-                {
-                    // There is no extra row with value descriptions or description values could not be parsed -> take the plain values
-                    valueDescriptions = values.Select(x => x.ToString()).ToList();
-                }
+                MidiTableLeafEntry leafEntry;
 
-                /*
-                 * Sometimes there are mistakes in the documentation like missing comas. so that the number of value descriptions does not match the number of values.
-                 * In this case we use the values as value descriptions.
-                 */
-
-                if (values.Count != valueDescriptions.Count)
-                {
-                    valueDescriptions = values.Select(x => x.ToString()).ToList();
-                }
-
-                if (deviceName == "AX-Edge" && Name == "Tone Synth Partial" && description == "Click Type")
+                if (valueDescriptions.Count == 0 || values.Count != valueDescriptions.Count)
                 {
                     /*
-                    * The table entry has a wrong bitmask:
-                    * | 00 09 | 0000 000a | Click Type (0 - 3) |
-                    * Correct it.
-                    */
-                    valueDataBitsPerByte = ["0000 00aa"];
+                     * There is no extra row with value descriptions or description values could not be parsed.
+                     *
+                     * or
+                     *
+                     * Sometimes there are mistakes in the documentation like missing comas so that the number of value descriptions does not match the number of values.
+                     */
+                    valueDescriptions = values.Select(x => x.ToString()).ToList();
+                    leafEntry = new MidiTableLeafEntry(startAddress, description, valueDataBitsPerByte, values, valueDescriptions);
                 }
-
-                MidiTableLeafEntry leafEntry = new MidiTableLeafEntry(startAddress, description, valueDataBitsPerByte, values, valueDescriptions);
-
-                if (!this.Any(x => x.StartAddress.Equals(leafEntry.StartAddress)))
+                else
                 {
-                    // Documentation mistakenly contains duplicate entries, e.g.: [System Control] Startaddress 00 09 -> skip them
-                    Add(leafEntry);
+                    leafEntry = new MidiTableLeafEntry(startAddress, description, valueDataBitsPerByte, values, valueDescriptions);
                 }
+
+                Add(leafEntry);
 
                 if (rowIter >= tableRows.Count)
                 {

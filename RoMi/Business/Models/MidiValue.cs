@@ -8,6 +8,8 @@ public class MidiValue
     public string Description { get; set; }
     /// <summary>The category of the MIDI value (only available if separate description tables exist).</summary>
     public string? Category { get; set; } = null;
+    /// <summary>The unit for the desciption value.</summary>
+    public string? Unit { get; set; } = null;
 
     public MidiValue(int value, string description, string? category)
     {

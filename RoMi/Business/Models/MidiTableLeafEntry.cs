@@ -11,7 +11,9 @@ public class MidiTableLeafEntry : MidiTableEntry
     /// </summary>
     public List<uint> ValueDataByteBitMasks { get; set; }
     public List<int> Values { get; set; } = new List<int>();
-    public List<string> ValueDescriptions { get; set; } = new List<string>();
+    /// <summary>Holds the name of the table which contains the value descriptions. <see cref="MidiValueList"/></summary>
+    public string? ValueDescriptionTableRefName { get; set; } = null;
+    public List<string> ValueDescriptions { get; set; } = [];
     /// <summary>Returns a bitmask with "bitCount" bits set to 1.</summary>
     private Func<int, uint> Bitmask = (bitCount) =>  (uint)((1 << bitCount) - 1);
 

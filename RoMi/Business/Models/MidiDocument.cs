@@ -143,7 +143,7 @@ public class MidiDocument
 
             if (startAddress1 == "0" || (!startAddress1.StartsWith("0") && !startAddress1.StartsWith("#")))
             {
-                // TODO: Use the valuelist und leaftable
+                // TODO: Use the valuelist and leaftable
                 midiValueLists.Add(MidiTable.ParseDescriptionTable(name, dataRows));
                 continue;
             }
