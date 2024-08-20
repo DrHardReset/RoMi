@@ -1,7 +1,6 @@
 using System.Data;
 using System.Text.RegularExpressions;
 using RoMi.Business.Converters;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RoMi.Business.Models;
 
@@ -20,7 +19,7 @@ public class MidiDocument
     public MidiDocument(string deviceName, string midiDocumentationFileContent)
     {
         DeviceName = deviceName;
-        List<MidiValueList> midiValueLists = new List<MidiValueList>();
+        Dictionary<string, MidiValueList> midiValueDictionary = new Dictionary<string, MidiValueList>();
 
         GroupCollection modelIdByteStrings = GeneratedRegex.ModelIdBytesRegex().Match(midiDocumentationFileContent).Groups;
 
@@ -143,8 +142,7 @@ public class MidiDocument
 
             if (startAddress1 == "0" || (!startAddress1.StartsWith("0") && !startAddress1.StartsWith("#")))
             {
-                // TODO: Use the valuelist and leaftable
-                midiValueLists.Add(MidiTable.ParseDescriptionTable(name, dataRows));
+                midiValueDictionary.Add(name, MidiTable.ParseDescriptionTable(name, dataRows));
                 continue;
             }
 
@@ -170,6 +168,7 @@ public class MidiDocument
         }
 
         MidiTables.FixTablesWithMissingSubTables(deviceName);
+        MidiTables.LinkValueDescriptionTables(midiValueDictionary);
     }
 
     internal static byte[] CalculateSysex(byte[] modelIdBytes, byte deviceId, MidiTableBranchEntry root, MidiTableBranchEntry branch1, MidiTableBranchEntry branch2, MidiTableLeafEntry leafEntry, int value)

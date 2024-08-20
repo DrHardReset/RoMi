@@ -245,10 +245,10 @@ public class MidiViewModel : INotifyPropertyChanged
 #if HAS_UNO
             int itemsPerPage = 100;
 #else
-            int itemsPerPage = selectedLeafEntry.ValueDescriptions.Count;
+            int itemsPerPage = selectedLeafEntry.MidiValueList.Count;
 #endif
 
-            PagedListSource source = new(selectedLeafEntry.ValueDescriptions.Select(x => (object)x).ToList());
+            PagedListSource source = new(selectedLeafEntry.MidiValueList.GetDescriptions().Select(x => (object)x).ToList());
             Values = new IncrementalLoadingCollection<PagedListSource, object>(source, itemsPerPage);
         }
     }
@@ -335,13 +335,13 @@ public class MidiViewModel : INotifyPropertyChanged
             BranchTable1[BranchTableSelectedIndex1] is not MidiTableBranchEntry branchEntry1 ||
             BranchTable2[BranchTableSelectedIndex2] is not MidiTableBranchEntry branchEntry2 ||
             LeafTable[LeafTableSelectedIndex] is not MidiTableLeafEntry leafEntry ||
-            leafEntry.Values.Count == 0)
+            leafEntry.MidiValueList.Count == 0)
         {
             SysExMessage = [];
             return;
         }
 
-        int value = leafEntry.Values[ValuesSelectedIndex];
+        int value = leafEntry.MidiValueList[ValuesSelectedIndex].Value;
         SysExMessage = MidiDocument.CalculateSysex(midiDocument.ModelIdBytes, selectedDeviceId, rootEntry, branchEntry1, branchEntry2, leafEntry, value);
     }
 

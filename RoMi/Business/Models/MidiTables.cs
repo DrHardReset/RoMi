@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Microsoft.UI.Xaml.Documents;
 
 namespace RoMi.Business.Models;
 
@@ -88,6 +89,42 @@ public class MidiTables : List<MidiTable>
                     {
                         throw new Exception($"Table '{midiTableBranchEntry.Description}' references a table named '{leafName}' which could not be found in the table list.");
                     }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Some leaf table entries link to a separate value description table. This method links the entry with the description list.
+    /// </summary>
+    public void LinkValueDescriptionTables(Dictionary<string, MidiValueList> midiValueDictionary)
+    {
+        for (int midiTableIndex = 0; midiTableIndex < Count; midiTableIndex++)
+        {
+            for (int midiTableEntryIndex = 0; midiTableEntryIndex < this[midiTableIndex].Count; midiTableEntryIndex++)
+            {
+                if (this[midiTableIndex][midiTableEntryIndex] is not MidiTableLeafEntry)
+                {
+                    continue;
+                }
+
+                MidiTableLeafEntry midiTableLeafEntry = (MidiTableLeafEntry)this[midiTableIndex][midiTableEntryIndex];
+
+                if (midiTableLeafEntry.MidiValueList.DescriptionTableRefName != null)
+                {
+                    List<string> keyList = midiValueDictionary.Keys.Where(x => x.StartsWith(midiTableLeafEntry.MidiValueList.DescriptionTableRefName)).ToList();
+
+                    if (keyList.Count == 0)
+                    {
+                        throw new Exception($"Leaf table '{this[midiTableIndex].Name}' entry '{midiTableLeafEntry.Description}' references a value table '{midiTableLeafEntry.MidiValueList.DescriptionTableRefName}' which could not be found.");
+                    }
+
+                    if (keyList.Count > 1)
+                    {
+                        throw new Exception($"Leaf table '{this[midiTableIndex].Name}' entry '{midiTableLeafEntry.Description}' references a value table '{midiTableLeafEntry.MidiValueList.DescriptionTableRefName}' which could not clearly be referenced as multiple tables match the criteria:\n{string.Join('\n', keyList)}");
+                    }
+
+                    midiTableLeafEntry.MidiValueList = midiValueDictionary[keyList[0]]; ;
                 }
             }
         }

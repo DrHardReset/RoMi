@@ -11,10 +11,11 @@ public class MidiValue
     /// <summary>The unit for the desciption value.</summary>
     public string? Unit { get; set; } = null;
 
-    public MidiValue(int value, string description, string? category)
+    public MidiValue(int value, string description, string? category, string? unit)
     {
         Value = value;
         Description = description;
         Category = category;
+        Unit = unit;
     }
 }
