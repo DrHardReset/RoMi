@@ -17,7 +17,7 @@ public class MidiTableLeafEntry : MidiTableEntry
     /// <summary>Returns a bitmask with "bitCount" bits set to 1.</summary>
     private Func<int, uint> Bitmask = (bitCount) =>  (uint)((1 << bitCount) - 1);
 
-    public MidiTableLeafEntry(StartAddress startAddress, string description, List<uint> valueDataBitsPerByte, MidiValueList midiValueList, List<string> valueDescriptions = null)
+    public MidiTableLeafEntry(StartAddress startAddress, string description, List<uint> valueDataBitsPerByte, MidiValueList midiValueList)
         : base(startAddress, description)
     {
         CheckEmptyLists<int, uint>(midiValueList.GetValues(), valueDataBitsPerByte);
@@ -26,7 +26,7 @@ public class MidiTableLeafEntry : MidiTableEntry
         MidiValueList = midiValueList;
     }
 
-    public MidiTableLeafEntry(string startAddress, string description, List<string> valueDataBitsPerByte, MidiValueList midiValueList, List<string> valueDescriptions = null)
+    public MidiTableLeafEntry(string startAddress, string description, List<string> valueDataBitsPerByte, MidiValueList midiValueList)
         : base(startAddress, description)
     {
         ValueDataByteBitMasks = valueDataBitsPerByte.Select(x => Bitmask(x.Count(y => y != ' ' && y != '0'))).ToList();

@@ -45,8 +45,9 @@ internal partial class GeneratedRegex
     /// </summary>
     ///
     /// GT-1000 value description table:
-    /// *1 KNOB SETTING TABLE
-    [GeneratedRegex(@"(?=^\*\s\[?.*?\]?\n|^\*\d.*\n)", RegexOptions.Multiline)]
+    ///  *1 KNOB SETTING TABLE (Attention: begins with space)
+    /// *2 ASSIGN TARGET TABLE
+    [GeneratedRegex(@"(?=^\*\s\[?.*?\]?\n|^\s?\*\d.*\n)", RegexOptions.Multiline)]
     internal static partial Regex MidiTableNameRegex();
 
     /// <summary>

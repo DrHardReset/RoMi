@@ -66,12 +66,6 @@ public class MidiDocument
                     "* [User Pattern]\n16\nJUPITER-X/Xm MIDI Implementation",
                     "* [User Pattern]");
                 break;
-            case "GT-1000 / GT-1000CORE":
-                // as it is getting harder to find a regex that works for all PDFs we just delete this content as it will match wrongly.
-                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
-                    "* AIRD PREAMP (valeu 1018-1023) automatically change each target to the AIRD\nPREAMP 1 or 2 whether which one is active.",
-                    "");
-                break;
         }
 
         #endregion

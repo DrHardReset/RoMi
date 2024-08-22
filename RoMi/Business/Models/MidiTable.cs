@@ -36,7 +36,9 @@ public class MidiTable : List<MidiTableEntry>
 
     public static MidiValueList ParseDescriptionTable(string tableName, List<string> tableRows)
     {
-        MidiValueList midiValueList = new();
+        List<int> values = [];
+        List<string> descriptions = [];
+        List<string> categories = [];
 
         for (int rowIter = 0; rowIter < tableRows.Count; rowIter++)
         {
@@ -66,8 +68,13 @@ public class MidiTable : List<MidiTableEntry>
                     throw new Exception($"First column does not contain an integer: {currentRowParts[0]}");
                 }
 
-                MidiValue midiValue = new MidiValue(value, description, category, null);
-                midiValueList.Add(midiValue);
+                values.Add(value);
+                descriptions.Add(description);
+
+                if (!string.IsNullOrEmpty(category))
+                {
+                    categories.Add(category);
+                }
             }
             catch (Exception ex)
             {
@@ -75,12 +82,7 @@ public class MidiTable : List<MidiTableEntry>
             }
         }
 
-        if (midiValueList.Count == 0)
-        {
-            throw new Exception($"Value description table '{tableName}' could not be parsed.");
-        }
-
-        return midiValueList;
+        return new MidiValueList(values, descriptions, categories);
     }
 
     private static string[] SplitDataRowParts(string dataRow)
