@@ -12,14 +12,14 @@ public class MidiDocument
     private static readonly byte commandId = "0x12".HexStringToByte(); // command type: DT1 == 0x12 == Data transmit; RQ1 == 0x11 == Data request.
     public static readonly List<int> DeviceIds = Enumerable.Range(17, 32).ToList(); // From the RD2000 documentation: 10H–1FH, the initial value is 10H (17)
 
-    internal MidiTables MidiTables = new MidiTables();
+    internal MidiTables MidiTables = [];
     internal byte[] ModelIdBytes { get; set; }
     internal string DeviceName { get; private set; }
 
     public MidiDocument(string deviceName, string midiDocumentationFileContent)
     {
         DeviceName = deviceName;
-        Dictionary<string, MidiValueList> midiValueDictionary = new Dictionary<string, MidiValueList>();
+        Dictionary<string, MidiValueList> midiValueDictionary = [];
 
         GroupCollection modelIdByteStrings = GeneratedRegex.ModelIdBytesRegex().Match(midiDocumentationFileContent).Groups;
 
@@ -134,7 +134,7 @@ public class MidiDocument
 
             string startAddress1 = dataRows[0].Split("|")[1].Replace(" ", "");
 
-            if (startAddress1 == "0" || (!startAddress1.StartsWith("0") && !startAddress1.StartsWith("#")))
+            if (startAddress1 == "0" || (!startAddress1.StartsWith('0') && !startAddress1.StartsWith('#')))
             {
                 midiValueDictionary.Add(name, MidiTable.ParseDescriptionTable(name, dataRows));
                 continue;
@@ -157,7 +157,7 @@ public class MidiDocument
                     break;
             }
 
-            MidiTable midiTable = new MidiTable(midiTableType, deviceName, name, dataRows);
+            MidiTable midiTable = new(midiTableType, deviceName, name, dataRows);
             MidiTables.Add(midiTable);
         }
 
@@ -167,7 +167,7 @@ public class MidiDocument
 
     internal static byte[] CalculateSysex(byte[] modelIdBytes, byte deviceId, MidiTableBranchEntry root, MidiTableBranchEntry branch1, MidiTableBranchEntry branch2, MidiTableLeafEntry leafEntry, int value)
     {
-        List<byte> sysexData = new List<byte>()
+        List<byte> sysexData = new()
         {
             sysexStart,
             rolandId,
@@ -216,7 +216,7 @@ public class MidiDocument
             uint bitmask = leafEntry.ValueDataByteBitMasks[i];
             valueArray[i] = (byte)(valueRest & bitmask);
             int setBitCount = System.Numerics.BitOperations.PopCount(bitmask);
-            valueRest = valueRest / (int)Math.Pow(2, setBitCount);
+            valueRest /= (int)Math.Pow(2, setBitCount);
         }
 
         List<byte> valueBytes = valueArray.Reverse().ToList();

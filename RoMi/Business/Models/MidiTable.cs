@@ -78,7 +78,7 @@ public class MidiTable : List<MidiTableEntry>
             }
             catch (Exception ex)
             {
-                throw new Exception($"Parsing of value table row '{currentRow}' failed.", ex);
+                throw new Exception($"Parsing of value row '{currentRow}' of table '{tableName}' failed.", ex);
             }
         }
 
@@ -91,7 +91,7 @@ public class MidiTable : List<MidiTableEntry>
         {
             string dataRowCleaned = dataRow;
 
-            if (dataRow.StartsWith("|") && dataRow.EndsWith("|"))
+            if (dataRow.StartsWith('|') && dataRow.EndsWith('|'))
             {
                 // Remove leading and trailing "|"
                 dataRowCleaned = dataRowCleaned[1..^1];
@@ -145,7 +145,7 @@ public class MidiTable : List<MidiTableEntry>
                 }
 
                 //| 00 00 00 00 | System [System] |
-                MidiTableBranchEntry newBranchEntry = new MidiTableBranchEntry(rowParts[0], rowParts[1]);
+                MidiTableBranchEntry newBranchEntry = new(rowParts[0], rowParts[1]);
 
                 if (needEntryFillUp)
                 {
@@ -156,9 +156,9 @@ public class MidiTable : List<MidiTableEntry>
                      * | 00 21 00 | Tone Partial 1
                      */
 
-                    if (this.Count < 2)
+                    if (Count < 2)
                     {
-                        throw new Exception($"The table should countain at least 2 entries, but it's count is {this.Count}");
+                        throw new Exception($"The table should countain at least 2 entries, but it's count is {Count}");
                     }
 
                     if (this.Last().GetType() != typeof(MidiTableBranchEntry))
@@ -191,9 +191,9 @@ public class MidiTable : List<MidiTableEntry>
                         string replacement = (++currentNumber).ToString("D" + currentNumberString.Length);
                         newDescription = Regex.Replace(lastEntryDescription, currentNumberString, replacement);
 
-                        StartAddress newStartAddress = new StartAddress(this.Last().StartAddress.BytesCopy());
+                        StartAddress newStartAddress = new(this.Last().StartAddress.BytesCopy());
                         newStartAddress.Increment(addressOffset);
-                        MidiTableBranchEntry newFillUpBranchEntry = new MidiTableBranchEntry(newStartAddress, lastEntry.LeafName, newDescription);
+                        MidiTableBranchEntry newFillUpBranchEntry = new(newStartAddress, lastEntry.LeafName, newDescription);
                         Add(newFillUpBranchEntry);
                     }
 
@@ -277,9 +277,9 @@ public class MidiTable : List<MidiTableEntry>
                  */
 
                 string startAddress = currentRowParts[0];
-                List<string> valueDataBitsPerByte = new List<string>() { currentRowParts[1] };
+                List<string> valueDataBitsPerByte = [currentRowParts[1]];
 
-                if (currentRowParts[0].StartsWith("#"))
+                if (currentRowParts[0].StartsWith('#'))
                 {
                     // This is the first row of a "big value" entry -> data byte count needs to be determined
                     startAddress = currentRowParts[0][2..];
@@ -332,7 +332,7 @@ public class MidiTable : List<MidiTableEntry>
                             followUpRow = tableRows[rowIter + 1];
                             string[] nextFillUpRowPartsReserve = SplitDataRowParts(followUpRow);
                             string nextStartAddressReserve = nextFillUpRowPartsReserve[0];
-                            StartAddress startAddressReservedFillUpEnd = new StartAddress(nextStartAddressReserve);
+                            StartAddress startAddressReservedFillUpEnd = new(nextStartAddressReserve);
                             int reservedHighAddress = startAddressReservedFillUpEnd.ToIntegerRepresentation();
                             int reservedLowAddress = new StartAddress(startAddress).ToIntegerRepresentation();
                             int rows = reservedHighAddress - reservedLowAddress - 1; // -1 as the actual reserved row was already added to row counter.
@@ -524,7 +524,7 @@ public class MidiTable : List<MidiTableEntry>
                         if (valueDescriptionColumnRaw.Contains(','))
                         {
                             // | | | OFF, ON, TONE |
-                            List<string> valueDescriptions = new List<string>();
+                            List<string> valueDescriptions = [];
 
                             while (rowIter < tableRows.Count)
                             {
@@ -568,7 +568,7 @@ public class MidiTable : List<MidiTableEntry>
 
                             midiValueList = new MidiValueList(values, valueDescriptions);
                         }
-                        else if (valueDescriptionColumnRaw.StartsWith("*"))
+                        else if (valueDescriptionColumnRaw.StartsWith('*'))
                         {
                             midiValueList = new MidiValueList(values, valueDescriptionColumnRaw);
                         }
@@ -642,7 +642,7 @@ public class MidiTable : List<MidiTableEntry>
 
                 // There is no extra row with value descriptions or description values could not be parsed.
                 midiValueList ??= new MidiValueList(values);
-                MidiTableLeafEntry leafEntry = new MidiTableLeafEntry(startAddress, description, valueDataBitsPerByte, midiValueList);
+                MidiTableLeafEntry leafEntry = new(startAddress, description, valueDataBitsPerByte, midiValueList);
                 Add(leafEntry);
 
                 if (rowIter >= tableRows.Count)
@@ -689,7 +689,7 @@ public class MidiTable : List<MidiTableEntry>
 
                 string nextStartAddress = nextFillUpRowParts[0];
 
-                if (nextFillUpRowParts[0].StartsWith("#"))
+                if (nextFillUpRowParts[0].StartsWith('#'))
                 {
                     // This is the first row of a "big value" entry -> data byte count needs to be determined
                     nextStartAddress = nextFillUpRowParts[0][2..];
@@ -718,14 +718,14 @@ public class MidiTable : List<MidiTableEntry>
                 {
                     // Calculate the start address offset
                     addressOffset = Enumerable.Repeat(0, StartAddress.MaxAddressByteCount).Select(x => (byte)x).ToArray();
-                    addressOffset[addressOffset.Length - 1] = (byte)leafEntry.ValueDataByteBitMasks.Count;
+                    addressOffset[^1] = (byte)leafEntry.ValueDataByteBitMasks.Count;
                 }
                 else
                 {
                     addressOffset = StartAddress.CalculateOffset(this[Count - 2].StartAddress, leafEntry.StartAddress);
                 }
 
-                StartAddress startAddressFillUpEnd = new StartAddress(nextStartAddress);
+                StartAddress startAddressFillUpEnd = new(nextStartAddress);
                 int highAddress = startAddressFillUpEnd.ToIntegerRepresentation();
                 int lastFillUpAddress = highAddress - addressOffset.ToIntegerRepresentation(StartAddress.MaxAddressByteCount);
 
@@ -744,9 +744,9 @@ public class MidiTable : List<MidiTableEntry>
                     string replacement = (++currentNumber).ToString("D" + currentNumberString.Length);
                     string newDescription = Regex.Replace(leafEntry.Description, currentNumberString, replacement);
 
-                    StartAddress newStartAddress = new StartAddress(this.Last().StartAddress.BytesCopy());
+                    StartAddress newStartAddress = new(this.Last().StartAddress.BytesCopy());
                     newStartAddress.Increment(addressOffset);
-                    MidiTableLeafEntry newFillUpBranchEntry = new MidiTableLeafEntry(newStartAddress, newDescription, leafEntry.ValueDataByteBitMasks, leafEntry.MidiValueList);
+                    MidiTableLeafEntry newFillUpBranchEntry = new(newStartAddress, newDescription, leafEntry.ValueDataByteBitMasks, leafEntry.MidiValueList);
                     Add(newFillUpBranchEntry);
                 }
 
@@ -765,7 +765,7 @@ public class MidiTable : List<MidiTableEntry>
         }
     }
 
-    private bool IsTotalSizeRow(string[] rowParts)
+    private static bool IsTotalSizeRow(string[] rowParts)
     {
         if (rowParts.Length == 2 && rowParts[1] == "Total Size")
         {
@@ -777,7 +777,7 @@ public class MidiTable : List<MidiTableEntry>
         return false;
     }
 
-    private bool IsLeafTableMultiByteCommandLastRow(string[] rowParts)
+    private static bool IsLeafTableMultiByteCommandLastRow(string[] rowParts)
     {
         if (rowParts.Length == 3 && !string.IsNullOrWhiteSpace(rowParts[1]) && !string.IsNullOrWhiteSpace(rowParts[2]))
         {
@@ -793,7 +793,7 @@ public class MidiTable : List<MidiTableEntry>
         return false;
     }
 
-    private bool IsLeafTableValueDescriptionRow(string[] rowParts)
+    private static bool IsLeafTableValueDescriptionRow(string[] rowParts)
     {
         if (rowParts.Length == 3 && rowParts[0] == string.Empty && rowParts[1] == string.Empty)
         {
@@ -805,12 +805,12 @@ public class MidiTable : List<MidiTableEntry>
         return false;
     }
 
-    private bool IsFillUpRow(string dataRow)
+    private static bool IsFillUpRow(string dataRow)
     {
         return GeneratedRegex.MidiTableLeafEntryFillUpRowRegex().IsMatch(dataRow);
     }
 
-    private bool IsReservedValueDescriptionEntry(string valueDescription)
+    private static bool IsReservedValueDescriptionEntry(string valueDescription)
     {
         return GeneratedRegex.MidiTableLeafEntryReservedValueDescriptionRegex().IsMatch(valueDescription);
     }

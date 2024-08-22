@@ -1,10 +1,13 @@
 namespace RoMi.Business.Models;
 
+/// <summary>
+/// This class holds all the possible values for a MIDI leaf table entry. It may contain descriptions and/or categories for all values <see cref="MidiValue"/>.
+/// </summary>
 public class MidiValueList : List<MidiValue>
 {
-    private double? descriptionMinValue = null;
-    private double? descriptionMaxValue = null;
-    private string? unit = null;
+    private readonly double? descriptionMinValue = null;
+    private readonly double? descriptionMaxValue = null;
+    private readonly string? unit = null;
     public string? DescriptionTableRefName { get; set; } = null;
 
     public MidiValueList() { }

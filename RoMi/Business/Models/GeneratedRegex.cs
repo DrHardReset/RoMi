@@ -15,6 +15,12 @@ internal partial class GeneratedRegex
     internal static partial Regex ModelIdBytesRegex();
 
     /// <summary>
+    /// Regex pattern for extraction of model.
+    /// </summary>
+    [GeneratedRegex(@"Model:\s*(.*)[\n]+")]
+    internal static partial Regex ModelRegex();
+
+    /// <summary>
     /// Matches a table header row. Example:
     /// +------------------------------------------------------------------------------+
     /// </summary>

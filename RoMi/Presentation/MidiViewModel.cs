@@ -97,10 +97,10 @@ public class MidiViewModel : INotifyPropertyChanged
                  * Insert dummy table which disables Branch ComboBox in View if selected root table's child reference is a leaf table.
                  * Example: AX-Edge's "Setup" entry of Root table directly references the Leaf table [Setup]
                  */
-                BranchTable1 = new()
-                {
+                BranchTable1 =
+                [
                     new MidiTableBranchEntry()
-                };
+                ];
                 BranchTable2 = BranchTable1;
                 LeafTable = childTable;
                 return;
@@ -154,10 +154,10 @@ public class MidiViewModel : INotifyPropertyChanged
                 /*
                  * Insert dummy table which disables second Branch ComboBox in View if (like in most cases) there is only one branch table between root and leaf table.
                  */
-                BranchTable2 = new()
-                {
+                BranchTable2 =
+                [
                     new MidiTableBranchEntry()
-                };
+                ];
 
                 LeafTable = midiDocument.MidiTables[targetTableIndex];
             }

@@ -15,7 +15,7 @@ public class MidiTableLeafEntry : MidiTableEntry
     public string? ValueDescriptionTableRefName { get; set; } = null;
 
     /// <summary>Returns a bitmask with "bitCount" bits set to 1.</summary>
-    private Func<int, uint> Bitmask = (bitCount) =>  (uint)((1 << bitCount) - 1);
+    private readonly Func<int, uint> Bitmask = (bitCount) =>  (uint)((1 << bitCount) - 1);
 
     public MidiTableLeafEntry(StartAddress startAddress, string description, List<uint> valueDataBitsPerByte, MidiValueList midiValueList)
         : base(startAddress, description)
@@ -33,7 +33,7 @@ public class MidiTableLeafEntry : MidiTableEntry
 
         CheckEmptyLists<int, uint>(midiValueList.GetValues(), ValueDataByteBitMasks);
 
-        if (ValueDataByteBitMasks.Count(x => x == 0 || x > 127) > 0)
+        if (ValueDataByteBitMasks.Any(x => x == 0 || x > 127))
         {
             throw new NotSupportedException($"At least one of the value bytes for {description} contains less then 1 or more than 7 bits.");
         }

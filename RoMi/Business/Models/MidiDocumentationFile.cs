@@ -30,7 +30,7 @@ internal static class MidiDocumentationFile
                 // 1. Find the model id
                 if (string.IsNullOrEmpty(deviceName))
                 {
-                    GroupCollection matchCollection = Regex.Match(text, @"Model:\s*(.*)[\n]+").Groups;
+                    GroupCollection matchCollection = GeneratedRegex.ModelRegex().Match(text).Groups;
 
                     if (matchCollection.Count != 2)
                     {
@@ -70,7 +70,7 @@ internal static class MidiDocumentationFile
                 // PDF-parser result contains OS-specific line breaks -> always use linux style
                 pageContent = pageContent.Replace("\r", "");
 
-                if (!pageContent.EndsWith("\n"))
+                if (!pageContent.EndsWith('\n'))
                 {
                     // make sure each page ends with a line break, as tables beginning on a new page might be parsed as part of the table on the previous page
                     pageContent += "\n";
