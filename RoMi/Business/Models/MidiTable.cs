@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Data;
 using RoMi.Business.Converters;
-using System.Collections;
 
 namespace RoMi.Business.Models;
 
@@ -10,39 +9,106 @@ public class MidiTable : List<MidiTableEntry>
     public MidiTableType MidiTableType { get; set; }
     public string Name { get; set; } = string.Empty;
 
-    public MidiTable(string deviceName, string tableName, List<string>? data)
+    /// <summary>
+    /// Constructor for dummy entries in the viewmodel.
+    /// </summary>
+    public MidiTable() { }
+
+    public MidiTable(MidiTableType midiTableType, string deviceName, string tableName, List<string> data)
     {
+        MidiTableType = midiTableType;
         Name = tableName;
 
-        if ((deviceName == "FANTOM-06/07/08" || deviceName == "FANTOM-6/7/8") && Name == "System Control")
+        switch (midiTableType)
         {
-            // Entry "Setup" of table "System Controller" references table 'System Controller' which is named "System Control" -> rename
-            Name = "System Controller";
-        }
-
-        if (data == null)
-        {
-            return;
-        }
-
-        string startAddress1 = data[0].Split("|")[1].Replace(" ", "");
-
-        switch (startAddress1.Length)
-        {
-            case 8: // 00000000
-                MidiTableType = MidiTableType.RootTable;
+            case MidiTableType.RootTable:
                 ParseBranchTableRows(data);
                 break;
-            case 6: // 000000
-                MidiTableType = MidiTableType.BranchTable;
+            case MidiTableType.BranchTable:
                 ParseBranchTableRows(data);
                 break;
             default:
-            case 4: // 0000
-            case 5: // #0000
-                MidiTableType = MidiTableType.LeafTable;
+            case MidiTableType.LeafTable:
                 ParseLeafTableRows(deviceName, data);
                 break;
+        }
+    }
+
+    public static MidiValueList ParseDescriptionTable(string tableName, List<string> tableRows)
+    {
+        List<int> values = [];
+        List<string> descriptions = [];
+        List<string> categories = [];
+
+        for (int rowIter = 0; rowIter < tableRows.Count; rowIter++)
+        {
+            string currentRow = tableRows[rowIter];
+
+            try
+            {
+                string[] currentRowParts = SplitDataRowParts(currentRow);
+                string description;
+                string? category = null;
+
+                switch (currentRowParts.Length)
+                {
+                    case 2:
+                        description = currentRowParts[1];
+                        break;
+                    case 3:
+                        description = currentRowParts[2];
+                        category = currentRowParts[1];
+                        break;
+                    default:
+                        throw new Exception("MIDI value row does not consist of at 2 or 3 columns.");
+                }
+
+                if (!int.TryParse(currentRowParts[0], out int value))
+                {
+                    throw new Exception($"First column does not contain an integer: {currentRowParts[0]}");
+                }
+
+                values.Add(value);
+                descriptions.Add(description);
+
+                if (!string.IsNullOrEmpty(category))
+                {
+                    categories.Add(category);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Parsing of value row '{currentRow}' of table '{tableName}' failed.", ex);
+            }
+        }
+
+        return new MidiValueList(values, descriptions, categories);
+    }
+
+    private static string[] SplitDataRowParts(string dataRow)
+    {
+        try
+        {
+            string dataRowCleaned = dataRow;
+
+            if (dataRow.StartsWith('|') && dataRow.EndsWith('|'))
+            {
+                // Remove leading and trailing "|"
+                dataRowCleaned = dataRowCleaned[1..^1];
+            }
+
+            string[] rowParts = dataRowCleaned.Split("|").Select(x => x.Trim(' ')).ToArray();
+
+            if (rowParts.Length < 2)
+            {
+                throw new NotSupportedException($"Splitted row should consist of at least 2 parts but conists of {rowParts.Length}");
+            }
+
+            return rowParts;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Table row could not be splitted: {dataRow}", ex);
         }
     }
 
@@ -79,7 +145,7 @@ public class MidiTable : List<MidiTableEntry>
                 }
 
                 //| 00 00 00 00 | System [System] |
-                MidiTableBranchEntry newBranchEntry = new MidiTableBranchEntry(rowParts[0], rowParts[1]);
+                MidiTableBranchEntry newBranchEntry = new(rowParts[0], rowParts[1]);
 
                 if (needEntryFillUp)
                 {
@@ -90,9 +156,9 @@ public class MidiTable : List<MidiTableEntry>
                      * | 00 21 00 | Tone Partial 1
                      */
 
-                    if (this.Count < 2)
+                    if (Count < 2)
                     {
-                        throw new Exception($"The table should countain at least 2 entries, but it's count is {this.Count}");
+                        throw new Exception($"The table should countain at least 2 entries, but it's count is {Count}");
                     }
 
                     if (this.Last().GetType() != typeof(MidiTableBranchEntry))
@@ -125,9 +191,9 @@ public class MidiTable : List<MidiTableEntry>
                         string replacement = (++currentNumber).ToString("D" + currentNumberString.Length);
                         newDescription = Regex.Replace(lastEntryDescription, currentNumberString, replacement);
 
-                        StartAddress newStartAddress = new StartAddress(this.Last().StartAddress.BytesCopy());
+                        StartAddress newStartAddress = new(this.Last().StartAddress.BytesCopy());
                         newStartAddress.Increment(addressOffset);
-                        MidiTableBranchEntry newFillUpBranchEntry = new MidiTableBranchEntry(newStartAddress, lastEntry.LeafName, newDescription);
+                        MidiTableBranchEntry newFillUpBranchEntry = new(newStartAddress, lastEntry.LeafName, newDescription);
                         Add(newFillUpBranchEntry);
                     }
 
@@ -177,6 +243,22 @@ public class MidiTable : List<MidiTableEntry>
 
                 if (currentRowParts[0] == string.Empty)
                 {
+                    if (deviceName == "GT-1000 / GT-1000CORE")
+                    {
+                        switch (Name)
+                        {
+                            case "SystemControl2":
+                                // there are hint rows that must be skipped
+                                continue;
+                            case "PcmapPc":
+                                // there are 2 separate value description rows for the two devices which are currently ignored
+                                continue;
+                            case "PatchEfct":
+                                // there are hint rows that must be skipped
+                                continue;
+                        }
+                    }
+
                     throw new Exception("First row part must not be empty.");
                 }
 
@@ -195,9 +277,9 @@ public class MidiTable : List<MidiTableEntry>
                  */
 
                 string startAddress = currentRowParts[0];
-                List<string> valueDataBitsPerByte = new List<string>() { currentRowParts[1] };
+                List<string> valueDataBitsPerByte = [currentRowParts[1]];
 
-                if (currentRowParts[0].StartsWith("#"))
+                if (currentRowParts[0].StartsWith('#'))
                 {
                     // This is the first row of a "big value" entry -> data byte count needs to be determined
                     startAddress = currentRowParts[0][2..];
@@ -250,7 +332,7 @@ public class MidiTable : List<MidiTableEntry>
                             followUpRow = tableRows[rowIter + 1];
                             string[] nextFillUpRowPartsReserve = SplitDataRowParts(followUpRow);
                             string nextStartAddressReserve = nextFillUpRowPartsReserve[0];
-                            StartAddress startAddressReservedFillUpEnd = new StartAddress(nextStartAddressReserve);
+                            StartAddress startAddressReservedFillUpEnd = new(nextStartAddressReserve);
                             int reservedHighAddress = startAddressReservedFillUpEnd.ToIntegerRepresentation();
                             int reservedLowAddress = new StartAddress(startAddress).ToIntegerRepresentation();
                             int rows = reservedHighAddress - reservedLowAddress - 1; // -1 as the actual reserved row was already added to row counter.
@@ -289,6 +371,32 @@ public class MidiTable : List<MidiTableEntry>
                     description = match.Groups[1].Value.Trim();
                     int valueLow = Convert.ToInt32(match.Groups[2].Value);
                     int valueHigh = Convert.ToInt32(match.Groups[3].Value);
+
+                    if (valueHigh >= 2147483591 - 1)
+                    {
+                        // TODO: So far only "GT-1000 / GT-1000CORE" table "PatchLed" contains a value that is bigger than 2147483590.
+                        valueHigh = 100;
+                    }
+
+                    if (deviceName == "AX-Edge")
+                    {
+                        if (Name == "Tone Synth Partial" && description == "Click Type")
+                        {
+                            /*
+                            * The table entry has a wrong bitmask:
+                            * | 00 09 | 0000 000a | Click Type (0 - 3) |
+                            * Correct it.
+                            */
+                            valueDataBitsPerByte = ["0000 00aa"];
+                        }
+
+                        if (Name == "System Control" && description == "Assignable Button(5) Function" && this.FirstOrDefault(x => x.Description == "Assignable Button(5) Function") != null)
+                        {
+                            // Table contains duplicate entries for "Assignable Button(5) Function".
+                            continue;
+                        }
+                    }
+
                     values = MidiTableLeafEntry.AssembleValueList(valueLow, valueHigh);
                 }
                 else
@@ -387,179 +495,159 @@ public class MidiTable : List<MidiTableEntry>
                 }
 
                 // Check and parse separate value description rows if they exist:
-                List<string> valueDescriptions = new List<string>();
+                MidiValueList? midiValueList = null;
 
                 if (rowIter < tableRows.Count)
                 {
                     rowIter++;
                     currentRow = tableRows[rowIter];
+                    currentRowParts = SplitDataRowParts(currentRow);
 
-                    if (IsFillUpRow(currentRow))
+                    if (IsFillUpRow(currentRow) || !IsLeafTableValueDescriptionRow(currentRowParts))
                     {
                         /*
                          * The next row is a fill up row for reserved addresses.
                          * reset the iterator as fill up rows are parsed later.
+                         *
+                         * or
+                         * 
+                         * There is no extra row with value descriptions
+                         * reset the iterator for the next for-loop-iteration
                          */
                         rowIter--;
                     }
                     else
                     {
-                        currentRowParts = SplitDataRowParts(currentRow);
+                        // There is at least one extra row with value description to be parsed
+                        string valueDescriptionColumnRaw = currentRowParts[2];
 
-                        if (!IsLeafTableValueDescriptionRow(currentRowParts))
+                        if (valueDescriptionColumnRaw.Contains(','))
                         {
-                            /*
-                             * There is no extra row with value descriptions
-                             * reset the iterator for the next for-loop-iteration
-                             */
-                            rowIter--;
+                            // | | | OFF, ON, TONE |
+                            List<string> valueDescriptions = [];
+
+                            while (rowIter < tableRows.Count)
+                            {
+                                // iterate over to following rows as long as the descriptoin column contains comas.
+                                string[] descriptionParts = valueDescriptionColumnRaw.Trim(',').Split(',');
+                                valueDescriptions.AddRange(descriptionParts);
+                                rowIter++;
+
+                                if (rowIter >= tableRows.Count)
+                                {
+                                    // reached end of table
+                                    break;
+                                }
+
+                                currentRow = tableRows[rowIter];
+                                currentRowParts = SplitDataRowParts(currentRow);
+
+                                if (!IsLeafTableValueDescriptionRow(currentRowParts))
+                                {
+                                    // We found the next normal row and must reset the iterator for the next for-loop-iteration
+                                    rowIter--;
+                                    break;
+                                }
+
+                                valueDescriptionColumnRaw = currentRowParts[2];
+                            }
+
+                            // Some description rows end with a unit
+                            if (valueDescriptions.Count > 0 && GeneratedRegex.MidiTableLeafEntryValueUnitRegex().IsMatch(valueDescriptions.Last()))
+                            {
+                                match = GeneratedRegex.MidiTableLeafEntryValueUnitRegex().Match(valueDescriptionColumnRaw);
+
+                                if (match.Success && match.Groups.Count == 2)
+                                {
+                                    string unit = match.Groups[1].Value;
+                                    string lastElement = valueDescriptions[^1]; // Keep last element as it already contains the unit
+                                    valueDescriptions = valueDescriptions.Take(valueDescriptions.Count - 1).Select(x => x += " " + unit).ToList();
+                                    valueDescriptions.Add(lastElement);
+                                }
+                            }
+
+                            midiValueList = new MidiValueList(values, valueDescriptions);
+                        }
+                        else if (valueDescriptionColumnRaw.StartsWith('*'))
+                        {
+                            midiValueList = new MidiValueList(values, valueDescriptionColumnRaw);
                         }
                         else
                         {
-                            // There is at least one extra row with value description to be parsed
-                            string valueDescriptionColumnRaw = currentRowParts[2];
+                            // | | | -3 - 3 |
+                            // | | | -24 - +24 [dB] |
+                            // | | | -24.0 - +24.0 [dB] |
+                            // | | | L64 - 63R |
+                            match = GeneratedRegex.MidiTableLeafEntryDescriptionRowPartsRegex().Match(valueDescriptionColumnRaw);
 
-                            if (valueDescriptionColumnRaw.Contains(','))
+                            if (match.Success && (match.Groups.Count == 3 || match.Groups.Count == 4) && match.Groups[2].Value != string.Empty)
                             {
-                                // | | | OFF, ON, TONE |
-                                valueDescriptions = new List<string>();
+                                // Treat L(eft) and R(ight) letters as negative and positive numbers for more easy use
+                                string lowerMatch = match.Groups[1].Value;
 
-                                while (rowIter < tableRows.Count)
+                                if (lowerMatch.StartsWith('L'))
                                 {
-                                    // iterate over to following rows as long as the descriptoin column contains comas.
-                                    string[] descriptionParts = valueDescriptionColumnRaw.Trim(',').Split(',');
-                                    valueDescriptions.AddRange(descriptionParts);
-                                    rowIter++;
-
-                                    if (rowIter >= tableRows.Count)
-                                    {
-                                        // reached end of table
-                                        break;
-                                    }
-
-                                    currentRow = tableRows[rowIter];
-                                    currentRowParts = SplitDataRowParts(currentRow);
-
-                                    if (!IsLeafTableValueDescriptionRow(currentRowParts))
-                                    {
-                                        // We found the next normal row and must reset the iterator for the next for-loop-iteration
-                                        rowIter--;
-                                        break;
-                                    }
-
-                                    valueDescriptionColumnRaw = currentRowParts[2];
+                                    lowerMatch = lowerMatch.Replace('L', '-');
                                 }
 
-                                // Some description rows end with a unit
-                                if (valueDescriptions.Count > 0 && GeneratedRegex.MidiTableLeafEntryValueUnitRegex().IsMatch(valueDescriptions.Last()))
-                                {
-                                    match = GeneratedRegex.MidiTableLeafEntryValueUnitRegex().Match(valueDescriptionColumnRaw);
+                                string higherMatch = match.Groups[2].Value;
 
-                                    if (match.Success && match.Groups.Count == 2)
+                                if (higherMatch.StartsWith('R'))
+                                {
+                                    higherMatch = higherMatch.Replace("R", "");
+                                }
+
+                                if (deviceName == "FA-06/07/08")
+                                {
+                                    // Multiple entries contain string values that cannot be automatically interpreted  -> ignore, e.g. Velocity Range Lower/Upper
+                                    if (higherMatch == "") // UPPER
                                     {
-                                        string unit = match.Groups[1].Value;
-                                        string lastElement = valueDescriptions[^1]; // Keep last element as it already contains the unit
-                                        valueDescriptions = valueDescriptions.Take(valueDescriptions.Count - 1).Select(x => x += " " + unit).ToList();
-                                        valueDescriptions.Add(lastElement);
+                                        higherMatch = "127";
+                                    }
+
+                                    if (lowerMatch == "") // LOWER
+                                    {
+                                        lowerMatch = "1";
                                     }
                                 }
-                            }
-                            else
-                            {
-                                // | | | -3 - 3 |
-                                // | | | -24 - +24 [dB] |
-                                // | | | -24.0 - +24.0 [dB] |
-                                // | | | L64 - 63R |
-                                match = GeneratedRegex.MidiTableLeafEntryDescriptionRowPartsRegex().Match(valueDescriptionColumnRaw);
 
-                                if (match.Success && (match.Groups.Count == 3 || match.Groups.Count == 4) && match.Groups[2].Value != string.Empty)
+                                if (deviceName == "INTEGRA-7")
                                 {
-                                    // Treat L(eft) and R(ight) letters as negative and positive numbers for more easy use
-                                    string lowerMatch = match.Groups[1].Value;
-
-                                    if (lowerMatch.StartsWith('L'))
+                                    // Multiple entries contain string values that cannot be automatically interpreted  -> ignore, e.g. Velocity Range Lower/Upper
+                                    if (higherMatch == "") // UPPER
                                     {
-                                        lowerMatch = lowerMatch.Replace('L', '-');
+                                        higherMatch = "127";
                                     }
 
-                                    string higherMatch = match.Groups[2].Value;
-
-                                    if (higherMatch.StartsWith('R'))
+                                    if (lowerMatch == "") // LOWER
                                     {
-                                        higherMatch = higherMatch.Replace("R", "");
+                                        lowerMatch = "1";
                                     }
-
-                                    if (deviceName == "FA-06/07/08")
-                                    {
-                                        // Multiple entries contain string values that cannot be automatically interpreted  -> ignore, e.g. Velocity Range Lower/Upper
-                                        if (higherMatch == "") // UPPER
-                                        {
-                                            higherMatch = "127";
-                                        }
-
-                                        if (lowerMatch == "") // LOWER
-                                        {
-                                            lowerMatch = "1";
-                                        }
-                                    }
-
-                                    if (deviceName == "INTEGRA-7")
-                                    {
-                                        // Multiple entries contain string values that cannot be automatically interpreted  -> ignore, e.g. Velocity Range Lower/Upper
-                                        if (higherMatch == "") // UPPER
-                                        {
-                                            higherMatch = "127";
-                                        }
-
-                                        if (lowerMatch == "") // LOWER
-                                        {
-                                            lowerMatch = "1";
-                                        }
-                                    }
-
-                                    double valueDescriptionLow = Convert.ToDouble(lowerMatch);
-                                    double valueDescriptionHigh = Convert.ToDouble(higherMatch);
-                                    string unit = string.Empty;
-
-                                    if (match.Groups.Count == 4)
-                                    {
-                                        unit = " " + match.Groups[3].Value;
-                                    }
-
-                                    valueDescriptions = MidiTableLeafEntry.AssembleDescriptionValues(valueDescriptionLow, valueDescriptionHigh, values.Count, unit);
                                 }
+
+                                double valueDescriptionLow = Convert.ToDouble(lowerMatch);
+                                double valueDescriptionHigh = Convert.ToDouble(higherMatch);
+                                string? unit = null;
+
+                                if (match.Groups.Count == 4 && match.Groups[3].Success)
+                                {
+                                    unit = " " + match.Groups[3].Value;
+                                }
+
+                                midiValueList = new MidiValueList(values, valueDescriptionLow, valueDescriptionHigh, unit);
                             }
                         }
                     }
                 }
 
-                if (valueDescriptions.Count == 0)
-                {
-                    // There is no extra row with value descriptions or description values could not be parsed -> take the plain values
-                    valueDescriptions = values.Select(x => x.ToString()).ToList();
-                }
-
-                /*
-                 * Sometimes there are mistakes in the documentation like missing comas. so that the number of value descriptions does not match the number of values.
-                 * In this case we use the values as value descriptions.
-                 */
-
-                if (values.Count != valueDescriptions.Count)
-                {
-                    valueDescriptions = values.Select(x => x.ToString()).ToList();
-                }
-
-                MidiTableLeafEntry leafEntry = new MidiTableLeafEntry(startAddress, description, valueDataBitsPerByte, values, valueDescriptions);
-
-                if (!this.Any(x => x.StartAddress.Equals(leafEntry.StartAddress)))
-                {
-                    // Documentation mistakenly contains duplicate entries, e.g.: [System Control] Startaddress 00 09 -> skip them
-                    Add(leafEntry);
-                }
+                // There is no extra row with value descriptions or description values could not be parsed.
+                midiValueList ??= new MidiValueList(values);
+                MidiTableLeafEntry leafEntry = new(startAddress, description, valueDataBitsPerByte, midiValueList);
+                Add(leafEntry);
 
                 if (rowIter >= tableRows.Count)
                 {
-                    // reached end of table
+                    // We reached the end of the table
                     break;
                 }
 
@@ -584,6 +672,13 @@ public class MidiTable : List<MidiTableEntry>
                 }
 
                 nextFillUpRow = tableRows[++rowIter];
+
+                if (IsFillUpRow(nextFillUpRow))
+                {
+                    // GT-1000 / GT-1000CORE uses double fill up rows in table "PcmapPc"
+                    nextFillUpRow = tableRows[++rowIter];
+                }
+
                 string[] nextFillUpRowParts = SplitDataRowParts(nextFillUpRow);
 
                 if (rowIter >= tableRows.Count)
@@ -594,10 +689,15 @@ public class MidiTable : List<MidiTableEntry>
 
                 string nextStartAddress = nextFillUpRowParts[0];
 
-                if (nextFillUpRowParts[0].StartsWith("#"))
+                if (nextFillUpRowParts[0].StartsWith('#'))
                 {
                     // This is the first row of a "big value" entry -> data byte count needs to be determined
                     nextStartAddress = nextFillUpRowParts[0][2..];
+                }
+
+                if (string.IsNullOrWhiteSpace(nextStartAddress))
+                {
+                    throw new Exception("No valid startaddress for fill up entry could be parsed off row: " + nextFillUpRow);
                 }
 
                 // do the actual fill up:
@@ -610,22 +710,22 @@ public class MidiTable : List<MidiTableEntry>
                  */
                 byte[] addressOffset;
 
-                if (this.Count == 0)
+                if (Count == 0)
                 {
                     throw new Exception($"There must be at least 1 leaf table row before the fill up row in table {Name} for entry '{leafEntry.Description}' to calculate the offset.");
                 }
-                else if (this.Count == 1)
+                else if (Count == 1)
                 {
                     // Calculate the start address offset
                     addressOffset = Enumerable.Repeat(0, StartAddress.MaxAddressByteCount).Select(x => (byte)x).ToArray();
-                    addressOffset[addressOffset.Length - 1] = (byte)leafEntry.ValueDataByteBitMasks.Count;
+                    addressOffset[^1] = (byte)leafEntry.ValueDataByteBitMasks.Count;
                 }
                 else
                 {
                     addressOffset = StartAddress.CalculateOffset(this[Count - 2].StartAddress, leafEntry.StartAddress);
                 }
 
-                StartAddress startAddressFillUpEnd = new StartAddress(nextStartAddress);
+                StartAddress startAddressFillUpEnd = new(nextStartAddress);
                 int highAddress = startAddressFillUpEnd.ToIntegerRepresentation();
                 int lastFillUpAddress = highAddress - addressOffset.ToIntegerRepresentation(StartAddress.MaxAddressByteCount);
 
@@ -644,14 +744,16 @@ public class MidiTable : List<MidiTableEntry>
                     string replacement = (++currentNumber).ToString("D" + currentNumberString.Length);
                     string newDescription = Regex.Replace(leafEntry.Description, currentNumberString, replacement);
 
-                    StartAddress newStartAddress = new StartAddress(this.Last().StartAddress.BytesCopy());
+                    StartAddress newStartAddress = new(this.Last().StartAddress.BytesCopy());
                     newStartAddress.Increment(addressOffset);
-                    MidiTableLeafEntry newFillUpBranchEntry = new MidiTableLeafEntry(newStartAddress, newDescription, leafEntry.ValueDataByteBitMasks, leafEntry.Values, leafEntry.ValueDescriptions);
+                    MidiTableLeafEntry newFillUpBranchEntry = new(newStartAddress, newDescription, leafEntry.ValueDataByteBitMasks, leafEntry.MidiValueList);
                     Add(newFillUpBranchEntry);
                 }
 
-                // RowIter now points to description row of fill up End entry -> Skip it.
-                // If current entry is a multi byte entry, rowIter must skip rows with data byte definitions
+                /*
+                 * RowIter now points to description row of fill up End entry -> Skip it.
+                 * If current entry is a multi byte entry, rowIter must skip rows with data byte definitions
+                 */
                 rowIter += leafEntry.ValueDataByteBitMasks.Count;
 
                 #endregion Entry fill up
@@ -663,34 +765,7 @@ public class MidiTable : List<MidiTableEntry>
         }
     }
 
-    private string[] SplitDataRowParts(string dataRow)
-    {
-        try
-        {
-            string dataRowCleaned = dataRow;
-
-            if (dataRow.StartsWith("|") && dataRow.EndsWith("|"))
-            {
-                // Remove leading and trailing "|"
-                dataRowCleaned = dataRowCleaned[1..^1];
-            }
-
-            string[] rowParts = dataRowCleaned.Split("|").Select(x => x.Trim(' ')).ToArray();
-
-            if (rowParts.Length < 2)
-            {
-                throw new NotSupportedException($"Splitted row should consist of at least 2 parts but conists of {rowParts.Length}");
-            }
-
-            return rowParts;
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Table row could not be splitted: {dataRow}", ex);
-        }
-    }
-
-    private bool IsTotalSizeRow(string[] rowParts)
+    private static bool IsTotalSizeRow(string[] rowParts)
     {
         if (rowParts.Length == 2 && rowParts[1] == "Total Size")
         {
@@ -702,7 +777,7 @@ public class MidiTable : List<MidiTableEntry>
         return false;
     }
 
-    private bool IsLeafTableMultiByteCommandLastRow(string[] rowParts)
+    private static bool IsLeafTableMultiByteCommandLastRow(string[] rowParts)
     {
         if (rowParts.Length == 3 && !string.IsNullOrWhiteSpace(rowParts[1]) && !string.IsNullOrWhiteSpace(rowParts[2]))
         {
@@ -718,7 +793,7 @@ public class MidiTable : List<MidiTableEntry>
         return false;
     }
 
-    private bool IsLeafTableValueDescriptionRow(string[] rowParts)
+    private static bool IsLeafTableValueDescriptionRow(string[] rowParts)
     {
         if (rowParts.Length == 3 && rowParts[0] == string.Empty && rowParts[1] == string.Empty)
         {
@@ -730,12 +805,12 @@ public class MidiTable : List<MidiTableEntry>
         return false;
     }
 
-    private bool IsFillUpRow(string dataRow)
+    private static bool IsFillUpRow(string dataRow)
     {
         return GeneratedRegex.MidiTableLeafEntryFillUpRowRegex().IsMatch(dataRow);
     }
 
-    private bool IsReservedValueDescriptionEntry(string valueDescription)
+    private static bool IsReservedValueDescriptionEntry(string valueDescription)
     {
         return GeneratedRegex.MidiTableLeafEntryReservedValueDescriptionRegex().IsMatch(valueDescription);
     }
@@ -785,6 +860,10 @@ public class MidiTable : List<MidiTableEntry>
                      */
                     return 7;
             }
+        }
+        if (deviceName == "GT-1000 / GT-1000CORE" && Name == "PatchStompBox2")
+        {
+            return 3;
         }
 
         return 0;

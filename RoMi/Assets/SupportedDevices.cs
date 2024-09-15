@@ -13,5 +13,6 @@ public static class SupportedDevices
             KeyValuePair.Create("JUPITER-X/Xm", "https://static.roland.com/assets/media/pdf/JUPITER-X_Xm_MIDI_imple_eng06_W.pdf"),
             KeyValuePair.Create("RD-2000", "https://static.roland.com/assets/media/pdf/RD-2000_MIDI_Imple_eng02_W.pdf"),
             KeyValuePair.Create("RD-88", "https://static.roland.com/assets/media/pdf/RD-88_MIDI_Imple_eng03_W.pdf"),
+            KeyValuePair.Create("GT-1000", "https://static.roland.com/assets/media/pdf/GT-1000_GT-1000CORE_MIDI_Imple_eng10_W.pdf"),
     });
 }

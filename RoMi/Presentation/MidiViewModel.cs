@@ -97,10 +97,10 @@ public class MidiViewModel : INotifyPropertyChanged
                  * Insert dummy table which disables Branch ComboBox in View if selected root table's child reference is a leaf table.
                  * Example: AX-Edge's "Setup" entry of Root table directly references the Leaf table [Setup]
                  */
-                BranchTable1 = new(string.Empty, string.Empty, null)
-                {
+                BranchTable1 =
+                [
                     new MidiTableBranchEntry()
-                };
+                ];
                 BranchTable2 = BranchTable1;
                 LeafTable = childTable;
                 return;
@@ -154,10 +154,10 @@ public class MidiViewModel : INotifyPropertyChanged
                 /*
                  * Insert dummy table which disables second Branch ComboBox in View if (like in most cases) there is only one branch table between root and leaf table.
                  */
-                BranchTable2 = new(string.Empty, string.Empty, null)
-                {
+                BranchTable2 =
+                [
                     new MidiTableBranchEntry()
-                };
+                ];
 
                 LeafTable = midiDocument.MidiTables[targetTableIndex];
             }
@@ -245,10 +245,10 @@ public class MidiViewModel : INotifyPropertyChanged
 #if HAS_UNO
             int itemsPerPage = 100;
 #else
-            int itemsPerPage = selectedLeafEntry.ValueDescriptions.Count;
+            int itemsPerPage = selectedLeafEntry.MidiValueList.Count;
 #endif
 
-            PagedListSource source = new(selectedLeafEntry.ValueDescriptions.Select(x => (object)x).ToList());
+            PagedListSource source = new(selectedLeafEntry.MidiValueList.GetDescriptions().Select(x => (object)x).ToList());
             Values = new IncrementalLoadingCollection<PagedListSource, object>(source, itemsPerPage);
         }
     }
@@ -335,13 +335,13 @@ public class MidiViewModel : INotifyPropertyChanged
             BranchTable1[BranchTableSelectedIndex1] is not MidiTableBranchEntry branchEntry1 ||
             BranchTable2[BranchTableSelectedIndex2] is not MidiTableBranchEntry branchEntry2 ||
             LeafTable[LeafTableSelectedIndex] is not MidiTableLeafEntry leafEntry ||
-            leafEntry.Values.Count == 0)
+            leafEntry.MidiValueList.Count == 0)
         {
             SysExMessage = [];
             return;
         }
 
-        int value = leafEntry.Values[ValuesSelectedIndex];
+        int value = leafEntry.MidiValueList[ValuesSelectedIndex].Value;
         SysExMessage = MidiDocument.CalculateSysex(midiDocument.ModelIdBytes, selectedDeviceId, rootEntry, branchEntry1, branchEntry2, leafEntry, value);
     }
 

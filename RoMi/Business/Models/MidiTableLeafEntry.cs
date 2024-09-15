@@ -10,67 +10,49 @@ public class MidiTableLeafEntry : MidiTableEntry
     /// For most Parameters 1 data byte needs to be sent. Parameters marked with # require values with dataranges that exceed 7 bits. These parameters need multiple data bytes to be sent.
     /// </summary>
     public List<uint> ValueDataByteBitMasks { get; set; }
-    public List<int> Values { get; set; } = new List<int>();
-    public List<string> ValueDescriptions { get; set; } = new List<string>();
-    /// <summary>Returns a bitmask with "bitCount" bits set to 1.</summary>
-    private Func<int, uint> Bitmask = (bitCount) =>  (uint)((1 << bitCount) - 1);
+    public MidiValueList MidiValueList { get; set; } = [];
+    /// <summary>Holds the name of the table which contains the value descriptions. <see cref="Models.MidiValueList"/></summary>
+    public string? ValueDescriptionTableRefName { get; set; } = null;
 
-    public MidiTableLeafEntry(StartAddress startAddress, string description, List<uint> valueDataBitsPerByte, List<int> values, List<string> valueDescriptions)
+    /// <summary>Returns a bitmask with "bitCount" bits set to 1.</summary>
+    private readonly Func<int, uint> Bitmask = (bitCount) =>  (uint)((1 << bitCount) - 1);
+
+    public MidiTableLeafEntry(StartAddress startAddress, string description, List<uint> valueDataBitsPerByte, MidiValueList midiValueList)
         : base(startAddress, description)
     {
-        CheckEmptyLists(values, valueDescriptions, valueDataBitsPerByte);
+        CheckEmptyLists<int, uint>(midiValueList.GetValues(), valueDataBitsPerByte);
 
         ValueDataByteBitMasks = valueDataBitsPerByte;
-        Values = values;
-        ValueDescriptions = valueDescriptions;
+        MidiValueList = midiValueList;
     }
 
-    public MidiTableLeafEntry(string startAddress, string description, List<string> valueDataBitsPerByte, List<int> values, List<string> valueDescriptions)
+    public MidiTableLeafEntry(string startAddress, string description, List<string> valueDataBitsPerByte, MidiValueList midiValueList)
         : base(startAddress, description)
     {
-        CheckEmptyLists(values, valueDescriptions, valueDataBitsPerByte);
-
         ValueDataByteBitMasks = valueDataBitsPerByte.Select(x => Bitmask(x.Count(y => y != ' ' && y != '0'))).ToList();
 
-        if (ValueDataByteBitMasks.Count(x => x == 0 || x > 127) > 0)
+        CheckEmptyLists<int, uint>(midiValueList.GetValues(), ValueDataByteBitMasks);
+
+        if (ValueDataByteBitMasks.Any(x => x == 0 || x > 127))
         {
             throw new NotSupportedException($"At least one of the value bytes for {description} contains less then 1 or more than 7 bits.");
         }
 
         uint completeBitmask = Bitmask(ValueDataByteBitMasks.Sum(x => (int)x));
 
-        if (values.Count > 0 && completeBitmask < values.Last())
+        if (midiValueList.Count > 0 && completeBitmask < midiValueList.GetValues().Last())
         {
-            /*
-             * There are table entries with wrong bitmasks:
-             * | 00 09 | 0000 000a | Click Type (0 - 3) |
-             * Try to correct them at least for single byte entries by analyzing the value list.
-             */
-
-            if (ValueDataByteBitMasks.Count > 1)
-            {
-                throw new Exception($"The highest entry of the value list '{values.Last()}' for {description} does not fit to bitmask {completeBitmask}. As thsi is a multi nyte entry no correction is implemented.");
-            }
-
-            uint newBitmask = Bitmask((int)Math.Log(values.Last(), 2) + 1);
-
-            if (newBitmask < values.Last())
-            {
-                throw new NotSupportedException($"The highest entry of the value list '{values.Last()}' for {description} does not fit to bitmask {completeBitmask}.");
-            }
-
-            ValueDataByteBitMasks[0] = newBitmask;
+            throw new Exception($"The amount of {midiValueList.Count} values exceeds the corresponding bitmask '{string.Join("", ValueDataByteBitMasks)}'.");
         }
 
-        Values = values;
-        ValueDescriptions = valueDescriptions;
+        MidiValueList = midiValueList;
     }
 
-    private void CheckEmptyLists<T, U>(List<int> values, List<T> valueDescriptions, List<U> valueDataBitsPerByte)
+    private void CheckEmptyLists<T, U>(List<int> values, List<U> valueDataBitsPerByte)
     {
-        if (values.Count > 0 && valueDescriptions.Count == 0)
+        if (values.Count == 0)
         {
-            throw new ArgumentException($"The value description list for {Description} must not be empty.", nameof(valueDescriptions));
+            throw new ArgumentException($"The value list for {Description} must not be empty.", nameof(values));
         }
 
         if (valueDataBitsPerByte.Count == 0)
@@ -123,6 +105,6 @@ public class MidiTableLeafEntry : MidiTableEntry
     {
         string divisionTag = ValueDataByteBitMasks.Count > 1 ? "#" : " ";
         string valueBitMask = string.Join("_", ValueDataByteBitMasks);
-        return $"{divisionTag} {base.ToString(),-50} {valueBitMask} {Values[0]} - {Values.Last()} ({string.Join(",", ValueDescriptions)})";
+        return $"{divisionTag} {base.ToString(),-50} {valueBitMask} {MidiValueList[0].Value} - {MidiValueList.Last().Value} ({string.Join(",", MidiValueList.GetDescriptions())})";
     }
 }

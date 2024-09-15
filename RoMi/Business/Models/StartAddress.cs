@@ -1,4 +1,4 @@
-﻿using RoMi.Business.Converters;
+using RoMi.Business.Converters;
 
 namespace RoMi.Business.Models;
 
@@ -63,14 +63,10 @@ public class StartAddress
 
     public static byte[] CalculateOffset(StartAddress lowerStartAddress, StartAddress higherStartAddress)
     {
-        byte[] diff = new byte[MaxAddressByteCount];
-
-        for (int i = 0; i < MaxAddressByteCount; i++)
-        {
-            diff[i] = (byte)(higherStartAddress.Bytes[i] - lowerStartAddress.Bytes[i]);
-        }
-
-        return diff;
+        int lower = lowerStartAddress.ToIntegerRepresentation();
+        int higher = higherStartAddress.ToIntegerRepresentation();
+        int offset = higher - lower;
+        return offset.From7bitIntegerRepresentation(MaxAddressByteCount);
     }
 
     public void Increment(byte[] value)
