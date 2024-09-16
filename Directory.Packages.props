@@ -29,7 +29,7 @@
     <PackageVersion Include="Uno.Extensions.Serialization" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Serialization.Http" Version="4.1.23" />
     <PackageVersion Include="Uno.Extensions.Serialization.Refit" Version="4.1.23" />
-    <PackageVersion Include="Uno.Material.WinUI" Version="5.0.13" />
+    <PackageVersion Include="Uno.Material.WinUI" Version="5.1.9" />
     <PackageVersion Include="Uno.Dsp.Tasks" Version="1.2.9" />
     <PackageVersion Include="Uno.Toolkit.WinUI" Version="6.0.18" />
     <PackageVersion Include="Uno.Toolkit.WinUI.Material" Version="6.0.18" />
