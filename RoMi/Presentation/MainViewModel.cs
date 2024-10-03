@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using RoMi.Assets;
 using Windows.Storage.Pickers;
 
 namespace RoMi.Presentation;
