@@ -106,8 +106,8 @@ jobs:
       - name: Upload zipped artifacts
         uses: actions/upload-artifact@v4
         if: startsWith(github.ref, 'refs/tags/')
-        if-no-files-found: error
         with:
+          if-no-files-found: error
           name: ${{ env.Project_Name }}
           path: ${{ env.Release_Zip_Path_Windows }}
           path: ${{ env.Release_FilePath_Android }}
