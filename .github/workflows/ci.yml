@@ -90,11 +90,11 @@ jobs:
       
       - name: Build RoMi (Windows Release)
         shell: pwsh
-        run: dotnet build ./RoMi.Windows/RoMi.Windows.csproj --framework net8.0-windows10.0.19041
+        run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-windows10.0.19041
       
       - name: Build RoMi (Android Release)
         shell: pwsh
-        run: dotnet build ./RoMi.csproj --configuration Release --framework net8.0-android
+        run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-android
 
       - name: zip Windows artifact for deployment
         if: startsWith(github.ref, 'refs/tags/')
