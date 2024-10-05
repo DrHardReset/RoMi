@@ -37,9 +37,9 @@ runs:
     # Add  dotnet to the PATH: https://github.com/actions/setup-dotnet
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8'
-          dotnet-quality: 'validated'
+      with:
+        dotnet-version: '8'
+        dotnet-quality: 'validated'
 
     # Run Uno.Check
     - name: Install ${{ inputs.target-platform }} Workloads
