@@ -18,7 +18,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # Install .NET
+    # Install .NET: https://github.com/actions/setup-dotnet
     - name: Setup .NET ${{ inputs.dotnet-version }}
       uses: actions/setup-dotnet@v4
       with:
@@ -29,6 +29,10 @@ runs:
       shell: pwsh
       if: ${{ runner.os == 'Windows' }}
       run: .\.github\Install-WindowsSdkISO.ps1 ${{ inputs.sdkVersion }}
+      
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
 
     # Run Uno.Check
     - name: Install ${{ inputs.target-platform }} Workloads
@@ -39,7 +43,7 @@ runs:
           $target = $_.Replace("_win", "").Replace("_macos", "")
           if (![string]::IsNullOrEmpty($target)) {
             echo "target: $target"
-            uno-check -v --ci --non-interactive --fix --target $target --skip vsmac --skip xcode --skip vswinworkloads --skip androidemulator --skip dotnetnewunotemplates
+            uno-check -v --ci --non-interactive --fix --target $target --skip vswin --skip vsmac --skip xcode --skip vswinworkloads --skip androidemulator --skip dotnetnewunotemplates
             echo "uno-check finished for target: $target "
           }
         })

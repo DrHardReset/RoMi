@@ -1,33 +1,71 @@
 name: CI
 
 on:
-  release:
-    types:
-      - created
   push:
     branches:
-      - main
+      - master
       - release/**
 
   pull_request:
     types: [opened, synchronize, reopened]
     branches:
-      - main
+      - master
       - release/**
 env:
   STEP_TIMEOUT_MINUTES: 60
 
 jobs:
+  # skip smoke test as it takes too much time and the unit_test job contains almost the same actions.
+  # smoke_test:
+    # name: Smoke Test (Debug Build of RoMi)
+    # runs-on: windows-latest
+    # steps:
+      # - uses: actions/checkout@v4
+        # with:
+          # fetch-depth: 0
+
+      # - name: Install Dependencies
+        # timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
+        # uses: "./.github/steps/install_dependencies"
+
+      # - name: Build RoMi (Debug)
+        # shell: pwsh
+        # run: msbuild ./RoMi/RoMi.csproj /r
+
+  unit_test:
+    name: Unit Tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
+        uses: "./.github/steps/install_dependencies"
+
+      - name: Build RoMi.Tests (Release)
+        shell: pwsh
+        run: msbuild ./RoMi.Tests/RoMi.Tests.csproj /p:Configuration=Release /p:OverrideTargetFramework=net8.0 /r
+
+      - name: Run Unit Tests
+        shell: pwsh
+        run: dotnet test ./RoMi.Tests/RoMi.Tests.csproj --no-build -c Release --logger GitHubActions --blame-crash --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+
   create_release_artifacts:
     name: Create release artifacts
     runs-on: windows-latest
-    
+    needs: unit_test
+    if: github.ref == 'refs/heads/master'
+
     env:
       Project_Name: ${{ github.event.repository.name }}
-      Build_Path: ${{ github.workspace }}\RoMi.Windows\bin\x64\Debug\net8.0-windows10.0.19041.0\win-x64
-      Release_Path: ${{ github.workspace }}\RoMi.Windows\bin\x64\Debug\net8.0-windows10.0.19041.0\RoMi
-      Release_FileName: ${{ github.event.repository.name }}.zip
-      Release_Zip_Path: "value not set"
+      Build_Path: ${{ github.workspace }}\RoMi\bin\x64\Release\net8.0-windows10.0.19041.0
+      Release_Path_Windows: ${{ github.workspace }}\RoMi\bin\x64\Release\net8.0-windows10.0.19041.0\RoMi
+      Release_Path_Artifacts: ${{ github.event.repository.name }}/bin/ReleaseFiles
+      Release_FileName_Windows: ${{ github.event.repository.name }}.zip
+      Release_Path_Artifacts_Zip_Windows: "value not set"
+      Release_FilePath_Android: ${{ github.workspace }}\RoMi\bin\Release\net8.0-android\com.DrHardReset.RoMi-Signed.apk
 
     steps:
       - uses: actions/checkout@v4
@@ -36,47 +74,58 @@ jobs:
 
       # Replace "\" with "/" as release-script in last step does not allow "\".
       # The newly set env variable value is only visible in the next steps but not in this step.
-      - name: Set Release_Zip_Path env variable
+      - name: Set Release_Path_Artifacts_Zip_Windows env variable
         run: |
-          $ChangedReleaseFullPath = "${{env.Release_Path}}\${{env.Release_FileName}}" -replace "\\", "/"
-          echo "Release_Zip_Path=$ChangedReleaseFullPath" >> $env:GITHUB_ENV
+          $ChangedWindowsReleaseFullPath = "${{env.Release_Path_Artifacts}}/${{env.Release_FileName_Windows}}" -replace "\\", "/"
+          echo "Release_Path_Artifacts_Zip_Windows=$ChangedWindowsReleaseFullPath" >> $env:GITHUB_ENV
 
-      - name: Set assembly version
-        run: ./.github/Update-AssemblyVersion.ps1 '${{ env.Project_Name }}' '${{ github.workspace }}'
+      - name: Set assembly version for Windows and Android
+        run:  |
+          ./.github/SetAssemblyVersionInFile.ps1 '${{ env.Project_Name }}' '${{ github.workspace }}' 'AssemblyInfo.cs'
+          ./.github/SetAssemblyVersionInFile.ps1 '${{ env.Project_Name }}' '${{ github.workspace }}' 'AndroidManifest.xml'
 
       - name: Install Dependencies
         timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
         uses: "./.github/steps/install_dependencies"
-
-      # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
       
-      - name: Build RoMi (Debug)
+      - name: Build RoMi (Windows Release)
         shell: pwsh
-        run: msbuild ./RoMi.Windows/RoMi.Windows.csproj /r /property:Platform=x64
+        run: dotnet build ./RoMi.Windows/RoMi.Windows.csproj --framework net8.0-windows10.0.19041
+      
+      - name: Build RoMi (Android Release)
+        shell: pwsh
+        run: dotnet build ./RoMi.csproj --configuration Release --framework net8.0-android
 
-      - name: zip artifact for deployment
+      - name: zip Windows artifact for deployment
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          echo "Zip-Path-Debug: ${{ env.Release_Zip_Path }}"
+          echo "Release_Path_Artifacts_Zip_Windows: ${{ env.Release_Path_Artifacts_Zip_Windows }}"
           Rename-Item -Path ${{ env.Build_Path }} -NewName ${{ env.Project_Name }}
-          Compress-Archive -Path ${{ env.Release_Path }} -DestinationPath "${{ env.Release_Zip_Path }}"
+          Compress-Archive -Path ${{ env.Release_Path_Windows }} -DestinationPath "${{ env.Release_Path_Artifacts_Zip_Windows }}"
 
-      # Upload the zipped artifacts: https://github.com/marketplace/actions/upload-a-build-artifact
+      - name: copy Android apk artifact for deployment
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          echo "Release_Path_Artifacts: ${{ env.Release_Path_Artifacts }}"
+          Copy-Item ${{ env.Release_FilePath_Android }} -Destination "${{ env.Release_Path_Artifacts }}"
+
+      # Upload the zipped artifact: https://github.com/marketplace/actions/upload-a-build-artifact
       - name: Upload zipped artifacts
         uses: actions/upload-artifact@v4
         if: startsWith(github.ref, 'refs/tags/')
         with:
+          if-no-files-found: error
           name: ${{ env.Project_Name }}
-          path: ${{ env.Release_Zip_Path }}
+          path: ${{ env.Release_Path_Artifacts }}
         
       # Create the new release (needs a new tag to be created before)
+      # Attention: does not allow "\" in filepaths -> must replace with "/"!
       - name: Release with Notes
         #Action needs read and write permissions to be granted in project settings.
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: ${{ env.Release_Zip_Path }}
+          path:
+            ${{ env.Release_Path_Artifacts }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,13 +1,24 @@
-﻿<Project Sdk="Uno.Sdk">
+<Project Sdk="Uno.Sdk">
   <PropertyGroup>
-    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) or '$(EnableWindowsTargeting)' == 'true'">$(TargetFrameworks);$(DotNetVersion)-windows10.0.19041</TargetFrameworks>
-    <TargetFrameworks>$(TargetFrameworks);$(DotNetVersion);$(DotNetVersion)-android;$(DotNetVersion)-ios;$(DotNetVersion)-maccatalyst</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OverrideTargetFramework)'!=''">$(OverrideTargetFramework)</TargetFrameworks>
+    <TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041;net8.0-desktop;net8.0</TargetFrameworks>
 
-    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
 
-    <!-- Ensures the .xr.xml files are generated in a proper layout folder -->
-    <GenerateLibraryLayout>true</GenerateLibraryLayout>
+    <!-- Do not autogenerate AssemblyInfo as github workflow will set the version number in the static AssemblyInfo.cs automatically. -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+    <!-- Display name -->
+    <ApplicationTitle>RoMi</ApplicationTitle>
+    <!-- App Identifier -->
+    <ApplicationId>com.DrHardReset.RoMi</ApplicationId>
+    <!-- Versions -->
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <!-- Package Publisher -->
+    <ApplicationPublisher>DrHardReset</ApplicationPublisher>
+    <!-- Package Description -->
+    <Description>RoMi: Calculates SysEx MIDI messages for Roland Keyboards.</Description>
     <!--
       If you encounter this error message:
 
@@ -18,7 +29,59 @@
       the "Microsoft.Windows.SDK.BuildTools" package above, and the "revision" version number
       must be the highest found in https://www.nuget.org/packages/Microsoft.Windows.SDK.NET.Ref.
     -->
-    <!-- <WindowsSdkPackageVersion>10.0.22621.28</WindowsSdkPackageVersion> -->
+    <WindowsSdkPackageVersion>10.0.19041.38</WindowsSdkPackageVersion>
+
+    <!--
+      UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
+      https://aka.platform.uno/singleproject-features
+    -->
+    <UnoFeatures>
+      Material;
+      Dsp;
+      Toolkit;
+      Logging;
+      Mvvm;
+      Configuration;
+      Http;
+      Localization;
+      Navigation;
+      ThemeService;
+    </UnoFeatures>
+    <Platforms>AnyCPU;x64</Platforms>
+    <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+    <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
+    <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+    <GenerateTestArtifacts>True</GenerateTestArtifacts>
+    <AppxBundle>Never</AppxBundle>
+    <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">
+    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <AndroidKeyStore>False</AndroidKeyStore>
+    <AndroidUseAapt2>True</AndroidUseAapt2>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|x64'">
+    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <AndroidKeyStore>False</AndroidKeyStore>
+    <AndroidUseAapt2>True</AndroidUseAapt2>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
+    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidKeyStore>False</AndroidKeyStore>
+    <AndroidLinkTool>r8</AndroidLinkTool>
+    <AndroidUseAapt2>True</AndroidUseAapt2>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|x64'">
+    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidKeyStore>False</AndroidKeyStore>
+    <AndroidLinkTool>r8</AndroidLinkTool>
+    <AndroidUseAapt2>True</AndroidUseAapt2>
   </PropertyGroup>
 
   <!--
@@ -35,56 +98,19 @@
   <ItemGroup>
     <PackageReference Include="managed-midi" />
     <PackageReference Include="PdfPig" />
-    <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="Uno.WinUI" />
-    <PackageReference Include="Uno.WinUI.Lottie" Condition="!$(TargetFramework.Contains('windows10'))" />
-    <PackageReference Include="Uno.WinUI.DevServer" Condition="'$(Configuration)'=='Debug' AND !$(TargetFramework.Contains('windows10'))" />
-    <PackageReference Include="Uno.Resizetizer" />
-    <PackageReference Include="CommunityToolkit.Mvvm" />
-    <PackageReference Include="Uno.Extensions.Configuration" />
-    <PackageReference Include="Uno.Extensions.Http" />
-    <PackageReference Include="Uno.Extensions.Http.Refit" />
-    <PackageReference Include="Uno.Extensions.Logging.WinUI" />
-    <PackageReference Include="Uno.Extensions.Serialization.Http" />
-    <PackageReference Include="Uno.Extensions.Http.WinUI" />
-    <PackageReference Include="Uno.Extensions.Serialization.Refit" />
-    <PackageReference Include="Uno.Material.WinUI" />
-    <PackageReference Include="Uno.Dsp.Tasks" />
-    <PackageReference Include="Uno.Toolkit.WinUI.Material" />
-    <PackageReference Include="Uno.Toolkit.WinUI" />
-    <PackageReference Include="Uno.Extensions.Core.WinUI" />
-    <PackageReference Include="Uno.Extensions.Hosting.WinUI" />
-    <PackageReference Include="Uno.Extensions.Localization.WinUI" />
-    <PackageReference Include="Uno.Extensions.Navigation.Toolkit.WinUI" />
-    <PackageReference Include="Uno.Extensions.Navigation.WinUI" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Condition="$(TargetFramework.Contains('windows10'))" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Condition="$(TargetFramework.Contains('windows10'))" />
   </ItemGroup>
-
-  <ItemGroup>
-    <UnoDspImportColors Include="Styles\*.zip" Generator="Xaml" />
-    <EmbeddedResource Include="appsettings.json" />
-    <EmbeddedResource Include="Assets\LibraryDependencyReport.json" />
-    <EmbeddedResource Include="appsettings.*.json" DependentUpon="appsettings.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Remove="Assets\SupportedDevices.cs" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <None Remove="Assets\LibraryDependencyReport.json" />
   </ItemGroup>
-
+  
   <ItemGroup>
-    <Content Update="Assets\LibraryDependencyReport.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="Assets\LibraryDependencyReport.json" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="powershell.exe -NonInteractive -executionpolicy Unrestricted &quot;&amp; '.\createLibraryDependencyReport.ps1' '$(SolutionDir)' '$(ProjectDir)'&quot;" />
+  <!-- Only create the library dependency report once directly after restoring nuget packages. -->
+  <Target Name="BuildOthers" BeforeTargets="DispatchToInnerBuilds">
+    <Exec Command="powershell.exe -NoLogo -NonInteractive -executionpolicy Unrestricted &quot;&amp; '.\createLibraryDependencyReport.ps1' '$(SolutionDir)' '$(ProjectDir)'&quot;" />
   </Target>
 
 </Project>

@@ -1,5 +1,5 @@
 using Microsoft.UI.Xaml.Data;
-using RoMi.Business.Converters;
+using RoMi.Models.Converters;
 
 namespace RoMi.Presentation.Converters;
 
