@@ -35,8 +35,8 @@
 			        	HorizontalAlignment="Center"
 								VerticalAlignment="Top">
 
-			<TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="RoMi" HorizontalAlignment="Center"/>
-      <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Copyright (C) 2023 Johannes Brallentin" HorizontalAlignment="Center"/>
+      <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="{Binding Title}" HorizontalAlignment="Center"/>
+      <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Copyright (C) 2023 - 2024 Johannes Brallentin" HorizontalAlignment="Center"/>
       <TextBlock Style="{StaticResource BodyTextBlockStyle}" HorizontalAlignment="Center">
 				<Span xml:space="preserve"><Run>This program is licensed under the </Run><Hyperlink NavigateUri="https://github.com/DrHardReset/ROMI/blob/master/LICENSE.md">GNU General Public License 3</Hyperlink><Run>.</Run></Span>
 			</TextBlock>

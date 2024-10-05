@@ -28,7 +28,7 @@ function SetVersion ($file, $version)
     $sw.Close()
 }
 
-function setVersionInDir($projectNamespace, $dir, $version) {
+function setVersionInDir($projectNamespace, $dir, $fileName, $version) {
 
     if ($version -eq "") {
         Write-Host "version not found"
@@ -36,7 +36,7 @@ function setVersionInDir($projectNamespace, $dir, $version) {
     }
 
     # Set the Assembly version
-    $info_files = Get-ChildItem $dir -Recurse -Include "AssemblyInfo.cs" | where {$_ -match $projectNamespace}
+    $info_files = Get-ChildItem $dir -Recurse -Include $fileName | where {$_ -match $projectNamespace}
 	
     foreach($file in $info_files)
     {
@@ -46,5 +46,6 @@ function setVersionInDir($projectNamespace, $dir, $version) {
 
 $projectNamespace=$args[0]
 $solutionDir=$args[1]
+$fileName=$args[2]
 $version = getVersion
-setVersionInDir $projectNamespace $solutionDir $version
+setVersionInDir $projectNamespace $solutionDir $fileName $version

@@ -5,6 +5,9 @@
     <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
 
+    <!-- Do not autogenerate AssemblyInfo as github workflow will set the version number in the static AssemblyInfo.cs automatically. -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
     <!-- Display name -->
     <ApplicationTitle>RoMi</ApplicationTitle>
     <!-- App Identifier -->
@@ -44,6 +47,41 @@
       Navigation;
       ThemeService;
     </UnoFeatures>
+    <Platforms>AnyCPU;x64</Platforms>
+    <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+    <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
+    <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+    <GenerateTestArtifacts>True</GenerateTestArtifacts>
+    <AppxBundle>Never</AppxBundle>
+    <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">
+    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <AndroidKeyStore>False</AndroidKeyStore>
+    <AndroidUseAapt2>True</AndroidUseAapt2>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|x64'">
+    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <AndroidKeyStore>False</AndroidKeyStore>
+    <AndroidUseAapt2>True</AndroidUseAapt2>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
+    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidKeyStore>False</AndroidKeyStore>
+    <AndroidLinkTool>r8</AndroidLinkTool>
+    <AndroidUseAapt2>True</AndroidUseAapt2>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|x64'">
+    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidKeyStore>False</AndroidKeyStore>
+    <AndroidLinkTool>r8</AndroidLinkTool>
+    <AndroidUseAapt2>True</AndroidUseAapt2>
   </PropertyGroup>
 
   <!--
@@ -70,14 +108,9 @@
     <EmbeddedResource Include="Assets\LibraryDependencyReport.json" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <!--<UnoSplashScreenFile>Assets\Splash\romi_logo_outline.png</UnoSplashScreenFile>-->
-  </PropertyGroup>
-
-
   <!-- Only create the library dependency report once directly after restoring nuget packages. -->
-  <Target Name="BuildOthers" BeforeTargets="DispatchToInnerBuilds" >
-    <Exec Command="powershell.exe -NonInteractive -executionpolicy Unrestricted &quot;&amp; '.\createLibraryDependencyReport.ps1' '$(SolutionDir)' '$(ProjectDir)'&quot;" />
+  <Target Name="BuildOthers" BeforeTargets="DispatchToInnerBuilds">
+    <Exec Command="powershell.exe -NoLogo -NonInteractive -executionpolicy Unrestricted &quot;&amp; '.\createLibraryDependencyReport.ps1' '$(SolutionDir)' '$(ProjectDir)'&quot;" />
   </Target>
 
 </Project>

@@ -29,6 +29,17 @@ runs:
       shell: pwsh
       if: ${{ runner.os == 'Windows' }}
       run: .\.github\Install-WindowsSdkISO.ps1 ${{ inputs.sdkVersion }}
+      
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+      
+    # Add  dotnet to the PATH: https://github.com/actions/setup-dotnet
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8'
+          dotnet-quality: 'validated'
 
     # Run Uno.Check
     - name: Install ${{ inputs.target-platform }} Workloads
