@@ -18,9 +18,9 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # Install .NET
+    # Install .NET: https://github.com/actions/setup-dotnet
     - name: Setup .NET ${{ inputs.dotnet-version }}
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '${{ inputs.dotnet-version }}'
 
@@ -33,13 +33,6 @@ runs:
     # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
-      
-    # Add  dotnet to the PATH: https://github.com/actions/setup-dotnet
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8'
-        dotnet-quality: 'validated'
 
     # Run Uno.Check
     - name: Install ${{ inputs.target-platform }} Workloads
