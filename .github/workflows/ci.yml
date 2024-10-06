@@ -11,6 +11,10 @@ on:
     branches:
       - master
       - release/**
+      
+  release:
+    types:
+      - created
 env:
   STEP_TIMEOUT_MINUTES: 60
 
