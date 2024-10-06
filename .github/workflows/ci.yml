@@ -34,11 +34,13 @@ jobs:
 
       # - name: Build RoMi (Debug)
         # shell: pwsh
-        # run: msbuild ./RoMi/RoMi.csproj /r
+        # run: dotnet build ./RoMi/RoMi.csproj
 
   unit_test:
     name: Unit Tests
     runs-on: windows-latest
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }} # always run this step if a tag/release was not the trigger
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -60,7 +62,7 @@ jobs:
     name: Create release artifacts
     runs-on: windows-latest
     needs: unit_test
-    if: github.ref == 'refs/heads/master'
+    if: startsWith(github.ref, 'refs/tags/') # only run this step if a tag/release was the trigger
 
     env:
       Project_Name: ${{ github.event.repository.name }}
@@ -101,14 +103,12 @@ jobs:
         run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-android
 
       - name: zip Windows artifact for deployment
-        if: startsWith(github.ref, 'refs/tags/')
         run: |
           echo "Release_Path_Artifacts_Zip_Windows: ${{ env.Release_Path_Artifacts_Zip_Windows }}"
           Rename-Item -Path ${{ env.Build_Path }} -NewName ${{ env.Project_Name }}
           Compress-Archive -Path ${{ env.Release_Path_Windows }} -DestinationPath "${{ env.Release_Path_Artifacts_Zip_Windows }}"
 
       - name: copy Android apk artifact for deployment
-        if: startsWith(github.ref, 'refs/tags/')
         run: |
           echo "Release_Path_Artifacts: ${{ env.Release_Path_Artifacts }}"
           Copy-Item ${{ env.Release_FilePath_Android }} -Destination "${{ env.Release_Path_Artifacts }}"
@@ -116,7 +116,6 @@ jobs:
       # Upload the zipped artifact: https://github.com/marketplace/actions/upload-a-build-artifact
       - name: Upload zipped artifacts
         uses: actions/upload-artifact@v4
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           if-no-files-found: error
           name: ${{ env.Project_Name }}
@@ -127,7 +126,6 @@ jobs:
       - name: Release with Notes
         #Action needs read and write permissions to be granted in project settings.
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           path:
             ${{ env.Release_Path_Artifacts }}
