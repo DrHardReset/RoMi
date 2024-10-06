@@ -50,7 +50,7 @@ jobs:
 
       - name: Build RoMi.Tests (Release)
         shell: pwsh
-        run: msbuild ./RoMi.Tests/RoMi.Tests.csproj /p:Configuration=Release /p:OverrideTargetFramework=net8.0 /r
+        run: dotnet build ./RoMi.Tests/RoMi.Tests.csproj  --configuration Release --framework net8.0
 
       - name: Run Unit Tests
         shell: pwsh
