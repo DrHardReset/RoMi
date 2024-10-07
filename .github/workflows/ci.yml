@@ -108,7 +108,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path ${{ env.Releases_Artifacts_Path }}
 
-      - name: zip Windows artifact for deployment
+      - name: Zip Windows artifact for deployment
         run: |
           Compress-Archive -Path ${{ env.Build_Path_Windows }} -DestinationPath "${{ env.Releases_Artifact_Path_Windows }}"
 
@@ -130,7 +130,9 @@ jobs:
         #Action needs read and write permissions to be granted in project settings.
         uses: softprops/action-gh-release@v2
         with:
-          path:
-            ${{ env.Releases_Artifacts_Path }}
+          files: |
+            ${{ env.Releases_Artifact_Path_Windows }}
+            ${{ env.Releases_Artifact_Path_Android }}
+            
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
