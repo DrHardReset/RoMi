@@ -65,12 +65,15 @@ jobs:
 
     env:
       Project_Name: ${{ github.event.repository.name }}
-      Build_Path: ${{ github.workspace }}\RoMi\bin\x64\Release\net8.0-windows10.0.19041.0
-      Release_Path_Windows: ${{ github.workspace }}\RoMi\bin\x64\Release\net8.0-windows10.0.19041.0\RoMi
-      Release_Path_Artifacts: ${{ github.event.repository.name }}/bin/ReleaseFiles
-      Release_FileName_Windows: ${{ github.event.repository.name }}.zip
-      Release_Path_Artifacts_Zip_Windows: "value not set"
-      Release_FilePath_Android: ${{ github.workspace }}\RoMi\bin\Release\net8.0-android\com.DrHardReset.RoMi-Signed.apk
+      Build_Path_Windows: ${{ github.workspace }}\RoMi\bin\RoMi_Windows
+      Build_Path_Android: ${{ github.workspace }}\RoMi\bin\RoMi_Android
+      Build_Path_Android_Apk: ${{ github.workspace }}\RoMi\bin\RoMi_Android\com.DrHardReset.RoMi-Signed.apk
+      
+      Releases_Artifacts_Path: ${{ github.workspace }}\RoMi\bin\Release_Artifacts
+      Releases_Artifact_Path_Windows: ${{ github.workspace }}\RoMi\bin\Release_Artifacts\RoMi_Windows.zip
+      Releases_Artifact_Path_Android: ${{ github.workspace }}\RoMi\bin\Release_Artifacts\RoMi_Android.apk
+      
+      Releases_Artifacts_Path_Linux: "value not set"
 
     steps:
       - uses: actions/checkout@v4
@@ -79,10 +82,10 @@ jobs:
 
       # Replace "\" with "/" as release-script in last step does not allow "\".
       # The newly set env variable value is only visible in the next steps but not in this step.
-      - name: Set Release_Path_Artifacts_Zip_Windows env variable
+      - name: Set Releases_Artifacts_Path_Linux env variable
         run: |
-          $ChangedWindowsReleaseFullPath = "${{env.Release_Path_Artifacts}}/${{env.Release_FileName_Windows}}" -replace "\\", "/"
-          echo "Release_Path_Artifacts_Zip_Windows=$ChangedWindowsReleaseFullPath" >> $env:GITHUB_ENV
+          $temp = "${{env.Release_Path_Artifacts}}/${{env.Releases_Artifacts_Path}}" -replace "\\", "/"
+          echo "Releases_Artifacts_Path_Linux=$temp" >> $env:GITHUB_ENV
 
       - name: Set assembly version for Windows and Android
         run:  |
@@ -93,24 +96,21 @@ jobs:
         timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
         uses: "./.github/steps/install_dependencies"
       
-      - name: Build RoMi (Windows Release)
+      - name: Build Windows Release
         shell: pwsh
-        run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-windows10.0.19041
+        run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-windows10.0.19041 --output ${{ env.Build_Path_Windows }}
       
-      - name: Build RoMi (Android Release)
+      - name: Build Android Release
         shell: pwsh
-        run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-android
+        run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-android --output ${{ env.Build_Path_Android }}
 
       - name: zip Windows artifact for deployment
         run: |
-          echo "Release_Path_Artifacts_Zip_Windows: ${{ env.Release_Path_Artifacts_Zip_Windows }}"
-          Rename-Item -Path ${{ env.Build_Path }} -NewName ${{ env.Project_Name }}
-          Compress-Archive -Path ${{ env.Release_Path_Windows }} -DestinationPath "${{ env.Release_Path_Artifacts_Zip_Windows }}"
+          Compress-Archive -Path ${{ env.Build_Path_Windows }} -DestinationPath "${{ env.Releases_Artifact_Path_Windows }}"
 
       - name: copy Android apk artifact for deployment
         run: |
-          echo "Release_Path_Artifacts: ${{ env.Release_Path_Artifacts }}"
-          Copy-Item ${{ env.Release_FilePath_Android }} -Destination "${{ env.Release_Path_Artifacts }}"
+          Copy-Item ${{ env.Build_Path_Android_Apk }} -Destination "${{ env.Releases_Artifact_Path_Android }}"
 
       # Upload the zipped artifact: https://github.com/marketplace/actions/upload-a-build-artifact
       - name: Upload zipped artifacts
@@ -118,7 +118,7 @@ jobs:
         with:
           if-no-files-found: error
           name: ${{ env.Project_Name }}
-          path: ${{ env.Release_Path_Artifacts }}
+          path: ${{ env.Releases_Artifacts_Path }}
         
       # Create the new release (needs a new tag to be created before)
       # Attention: does not allow "\" in filepaths -> must replace with "/"!
@@ -127,6 +127,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           path:
-            ${{ env.Release_Path_Artifacts }}
+            ${{ env.Releases_Artifacts_Path_Linux }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
