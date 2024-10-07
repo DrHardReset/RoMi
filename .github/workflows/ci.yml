@@ -104,6 +104,10 @@ jobs:
         shell: pwsh
         run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-android --output ${{ env.Build_Path_Android }}
 
+      - name: Create artifact deployment directory
+        run: |
+          New-Item -ItemType Directory -Force -Path ${{ env.Releases_Artifacts_Path }}
+
       - name: zip Windows artifact for deployment
         run: |
           Compress-Archive -Path ${{ env.Build_Path_Windows }} -DestinationPath "${{ env.Releases_Artifact_Path_Windows }}"
@@ -127,6 +131,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           path:
-            ${{ env.Releases_Artifacts_Path_Linux }}
+            ${{ env.Releases_Artifacts_Path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
