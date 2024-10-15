@@ -1,5 +1,5 @@
 $solutionDir=$args[0]
-$reportPath=$args[1] + "Assets\LibraryDependencyReport.json"
+$reportPath=$args[1]
 
 Write-Host "LibraryDependencyReport for solution" $solutionDir "will be generated to" $reportPath"."
 $processOptions = @{
