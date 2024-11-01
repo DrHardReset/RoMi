@@ -9,7 +9,7 @@ public class MidiTableBranchEntry : MidiTableEntry
 {
     public string LeafName { get; set; } = string.Empty;
 
-    public MidiTableBranchEntry() : base ("000000", string.Empty) { }
+    public MidiTableBranchEntry() : base ("00 00 00", string.Empty) { }
 
     public MidiTableBranchEntry(string startAddress, string description) : base(startAddress, description)
     {

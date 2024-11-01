@@ -144,4 +144,12 @@ internal partial class GeneratedRegex
     /// </summary>
     [GeneratedRegex(@"[a-zA-z\s\[(#](\d+).*?$")]
     internal static partial Regex MidiTableEntryFillUpDescriptionNumberRegex();
+
+    /// <summary>
+    /// Matches the hex string values given in a start address. Examples:
+    /// 00 01
+    /// 01 00 00 01
+    /// </summary>
+    [GeneratedRegex(@"^([0-9A-F]{2})(\s[0-9A-F]{2})*$")]
+    internal static partial Regex HexStringRegex();
 }
