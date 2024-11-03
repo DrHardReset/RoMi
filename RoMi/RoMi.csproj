@@ -5,6 +5,9 @@
     <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
 
+    <!-- AllowUnsafeBlocks is needed since updating from Uno 5.4.10 to 5.5.32. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
     <!-- Do not autogenerate AssemblyInfo as github workflow will set the version number in the static AssemblyInfo.cs automatically. -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 
