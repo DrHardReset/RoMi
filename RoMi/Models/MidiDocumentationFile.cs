@@ -5,9 +5,9 @@ using Page = UglyToad.PdfPig.Content.Page;
 
 namespace RoMi.Models;
 
-internal static class MidiDocumentationFile
+public static class MidiDocumentationFile
 {
-    internal static async Task<MidiDocument> Parse(string pdfPath)
+    public static async Task<MidiDocument> Parse(string pdfPath)
     {
         return await Task.Run(() => {
             using PdfDocument document = PdfDocument.Open(pdfPath);

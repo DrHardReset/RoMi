@@ -314,13 +314,21 @@ public class MidiTable : List<MidiTableEntry>
 
                 if (IsReservedValueDescriptionEntry(descriptionColumnRaw))
                 {
-                    ignoredTableRows += valueDataBitsPerByte.Count;
-
-                    if (rowIter < tableRows.Count)
+                    if (rowIter >= tableRows.Count)
+                    {
+                        // End of table, no fill up needed
+                        ignoredTableRows += valueDataBitsPerByte.Count;
+                    }
+                    else
                     {
                         string followUpRow = tableRows[rowIter + 1];
 
-                        if (IsFillUpRow(followUpRow))
+                        if (!IsFillUpRow(followUpRow))
+                        {
+                            // no fillup needed
+                            ignoredTableRows += valueDataBitsPerByte.Count;
+                        }
+                        else
                         {
                             /*
                              * Fill up reserved addresses. Example:
@@ -335,7 +343,7 @@ public class MidiTable : List<MidiTableEntry>
                             StartAddress startAddressReservedFillUpEnd = new(nextStartAddressReserve);
                             int reservedHighAddress = startAddressReservedFillUpEnd.ToIntegerRepresentation();
                             int reservedLowAddress = new StartAddress(startAddress).ToIntegerRepresentation();
-                            int rows = reservedHighAddress - reservedLowAddress - 1; // -1 as the actual reserved row was already added to row counter.
+                            int rows = reservedHighAddress - reservedLowAddress;
                             ignoredTableRows += rows;
                         }
                     }
@@ -347,7 +355,7 @@ public class MidiTable : List<MidiTableEntry>
                      * | 00 20 | 0aaa aaaa | (reserve) <*> |
                      * | | | 0 - 127 |
                      */
-                    if (rowIter < tableRows.Count)
+                    if (rowIter < tableRows.Count - 1)
                     {
                         string[] nextRowParts = SplitDataRowParts(tableRows[rowIter + 1]);
 
@@ -365,7 +373,7 @@ public class MidiTable : List<MidiTableEntry>
                 string description;
                 List<int> values;
 
-                if (match.Success && match.Groups.Count == 4)
+                if (match.Success && match.Groups[3].Success && !match.Groups[4].Success)
                 {
                     // regular row with low and high value
                     description = match.Groups[1].Value.Trim();
@@ -399,10 +407,32 @@ public class MidiTable : List<MidiTableEntry>
 
                     values = MidiTableLeafEntry.AssembleValueList(valueLow, valueHigh);
                 }
+                else if (match.Success && match.Groups[4].Success)
+                {
+                    // regular row with low and high value and an extra value before the low value, e.g.: "EFX2 Type (0, 5 - 8)"
+                    description = match.Groups[1].Value.Trim();
+                    int valueExtraLow = Convert.ToInt32(match.Groups[4].Value);
+                    int valueLow = Convert.ToInt32(match.Groups[5].Value);
+                    int valueHigh = Convert.ToInt32(match.Groups[6].Value);
+                    values = MidiTableLeafEntry.AssembleValueList(valueLow, valueHigh);
+                    values.Insert(0, valueExtraLow);
+                }
+                else if (descriptionColumnRaw.EndsWith("(0)"))
+                {
+                    // JD-Xi table "Drum Kit Partial" entry "WMT1 Wave Group Type" has only one value (0)
+                    description = descriptionColumnRaw.Split("  ")[0];
+                    values = [0];
+                }
                 else
                 {
                     // treatment of extraordinary rows
-                    if (deviceName == "RD-88" && Name == "Sympathetic Resonance" && descriptionColumnRaw == "Rev HF Damp")
+                    if (deviceName == "JD-Xi" && Name == "Program Vocal Effect" && descriptionColumnRaw == "(0 - 127)")
+                    {
+                        // JD-Xi table "Program Vocal Effect" entry for address "00 0F" contains an entry without a Name
+                        ignoredTableRows++;
+                        continue;
+                    }
+                    else if (deviceName == "RD-88" && Name == "Sympathetic Resonance" && descriptionColumnRaw == "Rev HF Damp")
                     {
                         // RD-88 table "Sympathetic Resonance" entry "Rev HF Damp" contains no value Range
                         description = descriptionColumnRaw;
@@ -578,6 +608,8 @@ public class MidiTable : List<MidiTableEntry>
                             // | | | -24 - +24 [dB] |
                             // | | | -24.0 - +24.0 [dB] |
                             // | | | L64 - 63R |
+                            // | | | 1 - UPPER |
+                            // | | | LOWER - 127 |
                             match = GeneratedRegex.MidiTableLeafEntryDescriptionRowPartsRegex().Match(valueDescriptionColumnRaw);
 
                             if (match.Success && (match.Groups.Count == 3 || match.Groups.Count == 4) && match.Groups[2].Value != string.Empty)
@@ -612,6 +644,20 @@ public class MidiTable : List<MidiTableEntry>
                                 }
 
                                 if (deviceName == "INTEGRA-7")
+                                {
+                                    // Multiple entries contain string values that cannot be automatically interpreted  -> ignore, e.g. Velocity Range Lower/Upper
+                                    if (higherMatch == "") // UPPER
+                                    {
+                                        higherMatch = "127";
+                                    }
+
+                                    if (lowerMatch == "") // LOWER
+                                    {
+                                        lowerMatch = "1";
+                                    }
+                                }
+
+                                if (deviceName == "JD-Xi")
                                 {
                                     // Multiple entries contain string values that cannot be automatically interpreted  -> ignore, e.g. Velocity Range Lower/Upper
                                     if (higherMatch == "") // UPPER
