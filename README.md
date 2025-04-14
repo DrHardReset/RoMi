@@ -14,12 +14,13 @@ The app is tested for Roland AX-Edge only, but should generally work with the fo
 - AX-Edge
 - FANTOM-06/07/08
 - FANTOM-6/7/8
+- GT-1000
 - INTEGRA-7
+- JD-Xi
 - JUNO-X
 - JUPITER-X/Xm
 - RD-2000
 - RD-88
-- GT-1000
 - SPD-SX PRO
 
 RoMi is licensed under the [GPLv3 License][license-link].

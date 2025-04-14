@@ -89,8 +89,9 @@ public partial class GeneratedRegex
     /// | 00 1A | 0000 bbbb | Mic Noise Supressor Threshold (-32 - 64) |
     /// | 00 03 | 0000 dddd | Master Tune (24 - 2024) |
     /// | 00 00 | 00aa aaaa | Manual Num1 Function (DOWN on GT-1000CORE)(0 - 59) |
+    /// | 00 00 | 0aaa aaaa | EFX2 Type (0, 5 - 8) |
     /// </summary>
-    [GeneratedRegex(@"(.*)[ )]\((-?\d+) -\s?(\d+)\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    [GeneratedRegex(@"(.*)[ )](?:\((-?\d+) -\s?(\d+)\)|\((\d+), (-?\d+) -\s?(\d+)\))", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     public static partial Regex MidiTableLeafEntryDescriptionRegex();
 
     /// <summary>
