@@ -760,7 +760,7 @@ public class MidiTable : List<MidiTableEntry>
             }
             catch (Exception ex)
             {
-                throw new Exception("Parsing leaf table row '" + currentRow + "' failed.", ex);
+                throw new Exception($"Parsing leaf table row '{currentRow}' of table '{Name}' failed.", ex);
             }
         }
     }

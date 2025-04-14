@@ -2,44 +2,44 @@ using System.Text.RegularExpressions;
 
 namespace RoMi.Models;
 
-internal partial class GeneratedRegex
+public partial class GeneratedRegex
 {
     [GeneratedRegex(@"\d+\. (Parameter Address Map|System Exclusive Address Map)")] // parameter address caption
-    internal static partial Regex ParameterAddressMapCaption();
+    public static partial Regex ParameterAddressMapCaption();
 
     /// <summary>
     /// Regex pattern for extraction of model id bytes.
     /// "H" is missing after third byte in AX Edge documentation.
     /// </summary>
-    [GeneratedRegex(@"\(Model\s?ID [=\:] ([0-9a-fA-F]{2})H?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)\)")]
-    internal static partial Regex ModelIdBytesRegex();
+    [GeneratedRegex(@"[Mm]odel\s?ID [=\:]?.*?([0-9a-fA-F]{2})H?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)")]
+    public static partial Regex ModelIdBytesRegex();
 
     /// <summary>
     /// Regex pattern for extraction of model.
     /// </summary>
     [GeneratedRegex(@"Model:\s*(.*)[\n]+")]
-    internal static partial Regex ModelRegex();
+    public static partial Regex ModelRegex();
 
     /// <summary>
     /// Matches a table header row. Example:
     /// +------------------------------------------------------------------------------+
     /// </summary>
     [GeneratedRegex(@"\+-{78}\+")]
-    internal static partial Regex MidiMapStartMarkerRegex();
+    public static partial Regex MidiMapStartMarkerRegex();
 
     /// <summary>
     /// Matches a table header row that is not preceded by a newline. Example:
     /// +------------------------------------------------------------------------------+
     /// </summary>
     [GeneratedRegex(@"(?<!\n)(\+-{78}\+)")]
-    internal static partial Regex MidiMapStartMarkerFixRegex();
+    public static partial Regex MidiMapStartMarkerFixRegex();
 
     /// <summary>
     /// Matches a table footer row. Example:
     /// +------------------------------------------------------------------------------+
     /// </summary>
-    [GeneratedRegex(@"\+-{78}\+", RegexOptions.RightToLeft)]
-    internal static partial Regex MidiMapEndMarkerRegex();
+    [GeneratedRegex(@"^\+-{78}\+", RegexOptions.Multiline)]
+    public static partial Regex MidiMapEndMarkerRegex();
 
     /// <summary>
     /// Matches a table name row. Examples:
@@ -54,7 +54,7 @@ internal partial class GeneratedRegex
     ///  *1 KNOB SETTING TABLE (Attention: begins with space)
     /// *2 ASSIGN TARGET TABLE
     [GeneratedRegex(@"(?=^\*\s\[?.*?\]?\n|^\s?\*\d.*\n)", RegexOptions.Multiline)]
-    internal static partial Regex MidiTableNameRegex();
+    public static partial Regex MidiTableNameRegex();
 
     /// <summary>
     /// Extracts a table name. Examples:
@@ -68,7 +68,7 @@ internal partial class GeneratedRegex
     /// GT-1000 value description table:
     /// *1 KNOB SETTING TABLE
     [GeneratedRegex(@"\* \[?(.*?)\]?\n|(\*\d [\w\s]+)\n")]
-    internal static partial Regex MidiTableNameExtractRegex();
+    public static partial Regex MidiTableNameExtractRegex();
 
     /// <summary>
     /// Matches rows that contain "content of interest" for parsing the MIDI sysex infos.
@@ -80,8 +80,9 @@ internal partial class GeneratedRegex
     /// : : : :
     /// ]]>
     /// </summary>
-    [GeneratedRegex(@"^[\|:]#?\s*[0-9a-fA-F:\s]*?[\|:].*[\|:]", RegexOptions.Multiline)]
-    internal static partial Regex MiditableContentRow();
+    /// First check for Rows that consist only of colons and spaces. Than alternatively do not Match if negative lookahead counts more than 4 pipes and match pairs of hex-pairs (00, 0F, etc.), followed by space or colon, or only colons and spaces.
+    [GeneratedRegex(@"^:[:\s]+|^(?!([^|\n]*\|){5,})[\|:]#?\s*(?:[0-9a-fA-F]{2}(?:[\s:]|$)|[:\s])*[\|:].*[\|:]", RegexOptions.Multiline)]
+    public static partial Regex MiditableContentRow();
 
     /// <summary>
     /// Matches rows that contain a leaf entry description. Examples:
@@ -90,7 +91,7 @@ internal partial class GeneratedRegex
     /// | 00 00 | 00aa aaaa | Manual Num1 Function (DOWN on GT-1000CORE)(0 - 59) |
     /// </summary>
     [GeneratedRegex(@"(.*)[ )]\((-?\d+) -\s?(\d+)\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
-    internal static partial Regex MidiTableLeafEntryDescriptionRegex();
+    public static partial Regex MidiTableLeafEntryDescriptionRegex();
 
     /// <summary>
     /// Matches the relevant column and parts of a value description row. Examples:
@@ -102,14 +103,14 @@ internal partial class GeneratedRegex
     /// ]]>
     /// </summary>
     [GeneratedRegex(@"(L?[-0-9\.]*) - (R?[\+0-9\.]*)\s?(\[.*\])?")]
-    internal static partial Regex MidiTableLeafEntryDescriptionRowPartsRegex();
+    public static partial Regex MidiTableLeafEntryDescriptionRowPartsRegex();
 
     /// <summary>
     /// Matches the unit of a value row. Example:
     /// 3150,4000,5000,6300,8000,10000,12500,16000 [Hz]
     /// </summary>
     [GeneratedRegex(@"(\[.*\])$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
-    internal static partial Regex MidiTableLeafEntryValueUnitRegex();
+    public static partial Regex MidiTableLeafEntryValueUnitRegex();
 
     /// <summary>
     /// Matches rows that contain reserved entry addresses. Examples:
@@ -122,7 +123,7 @@ internal partial class GeneratedRegex
     /// ]]>
     /// </summary>
     [GeneratedRegex(@"(^[<\(]?[Rr]eserve|N/A\(fixed value\))")]
-    internal static partial Regex MidiTableLeafEntryReservedValueDescriptionRegex();
+    public static partial Regex MidiTableLeafEntryReservedValueDescriptionRegex();
 
     /// <summary>
     /// Matches rows that contain fill up markers. Examples:
@@ -132,7 +133,7 @@ internal partial class GeneratedRegex
     /// ]]>
     /// </summary>
     [GeneratedRegex(@"^[\|:]\s+:")]
-    internal static partial Regex MidiTableLeafEntryFillUpRowRegex();
+    public static partial Regex MidiTableLeafEntryFillUpRowRegex();
 
     /// <summary>
     /// Matches the number of a description that needs to be filled up. Examples:
@@ -143,7 +144,7 @@ internal partial class GeneratedRegex
     /// |       00 03 | 0000 dddd | Program Change#1                         (0 - 499) |
     /// </summary>
     [GeneratedRegex(@"[a-zA-z\s\[(#](\d+).*?$")]
-    internal static partial Regex MidiTableEntryFillUpDescriptionNumberRegex();
+    public static partial Regex MidiTableEntryFillUpDescriptionNumberRegex();
 
     /// <summary>
     /// Matches the hex string values given in a start address. Examples:
@@ -151,5 +152,5 @@ internal partial class GeneratedRegex
     /// 01 00 00 01
     /// </summary>
     [GeneratedRegex(@"^([0-9A-F]{2})(\s[0-9A-F]{2})*$")]
-    internal static partial Regex HexStringRegex();
+    public static partial Regex HexStringRegex();
 }

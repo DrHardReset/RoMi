@@ -1,7 +1,8 @@
 <Project Sdk="Uno.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041;net8.0-desktop;net8.0</TargetFrameworks>
-
+    <TargetFrameworks Condition="'$(Configuration)'!='Test'">net8.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041;net8.0-desktop;net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)'=='Test'">net8.0</TargetFrameworks>
+    <Platforms>AnyCPU;x64</Platforms>
     <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
 
@@ -50,7 +51,6 @@
       Navigation;
       ThemeService;
     </UnoFeatures>
-    <Platforms>AnyCPU;x64</Platforms>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
@@ -59,27 +59,22 @@
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Never</AppxBundle>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <Configurations>Debug;Release;Test</Configurations>
   </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
     <AndroidKeyStore>False</AndroidKeyStore>
     <AndroidUseAapt2>True</AndroidUseAapt2>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|x64'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Test|net8.0-android|AnyCPU'">
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
     <AndroidKeyStore>False</AndroidKeyStore>
     <AndroidUseAapt2>True</AndroidUseAapt2>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
-    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
-    <AndroidPackageFormat>apk</AndroidPackageFormat>
-    <AndroidKeyStore>False</AndroidKeyStore>
-    <AndroidLinkTool>r8</AndroidLinkTool>
-    <AndroidUseAapt2>True</AndroidUseAapt2>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|x64'">
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidKeyStore>False</AndroidKeyStore>

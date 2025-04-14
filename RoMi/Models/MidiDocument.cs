@@ -40,7 +40,7 @@ public class MidiDocument
 
         int startIndex = match.Index;
 
-        match = GeneratedRegex.MidiMapEndMarkerRegex().Match(midiDocumentationFileContent);
+        match = GeneratedRegex.MidiMapEndMarkerRegex().Matches(midiDocumentationFileContent).Last();
 
         if (!match.Success)
         {

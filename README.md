@@ -20,6 +20,7 @@ The app is tested for Roland AX-Edge only, but should generally work with the fo
 - RD-2000
 - RD-88
 - GT-1000
+- SPD-SX PRO
 
 RoMi is licensed under the [GPLv3 License][license-link].
 
