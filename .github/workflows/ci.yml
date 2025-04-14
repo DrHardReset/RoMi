@@ -50,7 +50,7 @@ jobs:
         timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
         uses: "./.github/steps/install_dependencies"
 
-      - name: Build and un Unit Tests
+      - name: Build and run Unit Tests
         shell: pwsh
         run: dotnet test ./RoMi.Tests/RoMi.Tests.csproj --configuration Test --framework net8.0 --logger GitHubActions --blame-crash
 
