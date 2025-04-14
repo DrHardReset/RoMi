@@ -50,9 +50,9 @@ jobs:
         timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
         uses: "./.github/steps/install_dependencies"
 
-      - name: Build RoMi.Tests (Release)
+      - name: Build RoMi.Tests (Test)
         shell: pwsh
-        run: dotnet build ./RoMi.Tests/RoMi.Tests.csproj  --configuration Release --framework net8.0
+        run: dotnet build ./RoMi.Tests/RoMi.Tests.csproj  --configuration Test --framework net8.0
 
       - name: Run Unit Tests
         shell: pwsh
