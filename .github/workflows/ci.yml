@@ -50,13 +50,9 @@ jobs:
         timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
         uses: "./.github/steps/install_dependencies"
 
-      - name: Build RoMi.Tests (Test)
+      - name: Build and un Unit Tests
         shell: pwsh
-        run: dotnet build ./RoMi.Tests/RoMi.Tests.csproj  --configuration Test --framework net8.0
-
-      - name: Run Unit Tests
-        shell: pwsh
-        run: dotnet test ./RoMi.Tests/RoMi.Tests.csproj --no-build -c Test --logger GitHubActions --blame-crash --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+        run: dotnet test ./RoMi.Tests/RoMi.Tests.csproj --configuration Test --framework net8.0 --logger GitHubActions --blame-crash
 
   create_release_artifacts:
     name: Create release artifacts
