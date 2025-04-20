@@ -141,12 +141,6 @@ internal partial class RolandSysExClient(int maxAddressByteCount, int outputDevi
         }
     }
 
-    //private static byte CalculateChecksum(byte[] data)
-    //{
-    //    int sum = data.Sum(x => x);
-    //    return (byte)((128 - (sum % 128)) & 0x7F);
-    //}
-
     #region ressource management
 
     public async ValueTask DisposeAsync()
