@@ -14,12 +14,17 @@
   Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
   <Page.Resources>
+    <converters:ByteToHumanReadableStringConverter x:Key="byteToHumanReadableStringConverter" />
     <converters:ByteArrayToStringConverter x:Key="byteArrayToString" />
   </Page.Resources>
 
   <ScrollViewer>
     <Grid utu:SafeArea.Insets="All">
       <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
@@ -62,7 +67,13 @@
         <ComboBox Grid.Column="1"
                   ItemsSource="{Binding DeviceId}"
                   SelectedItem="{Binding SelectedDeviceId, Mode=TwoWay}"
-                  HorizontalAlignment="Center" />
+                  HorizontalAlignment="Center">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Converter={StaticResource byteToHumanReadableStringConverter}}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
       </Grid>
 
       <ComboBox Grid.Row="2"
@@ -128,15 +139,23 @@
         </ListView.Style>
       </not_win:ListView>
 
-      <TextBlock Name="CalculatedSysex"
+      <TextBlock
                  Grid.Row="7"
                  FontSize="25"
                  Margin="10,5,10,5"
-                 Text="{Binding SysExMessage, Converter={StaticResource byteArrayToString}}"
+                 Text="Data Transmit (DT1):"
+                 HorizontalAlignment="Left">
+      </TextBlock>
+
+      <TextBlock Name="CalculatedSysexDt1"
+                 Grid.Row="8"
+                 FontSize="25"
+                 Margin="10,5,10,5"
+                 Text="{Binding SysExMessageDt1, Converter={StaticResource byteArrayToString}}"
                  HorizontalAlignment="Center">
       </TextBlock>
 
-      <Grid Grid.Row="8"
+      <Grid Grid.Row="9"
             Margin="0,5,0,5">
 
         <Grid.ColumnDefinitions>
@@ -147,19 +166,57 @@
 
         <Button Grid.Column="0"
                 Content="📋"
-                Click="CopyToClipboard_Click"
+                Click="CopyDt1ToClipboard_Click"
+                Margin="0,0,10,0"
                 HorizontalAlignment="Right" />
 
         <ComboBox Grid.Column="1"
-                  ItemsSource="{Binding MidiPortDetails}"
-                  SelectedItem="{Binding SelectedMidiPortDetails, Mode=TwoWay}"
-                  DisplayMemberPath="Name"
+                  ItemsSource="{Binding MidiOutputDeviceList}"
+                  SelectedIndex="{Binding SelectedMidiOutputIndex, Mode=TwoWay}"
                   HorizontalAlignment="Center" />
 
         <Button Grid.Column="2"
                 Content="Send"
-                Command="{Binding DoSendSysexToDevice}"
+                Command="{Binding DoSendSysexDt1ToDevice}"
+                Margin="10,0,0,0"
                 HorizontalAlignment="Left" />
+      </Grid>
+
+      <TextBlock
+            Grid.Row="10"
+            FontSize="25"
+            Margin="10,5,10,5"
+            Text="Data Request (RQ1):"
+            HorizontalAlignment="Left">
+      </TextBlock>
+
+      <TextBlock Name="CalculatedSysexRq1"
+            Grid.Row="11"
+            FontSize="25"
+            Margin="10,5,10,5"
+            Text="{Binding SysExMessageRq1, Converter={StaticResource byteArrayToString}}"
+            HorizontalAlignment="Center">
+      </TextBlock>
+
+      <Grid Grid.Row="12"
+            Margin="0,5,0,5">
+
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Button Grid.Column="0"
+           Content="📋"
+           Click="CopyRq1ToClipboard_Click"
+           Margin="0,0,10,0"
+           HorizontalAlignment="Right" />
+
+        <Button Grid.Column="2"
+           Content="Send"
+           Command="{Binding DoSendSysexRq1ToDevice}"
+           Margin="10,0,0,0"
+           HorizontalAlignment="Left" />
       </Grid>
 
     </Grid>

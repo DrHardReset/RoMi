@@ -9,8 +9,10 @@ public class MidiDocument
     private static readonly byte sysexStart = "0xF0".HexStringToByte();
     private static readonly byte sysexEnd = "0xF7".HexStringToByte();
     private static readonly byte rolandId = "0x41".HexStringToByte();
-    private static readonly byte commandId = "0x12".HexStringToByte(); // command type: DT1 == 0x12 == Data transmit; RQ1 == 0x11 == Data request.
-    public static readonly List<int> DeviceIds = Enumerable.Range(17, 32).ToList(); // From the RD2000 documentation: 10H–1FH, the initial value is 10H (17)
+    public static readonly List<byte> DeviceIds = Enumerable.Range(0x10, 0x1F) // individual ids
+                                                            .Select(i => (byte)i)
+                                                            .Append((byte)0x7F) // Broadcast address
+                                                            .ToList();
 
     internal MidiTables MidiTables = [];
     internal byte[] ModelIdBytes { get; set; }
@@ -165,33 +167,7 @@ public class MidiDocument
         MidiTables.LinkValueDescriptionTables(midiValueDictionary);
     }
 
-    internal static byte[] CalculateSysex(byte[] modelIdBytes, byte deviceId, MidiTableBranchEntry root, MidiTableBranchEntry branch1, MidiTableBranchEntry branch2, MidiTableLeafEntry leafEntry, int value)
-    {
-        List<byte> sysexData = new()
-        {
-            sysexStart,
-            rolandId,
-            deviceId,
-        };
-
-        sysexData.AddRange(modelIdBytes);
-        sysexData.Add(commandId);
-
-        byte[] accumulatedStartAddress = AccumulateStartAddreses(root, branch1, branch2, leafEntry);
-        sysexData.AddRange(accumulatedStartAddress);
-
-        List<byte> valueBytes = CalculateValueBytes(leafEntry, value);
-        sysexData.AddRange(valueBytes);
-
-        byte checkSum = CalculateCheckSum(accumulatedStartAddress, value);
-        sysexData.Add(checkSum);
-
-        sysexData.Add(sysexEnd);
-
-        return sysexData.ToArray();
-    }
-
-    private static byte[] AccumulateStartAddreses(MidiTableBranchEntry root, MidiTableBranchEntry branch1, MidiTableBranchEntry branch2, MidiTableLeafEntry leaf)
+    internal static byte[] AccumulateStartAddreses(MidiTableBranchEntry root, MidiTableBranchEntry branch1, MidiTableBranchEntry branch2, MidiTableLeafEntry leaf)
     {
         byte[] accumulatedAddress = root.StartAddress.BytesCopy();
         accumulatedAddress.Add(branch1.StartAddress.Bytes, StartAddress.MaxAddressByteCount);
@@ -200,7 +176,7 @@ public class MidiDocument
         return accumulatedAddress;
     }
 
-    private static List<byte> CalculateValueBytes(MidiTableLeafEntry leafEntry, int value)
+    internal static byte[] CalculateValueBytes(List<uint> valueDataByteBitMasks, int value)
     {
         /*
          * Calculate the value byte or multiple value bytes.
@@ -208,32 +184,90 @@ public class MidiDocument
          * Multi byte values must be splitted n times by the bitmask.
          * Multi byte values must be added to sysex message from LSB to MSB.
          */
-        byte[] valueArray = new byte[leafEntry.ValueDataByteBitMasks.Count];
+        byte[] valueArray = new byte[valueDataByteBitMasks.Count];
         int valueRest = value;
 
-        for (int i = 0; i < leafEntry.ValueDataByteBitMasks.Count; i++)
+        for (int i = 0; i < valueDataByteBitMasks.Count; i++)
         {
-            uint bitmask = leafEntry.ValueDataByteBitMasks[i];
+            uint bitmask = valueDataByteBitMasks[i];
             valueArray[i] = (byte)(valueRest & bitmask);
             int setBitCount = System.Numerics.BitOperations.PopCount(bitmask);
             valueRest /= (int)Math.Pow(2, setBitCount);
         }
 
-        List<byte> valueBytes = valueArray.Reverse().ToList();
+        byte[] valueBytes = valueArray.Reverse().ToArray();
         return valueBytes;
     }
 
-    private static byte CalculateCheckSum(byte[] accumulatedStartAddress, int value)
+    public byte[] CalculateDt1(byte deviceId, byte[] address, List<uint> valueDataByteBitMasks, int value)
     {
-        int sum = accumulatedStartAddress[0] + accumulatedStartAddress[1] + accumulatedStartAddress[2] + accumulatedStartAddress[3] + value;
-        int remainder = sum % 128;
-        byte checkSum = (byte)(128 - remainder);
+        byte[] valueBytes = CalculateValueBytes(valueDataByteBitMasks, value);
 
-        if (checkSum == 128)
-        {
-            checkSum = 0;
-        }
+        // SysExStart + RolandId + DevíceId + nxModelId + MessageType + 4xAddress + 4xValue + Checksum + SysExEnd
+        byte[] message = new byte[1 + 1 + 1 + ModelIdBytes.Length + 1 + address.Length + valueBytes.Length + 1 + 1];
+        //byte[] message = new byte[10 + address.Length + valueBytes.Length];
+        int i = 0;
 
-        return checkSum;
+        message[i++] = sysexStart;
+        message[i++] = rolandId;
+        message[i++] = deviceId;
+        Array.Copy(ModelIdBytes, 0, message, i, ModelIdBytes.Length);
+        i += ModelIdBytes.Length;
+        message[i++] = 0x12; // DT1
+
+        Array.Copy(address, 0, message, i, address.Length);
+        i += address.Length;
+
+        Array.Copy(valueBytes, 0, message, i, valueBytes.Length);
+        i += valueBytes.Length;
+
+        byte[] checksumData = address.Concat(valueBytes).ToArray();
+        message[i++] = CalculateChecksum(checksumData);
+        message[i++] = sysexEnd;
+
+        return message;
+    }
+
+    public byte[] CalculateRq1(byte deviceId, byte[] address, int size)
+    {
+        byte[] sizeBytes =
+        [
+            (byte)((size >> 24) & 0x7F),
+            (byte)((size >> 16) & 0x7F),
+            (byte)((size >> 8) & 0x7F),
+            (byte)(size & 0x7F)
+        ];
+
+        // SysExStart + RolandId + DevíceId + ModelId + MessageType + 4xAddress + 4xSize + Checksum + SysExEnd
+        int messageLength = 1 + 1 + 1 + ModelIdBytes.Length + 1 + address.Length + sizeBytes.Length + 1 + 1;
+        byte[] message = new byte[messageLength];
+        int i = 0;
+
+        message[i++] = sysexStart;
+        message[i++] = rolandId;
+        message[i++] = deviceId;
+
+        Array.Copy(ModelIdBytes, 0, message, i, ModelIdBytes.Length);
+        i += ModelIdBytes.Length;
+
+        message[i++] = 0x11; // RQ1
+
+        Array.Copy(address, 0, message, i, 4);
+        i += 4;
+
+        Array.Copy(sizeBytes, 0, message, i, 4);
+        i += 4;
+
+        byte checksum = CalculateChecksum(address.Concat(sizeBytes).ToArray());
+        message[i++] = checksum;
+        message[i++] = sysexEnd;
+
+        return message;
+    }
+
+    private static byte CalculateChecksum(byte[] data)
+    {
+        int sum = data.Sum(x => x);
+        return (byte)((128 - (sum % 128)) & 0x7F);
     }
 }

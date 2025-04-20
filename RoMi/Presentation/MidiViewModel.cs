@@ -1,45 +1,45 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Commons.Music.Midi;
-using CommunityToolkit.Common.Collections;
 using CommunityToolkit.WinUI;
 using RoMi.Models.Converters;
 
 namespace RoMi.Presentation;
 
-public class MidiViewModel : INotifyPropertyChanged
+// class shall be partial for trimming and AOT compatibility
+public partial class MidiViewModel : INotifyPropertyChanged
 {
     private readonly INavigator navigator;
 
-    private IMidiOutput? midiOutput = null;
-    public List<IMidiPortDetails> MidiPortDetails { get; }
-    private IMidiPortDetails? selectedMidiPortDetails;
-    public IMidiPortDetails? SelectedMidiPortDetails
+    private RolandSysExClient? rolandSysExClient;
+    public List<string> MidiOutputDeviceList { get; }
+    private int selectedMidiOutputIndex;
+    public int SelectedMidiOutputIndex
     {
         get
         {
-            return selectedMidiPortDetails;
+            return selectedMidiOutputIndex;
         }
         set
         {
-            selectedMidiPortDetails = value;
+            selectedMidiOutputIndex = value;
+            DisposeMidiOutput(); // Reset as the constructor takes this property
             OnPropertyChanged();
-            _ = DisposeMidiOutput();
         }
     }
 
-    public ICommand DoSendSysexToDevice { get; }
+    public ICommand DoSendSysexDt1ToDevice { get; }
+    public ICommand DoSendSysexRq1ToDevice { get; }
     public ICommand OnNavigatedFrom { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
     private readonly MidiDocument midiDocument;
 
-    public List<int> DeviceId { get; } = MidiDocument.DeviceIds;
+    public List<byte> DeviceId { get; } = MidiDocument.DeviceIds;
 
     public string DeviceName { get; set; }
 
-    private int selectedDeviceId = 0;
-    public int SelectedDeviceId
+    private byte selectedDeviceId;
+    public byte SelectedDeviceId
     {
         get
         {
@@ -48,6 +48,7 @@ public class MidiViewModel : INotifyPropertyChanged
         set
         {
             selectedDeviceId = value;
+            DisposeMidiOutput(); // Reset as the constructor takes this property
             OnPropertyChanged();
 
             if (RootTable == null)
@@ -290,16 +291,30 @@ public class MidiViewModel : INotifyPropertyChanged
         }
     }
 
-    private byte[] sysExMessage = [];
-    public byte[] SysExMessage
+    private byte[] sysExMessageDt1 = [];
+    public byte[] SysExMessageDt1
     {
         get
         {
-            return sysExMessage;
+            return sysExMessageDt1;
         }
         set
         {
-            sysExMessage = value;
+            sysExMessageDt1 = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private byte[] sysExMessageRq1 = [];
+    public byte[] SysExMessageRq1
+    {
+        get
+        {
+            return sysExMessageRq1;
+        }
+        set
+        {
+            sysExMessageRq1 = value;
             OnPropertyChanged();
         }
     }
@@ -309,14 +324,14 @@ public class MidiViewModel : INotifyPropertyChanged
         this.navigator = navigator;
         this.midiDocument = midiDocument;
         // TODO: store selected device ID for next app start
-        SelectedDeviceId = 17;
+        SelectedDeviceId = MidiDocument.DeviceIds[0];
         DeviceName = midiDocument.DeviceName;
         RootTable = midiDocument.MidiTables[0];
 
-        MidiPortDetails = MidiAccessManager.Default.Outputs.ToList();
-        SelectedMidiPortDetails = MidiPortDetails.FirstOrDefault();
-        DoSendSysexToDevice = new AsyncRelayCommand(SendSysexToDevice);
-        OnNavigatedFrom = new AsyncRelayCommand(DisposeMidiOutput);
+        MidiOutputDeviceList = RolandSysExClient.MidiOutputs;
+        DoSendSysexDt1ToDevice = new AsyncRelayCommand(SendSysexDt1ToDevice);
+        DoSendSysexRq1ToDevice = new AsyncRelayCommand(SendSysexRq1ToDevice);
+        OnNavigatedFrom = new AsyncRelayCommand(DisposeMidiOutputAsync);
 
         if (rootTable is null || branchTable1 is null || branchTable2 is null || leafTable is null || values is null)
         {
@@ -329,31 +344,42 @@ public class MidiViewModel : INotifyPropertyChanged
 
     private void TriggerSysExCalculation()
     {
-        byte selectedDeviceId = (byte)(SelectedDeviceId - 1); // the documentation states that 0x10 == 17 -> subtract 1 of the integer value
-
         if (RootTable[RootTableSelectedIndex] is not MidiTableBranchEntry rootEntry ||
             BranchTable1[BranchTableSelectedIndex1] is not MidiTableBranchEntry branchEntry1 ||
             BranchTable2[BranchTableSelectedIndex2] is not MidiTableBranchEntry branchEntry2 ||
             LeafTable[LeafTableSelectedIndex] is not MidiTableLeafEntry leafEntry ||
             leafEntry.MidiValueList.Count == 0)
         {
-            SysExMessage = [];
+            SysExMessageDt1 = [];
+            SysExMessageRq1 = [];
             return;
         }
 
+        byte[] sysExStartAddress = MidiDocument.AccumulateStartAddreses(rootEntry, branchEntry1, branchEntry2, leafEntry);
         int value = leafEntry.MidiValueList[ValuesSelectedIndex].Value;
-        SysExMessage = MidiDocument.CalculateSysex(midiDocument.ModelIdBytes, selectedDeviceId, rootEntry, branchEntry1, branchEntry2, leafEntry, value);
+        SysExMessageDt1 = midiDocument.CalculateDt1(SelectedDeviceId, sysExStartAddress, leafEntry.ValueDataByteBitMasks, value);
+        SysExMessageRq1 = midiDocument.CalculateRq1(SelectedDeviceId, sysExStartAddress, leafEntry.ValueDataByteBitMasks.Count);
     }
 
-    public async Task SendSysexToDevice()
+    public async Task SendSysexDt1ToDevice()
+    {
+        await SendSysexToDevice(true);
+    }
+
+    public async Task SendSysexRq1ToDevice()
+    {
+        await SendSysexToDevice(false);
+    }
+
+    public async Task SendSysexToDevice(bool isDt1)
     {
         /*
          * The Uno project suggests to use "Windows.Devices.Midi". But this library does not read the proper MIDI device names for my gear.
          * The "managed-midi" library does a better job for device names.
          */
-        if (SelectedMidiPortDetails == null)
+        if (SelectedMidiOutputIndex == -1)
         {
-            if (MidiPortDetails == null || MidiPortDetails.Count == 0)
+            if (MidiOutputDeviceList == null || MidiOutputDeviceList.Count == 0)
             {
                 _ = navigator.ShowMessageDialogAsync(this, title: "No MIDI output device available. (Going back to main view and reopening MIDI view refreshes the MIDI device list)");
                 return;
@@ -365,30 +391,50 @@ public class MidiViewModel : INotifyPropertyChanged
 
         try
         {
-            await Task.Run(async () =>
+            if (rolandSysExClient == null || !rolandSysExClient.IsReady())
             {
-                if (midiOutput?.Connection != MidiPortConnectionState.Open)
+                rolandSysExClient = new RolandSysExClient(StartAddress.MaxAddressByteCount, SelectedMidiOutputIndex);
+                await rolandSysExClient.InitAsync();
+            }
+
+            if (isDt1) // DT1
+            {
+                rolandSysExClient.Send(SysExMessageDt1);
+            }
+            else // RQ1
+            {
+                if (SysExMessageRq1.Length == 0)
                 {
-                    var accessManager = MidiAccessManager.Default;
-                    midiOutput = await accessManager.OpenOutputAsync(SelectedMidiPortDetails.Id);
+                    return;
                 }
 
-                midiOutput.Send(SysExMessage, 0, SysExMessage.Length, 0);
-            });
+                MidiTableLeafEntry leafEntry = (MidiTableLeafEntry)LeafTable[LeafTableSelectedIndex];
+                byte[] dt1 = await rolandSysExClient.SendRq1AndWaitForResponseAsync(SysExMessageRq1);
+                _ = navigator.ShowMessageDialogAsync(this, title: "DT1", content: $"DT1:{BitConverter.ToString(dt1)}");
+            }
         }
         catch(Exception ex)
         {
-            _ = navigator.ShowMessageDialogAsync(this, title: "Sending MIDI message failed.", content: $"Sending MIDI message {SysExMessage.ByteArrayToHexString()} to device {SelectedMidiPortDetails.Name} failed.\n{ex}");
+            await DisposeMidiOutputAsync();
+            _ = navigator.ShowMessageDialogAsync(this, title: "Sending MIDI message failed.", content: $"Sending MIDI message {SysExMessageDt1.ByteArrayToHexString()} to device {MidiOutputDeviceList[SelectedMidiOutputIndex]} failed.\n{ex}");
         }
     }
 
-    private async Task DisposeMidiOutput()
+    private void DisposeMidiOutput()
     {
-        if (midiOutput == null)
+        if (rolandSysExClient != null)
         {
-            return;
+            rolandSysExClient.Dispose();
+            rolandSysExClient = null;
         }
+    }
 
-        await midiOutput.CloseAsync();
+    private async Task DisposeMidiOutputAsync()
+    {
+        if (rolandSysExClient != null)
+        {
+            await rolandSysExClient.DisposeAsync();
+            rolandSysExClient = null;
+        }
     }
 }
