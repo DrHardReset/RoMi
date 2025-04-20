@@ -1,21 +1,13 @@
 namespace RoMi.Models;
 
-public class MidiValue
+public class MidiValue(int value, string? description, string? category, string? unit)
 {
     /// <summary>The actual MIDI value.</summary>
-    public int Value { get; set; }
+    public int Value { get; set; } = value;
     /// <summary>The description for the MIDI value.</summary>
-    public string? Description { get; set; }
+    public string? Description { get; set; } = description;
     /// <summary>The category of the MIDI value (only available if separate description tables exist).</summary>
-    public string? Category { get; set; } = null;
+    public string? Category { get; set; } = category;
     /// <summary>The unit for the desciption value.</summary>
-    public string? Unit { get; set; } = null;
-
-    public MidiValue(int value, string? description, string? category, string? unit)
-    {
-        Value = value;
-        Description = description;
-        Category = category;
-        Unit = unit;
-    }
+    public string? Unit { get; set; } = unit;
 }

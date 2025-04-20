@@ -4,7 +4,8 @@ using RoMi.Models.Converters;
 
 namespace RoMi.Models;
 
-public class MidiTable : List<MidiTableEntry>
+// class shall be partial for trimming and AOT compatibility
+public partial class MidiTable : List<MidiTableEntry>
 {
     public MidiTableType MidiTableType { get; set; }
     public string Name { get; set; } = string.Empty;

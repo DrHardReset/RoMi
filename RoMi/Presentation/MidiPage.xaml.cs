@@ -29,10 +29,17 @@ public sealed partial class MidiPage : Page
         viewModel?.OnNavigatedFrom.Execute(null);
     }
 
-    private void CopyToClipboard_Click(object sender, RoutedEventArgs e)
+    private void CopyDt1ToClipboard_Click(object sender, RoutedEventArgs e)
     {
         DataPackage dataPackage = new();
-        dataPackage.SetText(CalculatedSysex.Text);
+        dataPackage.SetText(CalculatedSysexDt1.Text);
+        Clipboard.SetContent(dataPackage);
+    }
+
+    private void CopyRq1ToClipboard_Click(object sender, RoutedEventArgs e)
+    {
+        DataPackage dataPackage = new();
+        dataPackage.SetText(CalculatedSysexRq1.Text);
         Clipboard.SetContent(dataPackage);
     }
 

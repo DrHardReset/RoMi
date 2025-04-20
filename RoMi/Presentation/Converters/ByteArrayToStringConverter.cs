@@ -3,7 +3,8 @@ using RoMi.Models.Converters;
 
 namespace RoMi.Presentation.Converters;
 
-public class ByteArrayToStringConverter : IValueConverter
+// class shall be partial for trimming and AOT compatibility
+public partial class ByteArrayToStringConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
