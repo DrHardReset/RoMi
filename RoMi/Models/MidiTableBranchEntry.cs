@@ -37,9 +37,9 @@ public class MidiTableBranchEntry : MidiTableEntry
         }
     }
 
-    public MidiTableBranchEntry(StartAddress startAddress, string leafaName, string description) : base(startAddress, description)
+    public MidiTableBranchEntry(StartAddress startAddress, string leafName, string description) : base(startAddress, description)
     {
-        LeafName = leafaName;
+        LeafName = leafName;
     }
 
     public override string ToString()

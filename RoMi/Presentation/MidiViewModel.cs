@@ -33,10 +33,9 @@ public partial class MidiViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
     private readonly MidiDocument midiDocument;
-
-    public List<byte> DeviceId { get; } = MidiDocument.DeviceIds;
-
     public string DeviceName { get; set; }
+
+    public List<DeviceIdDisplayItem> DeviceIdList { get; } = [.. MidiDocument.DeviceIds.Select(i => new DeviceIdDisplayItem(i))];
 
     private byte selectedDeviceId;
     public byte SelectedDeviceId

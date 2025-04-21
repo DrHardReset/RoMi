@@ -1,6 +1,4 @@
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using Microsoft.UI.Xaml.Documents;
 
 namespace RoMi.Models;
 
@@ -47,6 +45,37 @@ public class MidiTables : List<MidiTable>
                 MidiTableBranchEntry midiTableBranchEntry = ((MidiTableBranchEntry)this[midiTableIndex][midiTableEntryIndex]);
                 string leafName = midiTableBranchEntry.LeafName;
 
+                if (deviceName == "JD-Xi")
+                {
+                    /*
+                     * JD-Xi root table has hard to follow references for Temporary tones.
+                     * Fix the child reference tables and the startaddresses
+                     */
+                    switch (midiTableBranchEntry.Description)
+                    {
+                        case "Temporary Tone (Digital Synth Part 1)":
+                            midiTableBranchEntry.LeafName = "SuperNATURAL Synth Tone";
+                            midiTableBranchEntry.StartAddress.Increment([00, 01, 00, 00]);
+                            break;
+                        case "Temporary Tone (Digital Synth Part 2)":
+                            midiTableBranchEntry.LeafName = "SuperNATURAL Synth Tone";
+                            midiTableBranchEntry.StartAddress.Increment([00, 01, 00, 00]);
+                            break;
+                        case "Temporary Tone (Analog Synth Part)":
+                            midiTableBranchEntry.LeafName = "Analog Synth Part";
+                            midiTableBranchEntry.StartAddress.Increment([00, 02, 00, 00]);
+                            break;
+                        case "Temporary Tone (Drums Part)":
+                            midiTableBranchEntry.LeafName = "Drum Kit";
+                            midiTableBranchEntry.StartAddress.Increment([00, 10, 00, 00]);
+                            break;
+                        case "Analog Synth Tone" when midiTableBranchEntry.LeafName == "Analog Synth Tone":
+                            // There are 2 tables named "Analog Synth Tone". Rename the first one.
+                            this[midiTableIndex].Name = "Analog Synth Part";
+                            break;
+                    }
+                }
+
                 try
                 {
                     GetTableIndexByName(leafName);
@@ -77,7 +106,7 @@ public class MidiTables : List<MidiTable>
                     try
                     {
                         /*
-                         * PDF for INTEGRA-7 root table contains multiple entries that reference child tables whose names should strat with "Temporary". The actual child table's names do not have this prefix. Example: root entry 'Temporary Studio Set' must reference "Studio Set"
+                         * PDF for INTEGRA-7 root table contains multiple entries that reference child tables whose names should start with "Temporary". The actual child table's names do not have this prefix. Example: root entry 'Temporary Studio Set' must reference "Studio Set"
                          * If that is the case rename the child table on first check.
                          */
                         if (leafName.StartsWith("Temporary"))
@@ -85,7 +114,8 @@ public class MidiTables : List<MidiTable>
                             int temporaryEntryNameIndex = GetTableIndexByName(leafName.Replace("Temporary ", ""));
                             this[temporaryEntryNameIndex].Name = leafName;
                         }
-                    } catch (KeyNotFoundException)
+                    }
+                    catch (KeyNotFoundException)
                     {
                         throw new Exception($"Table '{midiTableBranchEntry.Description}' references a table named '{leafName}' which could not be found in the table list.");
                     }

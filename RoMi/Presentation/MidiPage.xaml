@@ -14,7 +14,6 @@
   Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
   <Page.Resources>
-    <converters:ByteToHumanReadableStringConverter x:Key="byteToHumanReadableStringConverter" />
     <converters:ByteArrayToStringConverter x:Key="byteArrayToString" />
   </Page.Resources>
 
@@ -65,15 +64,11 @@
                    HorizontalAlignment="Right" />
 
         <ComboBox Grid.Column="1"
-                  ItemsSource="{Binding DeviceId}"
-                  SelectedItem="{Binding SelectedDeviceId, Mode=TwoWay}"
-                  HorizontalAlignment="Center">
-          <ComboBox.ItemTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding Converter={StaticResource byteToHumanReadableStringConverter}}" />
-            </DataTemplate>
-          </ComboBox.ItemTemplate>
-        </ComboBox>
+                  ItemsSource="{Binding DeviceIdList}"
+                  SelectedValue="{Binding SelectedDeviceId, Mode=TwoWay}"
+                  SelectedValuePath="Value"
+                  DisplayMemberPath="Display"
+                  HorizontalAlignment="Center" />
       </Grid>
 
       <ComboBox Grid.Row="2"

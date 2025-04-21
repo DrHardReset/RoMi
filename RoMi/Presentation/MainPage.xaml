@@ -18,6 +18,7 @@
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
 
       <Grid.ColumnDefinitions>
@@ -130,6 +131,19 @@
               Command="{Binding GoToAboutPage}"
               HorizontalAlignment="Center"
               Margin="0,30,0,0"/>
+
+      <StackPanel Grid.Row="6"
+            Height="Auto"
+            Width="Auto"
+            Margin="0,30,0,30"
+            HorizontalAlignment="Center">
+
+        <TextBlock Text="RoMi is powered by 🍺, 🍕 and ♫." HorizontalAlignment="Center"/>
+        <TextBlock Text="Your support is appreciated:" HorizontalAlignment="Center"/>
+        <TextBlock HorizontalAlignment="Center">
+			  <Span xml:space="preserve"><Hyperlink NavigateUri="https://www.paypal.me/DrHardReset">https://www.paypal.me/DrHardReset</Hyperlink></Span>
+        </TextBlock>
+      </StackPanel>
 
     </Grid>
   </ScrollViewer>
