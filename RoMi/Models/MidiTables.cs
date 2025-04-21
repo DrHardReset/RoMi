@@ -77,7 +77,7 @@ public class MidiTables : List<MidiTable>
                     try
                     {
                         /*
-                         * PDF for INTEGRA-7 root table contains multiple entries that reference child tables whose names should strat with "Temporary". The actual child table's names do not have this prefix. Example: root entry 'Temporary Studio Set' must reference "Studio Set"
+                         * PDF for INTEGRA-7 root table contains multiple entries that reference child tables whose names should start with "Temporary". The actual child table's names do not have this prefix. Example: root entry 'Temporary Studio Set' must reference "Studio Set"
                          * If that is the case rename the child table on first check.
                          */
                         if (leafName.StartsWith("Temporary"))
@@ -85,7 +85,8 @@ public class MidiTables : List<MidiTable>
                             int temporaryEntryNameIndex = GetTableIndexByName(leafName.Replace("Temporary ", ""));
                             this[temporaryEntryNameIndex].Name = leafName;
                         }
-                    } catch (KeyNotFoundException)
+                    }
+                    catch (KeyNotFoundException)
                     {
                         throw new Exception($"Table '{midiTableBranchEntry.Description}' references a table named '{leafName}' which could not be found in the table list.");
                     }
