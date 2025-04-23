@@ -9,7 +9,7 @@ public class MidiDocument
     private static readonly byte sysexStart = "0xF0".HexStringToByte();
     private static readonly byte sysexEnd = "0xF7".HexStringToByte();
     private static readonly byte rolandId = "0x41".HexStringToByte();
-    public static readonly List<byte> DeviceIds = Enumerable.Range(0x10, 0x1F) // individual ids
+    public static readonly List<byte> DeviceIds = Enumerable.Range(0x10, (0x1F - 0x10 + 1)) // individual ids from 0x10 to 0x1F
                                                             .Select(i => (byte)i)
                                                             .Append((byte)0x7F) // Broadcast address
                                                             .ToList();
