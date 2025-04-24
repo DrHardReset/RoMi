@@ -425,8 +425,10 @@ public partial class MidiViewModel : INotifyPropertyChanged
                     throw new Exception($"The received DT1 message value index {valueIndex} could not be found in the value list which contains {values.Count} entries.");
                 }
 
+                string hexString = BitConverter.ToString(dt1);
                 string dt1ValueDescription = leafEntry.MidiValueList.GetDescriptions()[valueIndex];
-                _ = navigator.ShowMessageDialogAsync(this, title: "DT1", content: $"Received DT1: {BitConverter.ToString(dt1)} -> {dt1ValueDescription}");
+
+                _ = navigator.ShowMessageDialogAsync(this, title: "Received DT1", content: $"Hex:\t{hexString}\nValue:\t{dt1ValueDescription}");
             }
         }
         catch(Exception ex)
