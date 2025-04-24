@@ -409,7 +409,26 @@ public partial class MidiViewModel : INotifyPropertyChanged
 
                 MidiTableLeafEntry leafEntry = (MidiTableLeafEntry)LeafTable[LeafTableSelectedIndex];
                 byte[] dt1 = await rolandSysExClient.SendRq1AndWaitForResponseAsync(SysExMessageRq1);
-                _ = navigator.ShowMessageDialogAsync(this, title: "DT1", content: $"DT1:{BitConverter.ToString(dt1)}");
+
+                if (dt1.Length > leafEntry.ValueDataByteBitMasks.Count)
+                {
+                    throw new NotSupportedException($"The received DT1 message value has a size of {dt1.Length} bytes instead of the maximum supported {leafEntry.ValueDataByteBitMasks.Count} bytes.");
+                }
+
+                int dt1Value = MidiDocument.CalculateValueFromBytes(leafEntry.ValueDataByteBitMasks, dt1);
+
+                List<int> values = leafEntry.MidiValueList.GetValues();
+                int valueIndex = values.FindIndex(x => x == dt1Value);
+
+                if (valueIndex < 0)
+                {
+                    throw new Exception($"The received DT1 message value index {valueIndex} could not be found in the value list which contains {values.Count} entries.");
+                }
+
+                string hexString = BitConverter.ToString(dt1);
+                string dt1ValueDescription = leafEntry.MidiValueList.GetDescriptions()[valueIndex];
+
+                _ = navigator.ShowMessageDialogAsync(this, title: "Received DT1", content: $"Hex:\t{hexString}\nValue:\t{dt1ValueDescription}");
             }
         }
         catch(Exception ex)

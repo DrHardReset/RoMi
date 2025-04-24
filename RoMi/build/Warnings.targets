@@ -1,0 +1,27 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Suppress WMC0001 only for specific xaml file -->
+  <ItemGroup>
+    <Page Remove="Styles/ColorPaletteOverride.xaml" />
+    <Page Include="Styles/ColorPaletteOverride.xaml">
+      <NoWarn>WMC0001</NoWarn>
+    </Page>
+  </ItemGroup>
+
+  <!-- Suppress warnings globally for all files -->
+  <PropertyGroup>
+    <!-- CA1416 is suppressed because UNO Platform uses cross-platform wrappers that seem to be incorrectly marked as Windows-only -->
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+
+  <!-- Suppress XA4218 only if the listed Android jars are missing -->
+  <PropertyGroup Condition="$(TargetFramework.Contains('android'))">
+    <_SidecarJar>$(AndroidSdkDirectory)\platforms\android-34\optional\androidx.window.sidecar.jar</_SidecarJar>
+    <_ExtensionsJar>$(AndroidSdkDirectory)\platforms\android-34\optional\androidx.window.extensions.jar</_ExtensionsJar>
+
+    <NoWarn Condition="!Exists('$(_SidecarJar)') or !Exists('$(_ExtensionsJar)')">
+      $(NoWarn);XA4218
+    </NoWarn>
+  </PropertyGroup>
+
+</Project>

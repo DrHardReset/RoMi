@@ -9,18 +9,35 @@ public partial class MainViewModel : ObservableObject
     private readonly INavigator navigator;
     private readonly IHttpClientFactory httpClientFactory;
     private HttpClient? httpClient = null;
-    [ObservableProperty]
-    public static SortedDictionary<string, string>? supportedDeviceDict;
     private readonly string midiDirName = "midi_pdfs";
 
-    [ObservableProperty]
+    private SortedDictionary<string, string>? supportedDeviceDict;
+    public SortedDictionary<string, string>? SupportedDeviceDict
+    {
+        get => supportedDeviceDict;
+        set => SetProperty(ref supportedDeviceDict, value);
+    }
+
     private StorageFolder? localMidiPdfFolder = null;
+    public StorageFolder? LocalMidiPdfFolder
+    {
+        get => localMidiPdfFolder;
+        set => SetProperty(ref localMidiPdfFolder, value);
+    }
 
-    [ObservableProperty]
     private string? name;
+    public string? Name
+    {
+        get => name;
+        set => SetProperty(ref name, value);
+    }
 
-    [ObservableProperty]
     private bool isLoading = false;
+    public bool IsLoading
+    {
+        get => isLoading;
+        set => SetProperty(ref isLoading, value);
+    }
 
     private int isLoadingCounter = 0;
     private int IsLoadingCounter
@@ -41,11 +58,21 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    [ObservableProperty]
     private ObservableCollection<MainPageDeviceButtonData> mainPageDeviceButtonData = new();
 
-    [ObservableProperty]
+    public ObservableCollection<MainPageDeviceButtonData> MainPageDeviceButtonData
+    {
+        get => mainPageDeviceButtonData;
+        set => SetProperty(ref mainPageDeviceButtonData, value);
+    }
+
     private string downloadPdfUrl = string.Empty;
+
+    public string DownloadPdfUrl
+    {
+        get => downloadPdfUrl;
+        set => SetProperty(ref downloadPdfUrl, value);
+    }
 
     public string? Title { get; }
 

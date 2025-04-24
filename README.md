@@ -1,5 +1,5 @@
 <p align="center" width="100%">
-    <img width="33%" src="RoMi/Assets/Icons/icon.png">
+    <img width="33%" src="RoMi.Shared/Icons/romi_logo.png">
 </p>
 
 If you've ever wanted to control your Roland keyboard/synthesizer/workstation via MIDI and tried to calculate the sysex messages and checksum by just poking around the midi implementation charts, you know how time consuming and frustrating this can be.
@@ -12,16 +12,10 @@ Just download the RoMi app, insert the midi implementation PDF and you're good t
 
 The app is tested for Roland AX-Edge only, but should generally work with the following devices:
 - AX-Edge
-- FANTOM-06/07/08
-- FANTOM-6/7/8
-- GT-1000
-- INTEGRA-7
-- JD-Xi
-- JUNO-X
-- JUPITER-X/Xm
-- RD-2000
 - RD-88
-- SPD-SX PRO
+- RD-2000
+- FANTOM-06/07/08
+- FA-06/07/08
 
 RoMi is licensed under the [GPLv3 License][license-link].
 
@@ -34,8 +28,7 @@ I hope you'll find the app as useful as I do!
 	<img src="docs/midiview.png" width="400">
 </p>
 
-USED THIRD-PARTY LIBRARIES
-==========================
+## USED THIRD-PARTY LIBRARIES
 
 The most important libraries which are used by RoMi:
 
@@ -46,9 +39,16 @@ The most important libraries which are used by RoMi:
 
 See About page in the app for all used libraries.
 
-Thanks to 
-==========================
+## Thanks to 
+
 Eddie Lotter's [MIDI SysEx Tutorial][eddies-tutorial]
+
+## Disclaimer
+
+This software is not affiliated with, endorsed by, or supported by Roland Corporation.  
+It was developed based on publicly available information from Roland documentation.  
+All Roland product names and trademarks are the property of their respective owners.
+
 
 <!-- LINK GROUP -->
 [discussions-link]: https://github.com/DrHardReset/RoMi/discussions

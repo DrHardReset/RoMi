@@ -9,7 +9,7 @@ public class MidiDocument
     private static readonly byte sysexStart = "0xF0".HexStringToByte();
     private static readonly byte sysexEnd = "0xF7".HexStringToByte();
     private static readonly byte rolandId = "0x41".HexStringToByte();
-    public static readonly List<byte> DeviceIds = Enumerable.Range(0x10, 0x1F) // individual ids
+    public static readonly List<byte> DeviceIds = Enumerable.Range(0x10, (0x1F - 0x10 + 1)) // individual ids from 0x10 to 0x1F
                                                             .Select(i => (byte)i)
                                                             .Append((byte)0x7F) // Broadcast address
                                                             .ToList();
@@ -197,6 +197,39 @@ public class MidiDocument
 
         byte[] valueBytes = valueArray.Reverse().ToArray();
         return valueBytes;
+    }
+
+    internal static int CalculateValueFromBytes(List<uint> valueDataByteBitMasks, byte[] valueBytes)
+    {
+        /*
+         * Reconstruct the integer value from a list of value bytes and corresponding bitmasks.
+         * The bitmasks define how many bits are relevant in each byte (e.g., 0x7F for 7 bits).
+         * Value bytes are expected in MSB to LSB order, so we reverse them before processing.
+         */
+
+        if (valueBytes.Length != valueDataByteBitMasks.Count)
+        {
+            throw new ArgumentException("Length of valueBytes must match valueDataByteBitMasks count");
+        }
+
+        valueBytes = valueBytes.Reverse().ToArray();
+
+        int value = 0;
+        int shift = 0;
+
+        for (int i = 0; i < valueBytes.Length; i++)
+        {
+            uint mask = valueDataByteBitMasks[i];
+            int setBitCount = System.Numerics.BitOperations.PopCount(mask);
+
+            // Ensure the byte value only includes valid bits
+            byte maskedValue = (byte)(valueBytes[i] & mask);
+
+            value |= maskedValue << shift;
+            shift += setBitCount;
+        }
+
+        return value;
     }
 
     public byte[] CalculateDt1(byte deviceId, byte[] address, List<uint> valueDataByteBitMasks, int value)

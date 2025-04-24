@@ -1,4 +1,4 @@
-<Project Sdk="Uno.Sdk">
+﻿<Project Sdk="Uno.Sdk">
   <PropertyGroup>
     <TargetFrameworks Condition="'$(Configuration)'!='Test'">net8.0-desktop;net8.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041;net8.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(Configuration)'=='Test'">net8.0</TargetFrameworks>
@@ -117,5 +117,7 @@
      <!--dotnet build works with "$(ProjectDir)..\" instead of "$(SolutionDir)"-->
     <Exec Command="powershell.exe -NoLogo -NonInteractive -executionpolicy Unrestricted &quot;&amp; '.\createLibraryDependencyReport.ps1' '$(ProjectDir)..\' '$(MSBuildProjectDirectory)\Assets\LibraryDependencyReport.json'&quot;" />
   </Target>
+
+  <Import Project="build/Warnings.targets" />
 
 </Project>
