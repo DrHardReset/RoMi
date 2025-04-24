@@ -12,7 +12,9 @@ internal partial class RolandSysExClient(int maxAddressByteCount, int outputDevi
 {
     private bool disposed = false;
     private readonly int maxAddressByteCount = maxAddressByteCount;
+#pragma warning disable CS0618 // Type or element is obsolete
     private static readonly IMidiAccess midi = MidiAccessManager.Default;
+#pragma warning restore CS0618 // Type or element is obsolete
     private readonly string deviceName = midi.Outputs.ToArray()[outputDeviceIndex].Name;
     private IMidiInput? input;
     private IMidiOutput? output;
