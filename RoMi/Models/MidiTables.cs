@@ -55,19 +55,19 @@ public class MidiTables : List<MidiTable>
                     {
                         case "Temporary Tone (Digital Synth Part 1)":
                             midiTableBranchEntry.LeafName = "SuperNATURAL Synth Tone";
-                            midiTableBranchEntry.StartAddress.Increment([00, 01, 00, 00]);
+                            midiTableBranchEntry.StartAddress.Increment([00, 0x01, 00, 00]);
                             break;
                         case "Temporary Tone (Digital Synth Part 2)":
                             midiTableBranchEntry.LeafName = "SuperNATURAL Synth Tone";
-                            midiTableBranchEntry.StartAddress.Increment([00, 01, 00, 00]);
+                            midiTableBranchEntry.StartAddress.Increment([00, 0x01, 00, 00]);
                             break;
                         case "Temporary Tone (Analog Synth Part)":
                             midiTableBranchEntry.LeafName = "Analog Synth Part";
-                            midiTableBranchEntry.StartAddress.Increment([00, 02, 00, 00]);
+                            midiTableBranchEntry.StartAddress.Increment([00, 0x02, 00, 00]);
                             break;
                         case "Temporary Tone (Drums Part)":
                             midiTableBranchEntry.LeafName = "Drum Kit";
-                            midiTableBranchEntry.StartAddress.Increment([00, 10, 00, 00]);
+                            midiTableBranchEntry.StartAddress.Increment([00, 0x10, 00, 00]);
                             break;
                         case "Analog Synth Tone" when midiTableBranchEntry.LeafName == "Analog Synth Tone":
                             // There are 2 tables named "Analog Synth Tone". Rename the first one.
