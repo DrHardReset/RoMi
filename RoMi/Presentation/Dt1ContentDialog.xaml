@@ -1,0 +1,28 @@
+﻿<ContentDialog x:Class="RoMi.Presentation.Dt1ContentDialog"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:local="using:RoMi.Presentation"
+               xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+               Title="Received DT1"
+               IsPrimaryButtonEnabled="False"
+               IsSecondaryButtonEnabled="False"
+               Style="{ThemeResource DefaultContentDialogStyle}">
+
+  <StackPanel Spacing="12" Width="400">
+
+    <TextBox
+          x:Name="TextContent"
+          IsReadOnly="True"
+          AcceptsReturn="True"
+          TextWrapping="Wrap"
+          BorderThickness="0"
+          BorderBrush="Transparent" />
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <Button Content="Copy hex" Click="CopyHex_Click" />
+      <Button Content="Copy value" Click="CopyValue_Click" />
+      <Button Content="Close" Click="Close_Click" />
+    </StackPanel>
+
+  </StackPanel>
+</ContentDialog>

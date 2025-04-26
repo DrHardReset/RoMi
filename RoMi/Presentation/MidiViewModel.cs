@@ -428,7 +428,7 @@ public partial class MidiViewModel : INotifyPropertyChanged
                 string hexString = BitConverter.ToString(dt1);
                 string dt1ValueDescription = leafEntry.MidiValueList.GetDescriptions()[valueIndex];
 
-                _ = navigator.ShowMessageDialogAsync(this, title: "Received DT1", content: $"Hex:\t{hexString}\nValue:\t{dt1ValueDescription}");
+                await new Dt1ContentDialog(hexString, dt1ValueDescription).ShowAsync();
             }
         }
         catch(Exception ex)
