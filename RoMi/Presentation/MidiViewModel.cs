@@ -9,6 +9,7 @@ namespace RoMi.Presentation;
 public partial class MidiViewModel : INotifyPropertyChanged
 {
     private readonly INavigator navigator;
+    private readonly MidiTableNavigator midiTableNavigator;
 
     private RolandSysExClient? rolandSysExClient;
     public List<string> MidiOutputDeviceList { get; }
@@ -83,30 +84,25 @@ public partial class MidiViewModel : INotifyPropertyChanged
         }
         set
         {
-            rootTableSelectedIndex = value == -1 ? 0 : value;
+            rootTableSelectedIndex = NormalizeSelectedIndex(value);
             OnPropertyChanged();
 
-            string childBranchName = ((MidiTableBranchEntry)RootTable[rootTableSelectedIndex]).LeafName;
-            int targetTableIndex = midiDocument.MidiTables.GetTableIndexByName(childBranchName);
+            var childTable = midiTableNavigator.GetChildTable(RootTable, rootTableSelectedIndex);
 
-            MidiTable childTable = midiDocument.MidiTables[targetTableIndex];
-
-            if (childTable.MidiTableType == MidiTableType.LeafTable)
+            if (midiTableNavigator.IsLeafTable(childTable))
             {
                 /*
                  * Insert dummy table which disables Branch ComboBox in View if selected root table's child reference is a leaf table.
                  * Example: AX-Edge's "Setup" entry of Root table directly references the Leaf table [Setup]
                  */
-                BranchTable1 =
-                [
-                    new MidiTableBranchEntry()
-                ];
+                BranchTable1 = new MidiTable { new MidiTableBranchEntry() };
                 BranchTable2 = BranchTable1;
                 LeafTable = childTable;
-                return;
             }
-
-            BranchTable1 = midiDocument.MidiTables[targetTableIndex];
+            else
+            {
+                BranchTable1 = childTable;
+            }
         }
     }
 
@@ -132,34 +128,25 @@ public partial class MidiViewModel : INotifyPropertyChanged
     private int branchTableSelectedIndex1 = 0;
     public int BranchTableSelectedIndex1
     {
-        get
-        {
-            return branchTableSelectedIndex1;
-        }
+        get => branchTableSelectedIndex1;
         set
         {
-            branchTableSelectedIndex1 = value == -1 ? 0 : value;
+            branchTableSelectedIndex1 = NormalizeSelectedIndex(value);
             OnPropertyChanged();
 
-            string childBranchName = ((MidiTableBranchEntry)BranchTable1[branchTableSelectedIndex1]).LeafName;
-            int targetTableIndex = midiDocument.MidiTables.GetTableIndexByName(childBranchName);
-            MidiTable childTable = midiDocument.MidiTables[targetTableIndex];
+            var childTable = midiTableNavigator.GetChildTable(BranchTable1, branchTableSelectedIndex1);
 
-            if (childTable.MidiTableType is MidiTableType.BranchTable)
+            if (midiTableNavigator.IsLeafTable(childTable))
             {
-                BranchTable2 = midiDocument.MidiTables[targetTableIndex];
+                /*
+                * Insert dummy table which disables second Branch ComboBox in View if (like in most cases) there is only one branch table between root and leaf table.
+                */
+                BranchTable2 = new MidiTable { new MidiTableBranchEntry() };
+                LeafTable = childTable;
             }
             else
             {
-                /*
-                 * Insert dummy table which disables second Branch ComboBox in View if (like in most cases) there is only one branch table between root and leaf table.
-                 */
-                BranchTable2 =
-                [
-                    new MidiTableBranchEntry()
-                ];
-
-                LeafTable = midiDocument.MidiTables[targetTableIndex];
+                BranchTable2 = childTable;
             }
         }
     }
@@ -186,18 +173,14 @@ public partial class MidiViewModel : INotifyPropertyChanged
     private int branchTableSelectedIndex2 = 0;
     public int BranchTableSelectedIndex2
     {
-        get
-        {
-            return branchTableSelectedIndex2;
-        }
+        get => branchTableSelectedIndex2;
         set
         {
-            branchTableSelectedIndex2 = value == -1 ? 0 : value;
+            branchTableSelectedIndex2 = NormalizeSelectedIndex(value);
             OnPropertyChanged();
 
-            string childBranchName = ((MidiTableBranchEntry)BranchTable2[branchTableSelectedIndex2]).LeafName;
-            int targetTableIndex = midiDocument.MidiTables.GetTableIndexByName(childBranchName);
-            LeafTable = midiDocument.MidiTables[targetTableIndex];
+            var childTable = midiTableNavigator.GetChildTable(BranchTable2, branchTableSelectedIndex2);
+            LeafTable = childTable;
         }
     }
 
@@ -215,7 +198,7 @@ public partial class MidiViewModel : INotifyPropertyChanged
             leafTable = value;
             OnPropertyChanged();
 
-            // Not sure if it really makes sense here, but as we try to assign previous SelectedIndex for Branch Table we do it here, too.
+            // Try to assign previous LeafTableSelectedIndex to new table. This may be useful when switching from table "Program Tone 01" to "Program Tone 02" as it keeps selected entries of sub tables.
             LeafTableSelectedIndex = leafTable.Count >= currentSelectedLeafTableIndex + 1 ? currentSelectedLeafTableIndex : 0;
         }
     }
@@ -229,7 +212,7 @@ public partial class MidiViewModel : INotifyPropertyChanged
         }
         set
         {
-            leafTableSelectedIndex = value == -1 ? 0 : value;
+            leafTableSelectedIndex = NormalizeSelectedIndex(value);
             OnPropertyChanged();
 
             if (LeafTable[leafTableSelectedIndex] is not MidiTableLeafEntry selectedLeafEntry)
@@ -325,12 +308,13 @@ public partial class MidiViewModel : INotifyPropertyChanged
         // TODO: store selected device ID for next app start
         SelectedDeviceId = MidiDocument.DeviceIds[0];
         DeviceName = midiDocument.DeviceName;
-        RootTable = midiDocument.MidiTables[0];
+        midiTableNavigator = new MidiTableNavigator(midiDocument.MidiTables);
+        RootTable = midiTableNavigator.GetRootTable();
 
         MidiOutputDeviceList = RolandSysExClient.MidiOutputs;
-        DoSendSysexDt1ToDevice = new AsyncRelayCommand(SendSysexDt1ToDevice);
-        DoSendSysexRq1ToDevice = new AsyncRelayCommand(SendSysexRq1ToDevice);
-        OnNavigatedFrom = new AsyncRelayCommand(DisposeMidiOutputAsync);
+        DoSendSysexDt1ToDevice = new AsyncRelayCommand(async () => await SendSysexToDevice(true));
+        DoSendSysexRq1ToDevice = new AsyncRelayCommand(async () => await SendSysexToDevice(false));
+        OnNavigatedFrom = new AsyncRelayCommand(async () => await DisposeMidiOutputAsync());
 
         if (rootTable is null || branchTable1 is null || branchTable2 is null || leafTable is null || values is null)
         {
@@ -340,6 +324,16 @@ public partial class MidiViewModel : INotifyPropertyChanged
 
     public void OnPropertyChanged([CallerMemberName] string name = "") =>
     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    /// <summary>
+    /// We want to have a selected index of 0 if the selected index is -1. This is needed for the ComboBox binding.
+    /// </summary>
+    /// <param name="value">The new value that shall be assigned to 'selected index' variable and will be normalized.</param>
+    /// <returns>The new normalized value.</returns>
+    private int NormalizeSelectedIndex(int value)
+    {
+        return value == -1 ? 0 : value;
+    }
 
     private void TriggerSysExCalculation()
     {
@@ -358,16 +352,6 @@ public partial class MidiViewModel : INotifyPropertyChanged
         int value = leafEntry.MidiValueList[ValuesSelectedIndex].Value;
         SysExMessageDt1 = midiDocument.CalculateDt1(SelectedDeviceId, sysExStartAddress, leafEntry.ValueDataByteBitMasks, value);
         SysExMessageRq1 = midiDocument.CalculateRq1(SelectedDeviceId, sysExStartAddress, leafEntry.ValueDataByteBitMasks.Count);
-    }
-
-    public async Task SendSysexDt1ToDevice()
-    {
-        await SendSysexToDevice(true);
-    }
-
-    public async Task SendSysexRq1ToDevice()
-    {
-        await SendSysexToDevice(false);
     }
 
     public async Task SendSysexToDevice(bool isDt1)
