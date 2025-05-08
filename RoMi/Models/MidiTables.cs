@@ -33,48 +33,92 @@ public class MidiTables : List<MidiTable>
     /// </summary>
     public void FixTablesWithMissingSubTables(string deviceName)
     {
+        /*
+         * Single dictionary for all device-specific actions
+         * If the Func returns true, the loop shall break and the next parent table shall be processed.
+         */
+        Dictionary<string, Func<MidiTable, MidiTableBranchEntry, int, int, bool>> deviceActions = new()
+        {
+            ["FANTOM-06/07/08"] = HandleFantomCase,
+            ["FANTOM-6/7/8"] = HandleFantomCase,
+            ["AX-Edge"] = (_, childTable, tableIndex, entryIndex) => {
+                // Root table entry "Setup" references table 'Edit' which does not exist
+                if (childTable.LeafName == "Edit")
+                {
+                    this[tableIndex].RemoveAt(entryIndex);
+                    return true;
+                }
+                return false;
+            },
+            ["JUPITER-X/Xm"] = (_, childTable, tableIndex, entryIndex) => {
+                // Root table entry "Editor" does not reference a table
+                if (childTable.LeafName == "Editor")
+                {
+                    this[tableIndex].RemoveAt(entryIndex);
+                    return true;
+                }
+                return false;
+            },
+            ["JD-Xi"] = (parentTable, childTable, tableIndex, entryIndex) => {
+                /*
+                 * JD-Xi root table has hard to follow references for Temporary tones.
+                 * Fix the child reference tables and the startaddresses
+                 */
+                if (parentTable.Name == "Temporary Tone")
+                {
+                    this[tableIndex].RemoveAt(tableIndex);
+                    return true;
+                }
+
+                switch (childTable.Description)
+                {
+                    case "Temporary Tone (Digital Synth Part 1)":
+                        childTable.LeafName = "SuperNATURAL Synth Tone";
+                        childTable.StartAddress.Increment([00, 0x01, 00, 00]);
+                        break;
+                    case "Temporary Tone (Digital Synth Part 2)":
+                        childTable.LeafName = "SuperNATURAL Synth Tone";
+                        childTable.StartAddress.Increment([00, 0x01, 00, 00]);
+                        break;
+                    case "Temporary Tone (Analog Synth Part)":
+                        childTable.LeafName = "Analog Synth Part";
+                        childTable.StartAddress.Increment([00, 0x02, 00, 00]);
+                        break;
+                    case "Temporary Tone (Drums Part)":
+                        childTable.LeafName = "Drum Kit";
+                        childTable.StartAddress.Increment([00, 0x10, 00, 00]);
+                        break;
+                    case "Analog Synth Tone" when childTable.LeafName == "Analog Synth Tone":
+                        this[tableIndex].Name = "Analog Synth Part";
+                        break;
+                }
+                return false;
+            }
+        };
+
         for (int midiTableIndex = 0; midiTableIndex < Count; midiTableIndex++)
         {
-            for (int midiTableEntryIndex = 0; midiTableEntryIndex < this[midiTableIndex].Count; midiTableEntryIndex++)
+            MidiTable parentTable = this[midiTableIndex];
+
+            for (int midiTableEntryIndex = 0; midiTableEntryIndex < parentTable.Count; midiTableEntryIndex++)
             {
-                if (this[midiTableIndex][midiTableEntryIndex] is MidiTableLeafEntry)
+                if (!(parentTable[midiTableEntryIndex] is MidiTableBranchEntry childTable))
                 {
                     break;
                 }
 
-                MidiTableBranchEntry midiTableBranchEntry = ((MidiTableBranchEntry)this[midiTableIndex][midiTableEntryIndex]);
-                string leafName = midiTableBranchEntry.LeafName;
-
-                if (deviceName == "JD-Xi")
+                // Apply device-specific processing first
+                if (deviceActions.TryGetValue(deviceName, out var action))
                 {
-                    /*
-                     * JD-Xi root table has hard to follow references for Temporary tones.
-                     * Fix the child reference tables and the startaddresses
-                     */
-                    switch (midiTableBranchEntry.Description)
+                    bool handled = action(parentTable, childTable, midiTableIndex, midiTableEntryIndex);
+
+                    if (handled || midiTableIndex >= Count || midiTableEntryIndex >= parentTable.Count)
                     {
-                        case "Temporary Tone (Digital Synth Part 1)":
-                            midiTableBranchEntry.LeafName = "SuperNATURAL Synth Tone";
-                            midiTableBranchEntry.StartAddress.Increment([00, 0x01, 00, 00]);
-                            break;
-                        case "Temporary Tone (Digital Synth Part 2)":
-                            midiTableBranchEntry.LeafName = "SuperNATURAL Synth Tone";
-                            midiTableBranchEntry.StartAddress.Increment([00, 0x01, 00, 00]);
-                            break;
-                        case "Temporary Tone (Analog Synth Part)":
-                            midiTableBranchEntry.LeafName = "Analog Synth Part";
-                            midiTableBranchEntry.StartAddress.Increment([00, 0x02, 00, 00]);
-                            break;
-                        case "Temporary Tone (Drums Part)":
-                            midiTableBranchEntry.LeafName = "Drum Kit";
-                            midiTableBranchEntry.StartAddress.Increment([00, 0x10, 00, 00]);
-                            break;
-                        case "Analog Synth Tone" when midiTableBranchEntry.LeafName == "Analog Synth Tone":
-                            // There are 2 tables named "Analog Synth Tone". Rename the first one.
-                            this[midiTableIndex].Name = "Analog Synth Part";
-                            break;
+                        break;
                     }
                 }
+
+                string leafName = childTable.LeafName;
 
                 try
                 {
@@ -82,27 +126,6 @@ public class MidiTables : List<MidiTable>
                 }
                 catch (KeyNotFoundException)
                 {
-                    if (deviceName == "AX-Edge" && leafName == "Edit")
-                    {
-                        // Root table entry "Setup" references table 'Edit' which does not exist
-                        this[midiTableIndex].RemoveAt(midiTableEntryIndex);
-                        continue;
-                    }
-
-                    if (deviceName == "JUPITER-X/Xm" && leafName == "Editor")
-                    {
-                        // Root table entry "Editor" does not reference a table
-                        this[midiTableIndex].RemoveAt(midiTableEntryIndex);
-                        continue;
-                    }
-
-                    if ((deviceName == "FANTOM-06/07/08" || deviceName == "FANTOM-6/7/8") && leafName == "System Controller")
-                    {
-                        // Entry "Setup" of table "System Controller" references table 'System Controller' which is named "System Control" -> rename
-                        midiTableBranchEntry.LeafName = "System Control";
-                        GetTableIndexByName(midiTableBranchEntry.LeafName);
-                    }
-
                     try
                     {
                         /*
@@ -117,11 +140,24 @@ public class MidiTables : List<MidiTable>
                     }
                     catch (KeyNotFoundException)
                     {
-                        throw new Exception($"Table '{midiTableBranchEntry.Description}' references a table named '{leafName}' which could not be found in the table list.");
+                        throw new Exception($"Table '{childTable.Description}' references a table named '{leafName}' which could not be found in the table list.");
                     }
                 }
             }
         }
+    }
+
+    private bool HandleFantomCase(MidiTable parentTable, MidiTableBranchEntry childTable, int tableIndex, int entryIndex)
+    {
+        // Entry "Setup" of table "System Controller" references table 'System Controller' which is named "System Control" -> rename
+        if (childTable.LeafName == "System Controller")
+        {
+            childTable.LeafName = "System Control";
+            GetTableIndexByName(childTable.LeafName);
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>
