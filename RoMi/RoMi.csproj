@@ -1,17 +1,6 @@
 ﻿<Project Sdk="Uno.Sdk">
   <PropertyGroup>
-    <TargetFrameworks Condition="'$(Configuration)'!='Test'">net8.0-desktop;net8.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041;net8.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(Configuration)'=='Test'">net8.0</TargetFrameworks>
-    <Platforms>AnyCPU;x64</Platforms>
-    <OutputType>Exe</OutputType>
-    <UnoSingleProject>true</UnoSingleProject>
-
-    <!-- AllowUnsafeBlocks is needed since updating from Uno 5.4.10 to 5.5.32. -->
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-
-    <!-- Do not autogenerate AssemblyInfo as github workflow will set the version number in the static AssemblyInfo.cs automatically. -->
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-
+    <!-- Basic settings -->
     <!-- Display name -->
     <ApplicationTitle>RoMi</ApplicationTitle>
     <!-- App Identifier -->
@@ -23,6 +12,22 @@
     <ApplicationPublisher>DrHardReset</ApplicationPublisher>
     <!-- Package Description -->
     <Description>RoMi: Calculates SysEx MIDI messages for Roland Keyboards.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFrameworks Condition="'$(Configuration)'!='Test'">net8.0-desktop;net8.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041;net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)'=='Test'">net8.0</TargetFrameworks>
+    <Platforms>AnyCPU;x64</Platforms>
+    <Configurations>Debug;Release;Test</Configurations>
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+
+    <!-- AllowUnsafeBlocks is needed since updating from Uno 5.4.10 to 5.5.32. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Do not autogenerate AssemblyInfo as github workflow will set the version number in the static AssemblyInfo.cs automatically. -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
     <!--
       If you encounter this error message:
 
@@ -59,7 +64,6 @@
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Never</AppxBundle>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-    <Configurations>Debug;Release;Test</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">

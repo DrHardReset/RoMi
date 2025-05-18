@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 using Commons.Music.Midi;
 
 // class shall be partial for trimming and AOT compatibility
-internal partial class RolandSysExClient(int maxAddressByteCount, int outputDeviceIndex) : IAsyncDisposable, IDisposable
+public partial class RolandSysExClient(int maxAddressByteCount) : IAsyncDisposable, IDisposable
 {
     private bool disposed = false;
     private readonly int maxAddressByteCount = maxAddressByteCount;
 #pragma warning disable CS0618 // Type or element is obsolete
     private static readonly IMidiAccess midi = MidiAccessManager.Default;
 #pragma warning restore CS0618 // Type or element is obsolete
-    private readonly string deviceName = midi.Outputs.ToArray()[outputDeviceIndex].Name;
+    private string deviceName = "undefined";
     private IMidiInput? input;
     private IMidiOutput? output;
 
@@ -23,25 +23,12 @@ internal partial class RolandSysExClient(int maxAddressByteCount, int outputDevi
     private readonly object sendLock = new();
     private readonly ConcurrentDictionary<string, TaskCompletionSource<byte[]>> pendingRequests = new();
 
-    public static List<string> MidiOutputs
-    {
-        get
-        {
-            return midi.Outputs.Select(x => x.Name + " " + x.Id).ToList();
-        }
-    }
+    public static List<string> MidiOutputs { get => midi.Outputs.Select(x => x.Name + " " + x.Id).ToList(); }
+    public static List<string> MidiInputs { get => midi.Inputs.Select(x => x.Name + " " + x.Id).ToList(); }
 
-    public static List<string> MidiInputs
+    public async Task InitAsync(int outputDeviceIndex)
     {
-        get
-        {
-            return midi.Inputs.Select(x => x.Name + " " + x.Id).ToList();
-        }
-    }
-
-    public async Task InitAsync()
-    {
-        // TODO: Make MIDI output and input individually selectable
+        deviceName = midi.Outputs.ToArray()[outputDeviceIndex].Name;
         var outPort = midi.Outputs.FirstOrDefault(x => x.Name.StartsWith(deviceName));
         var inPort = midi.Inputs.FirstOrDefault(x => x.Name.StartsWith(deviceName));
 
@@ -90,6 +77,16 @@ internal partial class RolandSysExClient(int maxAddressByteCount, int outputDevi
         // extract address (maxAddressByteCount bytes from position 8)
         byte[] address = sysExBytes.Skip(8).Take(maxAddressByteCount).ToArray();
         string key = BitConverter.ToString(address);
+
+        // Check and remove any existing stale request for this address
+        if (pendingRequests.TryGetValue(key, out var existingTcs))
+        {
+            // An old request for this address still exists
+            // Mark it as canceled and remove it
+            existingTcs.TrySetCanceled();
+            pendingRequests.TryRemove(key, out _);
+        }
+
         var tcs = new TaskCompletionSource<byte[]>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         if (!pendingRequests.TryAdd(key, tcs))
@@ -99,22 +96,31 @@ internal partial class RolandSysExClient(int maxAddressByteCount, int outputDevi
 
         if (input == null)
         {
+            pendingRequests.TryRemove(key, out _);
             throw new NotSupportedException("MIDI input is not initialized.");
         }
 
-        Send(sysExBytes);
-
-        using var cts = new CancellationTokenSource(timeoutMs);
-        using (cts.Token.Register(() => tcs.TrySetCanceled(), useSynchronizationContext: false))
+        try
         {
-            try
+            Send(sysExBytes);
+
+            using var cts = new CancellationTokenSource(timeoutMs);
+            using (cts.Token.Register(() => tcs.TrySetCanceled(), useSynchronizationContext: false))
             {
-                return await tcs.Task;
+                try
+                {
+                    return await tcs.Task;
+                }
+                catch (TaskCanceledException)
+                {
+                    throw new TimeoutException($"Request for address {key} timed out after {timeoutMs}ms.");
+                }
             }
-            finally
-            {
-                pendingRequests.TryRemove(key, out _);
-            }
+        }
+        finally
+        {
+            // Ensure the request is always removed from the dictionary, regardless of outcome
+            pendingRequests.TryRemove(key, out _);
         }
     }
 
