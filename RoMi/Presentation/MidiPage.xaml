@@ -7,213 +7,105 @@
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:utu="using:Uno.Toolkit.UI"
-  xmlns:not_win="http://uno.ui/not_win"
-  xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-  mc:Ignorable="d not_win"
+  xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+  xmlns:controls="using:RoMi.Presentation.Controls"
+  mc:Ignorable="d"
   NavigationCacheMode="Required"
   Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-  <Page.Resources>
-    <converters:ByteArrayToStringConverter x:Key="byteArrayToString" />
-  </Page.Resources>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
 
-  <ScrollViewer>
-    <Grid utu:SafeArea.Insets="All">
-      <Grid.RowDefinitions>
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-      </Grid.RowDefinitions>
+    <!-- NavigationBar with ContentTemplate -->
+    <utu:NavigationBar>
+      <utu:NavigationBar.MainCommand>
+        <AppBarButton>
+          <AppBarButton.Icon>
+            <BitmapIcon UriSource="ms-appx:///Assets/Images/back.png" />
+          </AppBarButton.Icon>
+        </AppBarButton>
+      </utu:NavigationBar.MainCommand>
 
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*" />
-      </Grid.ColumnDefinitions>
+      <!-- Content with ScrollViewer and Grid for DeviceName and further Controls -->
+      <utu:NavigationBar.Content>
+        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-      <utu:NavigationBar Content="{Binding DeviceName}"
-                         Grid.Row="0">
-        <utu:NavigationBar.MainCommand>
-          <AppBarButton>
-            <AppBarButton.Icon>
-              <BitmapIcon UriSource="ms-appx:///Assets/Images/back.png" />
-            </AppBarButton.Icon>
-          </AppBarButton>
-        </utu:NavigationBar.MainCommand>
-      </utu:NavigationBar>
+            <!-- DeviceName -->
+            <TextBlock Text="{Binding DeviceName}"
+                       Grid.Column="0"
+                       VerticalAlignment="Center"
+                       Margin="0, 0, 10, 0" />
 
-      <Grid Grid.Row="1"
-            Margin="0,5,0,5">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="Auto" />
-          <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+            <!-- Spacer -->
+            <Rectangle Grid.Column="1" Fill="Transparent" />
 
-        <TextBlock Grid.Column="0"
-                   Text="Device ID:"
-                   Padding="20"
-                   HorizontalAlignment="Right" />
+            <!-- ComboBox for Control choice-->
+            <ComboBox Grid.Column="2"
+                      ItemsSource="{Binding AvailableControls}"
+                      SelectedItem="{Binding SelectedControl, Mode=TwoWay}"
+                      DisplayMemberPath="Name"
+                      Margin="0,0,10,0"
+                      VerticalAlignment="Center" />
 
-        <ComboBox Grid.Column="1"
-                  ItemsSource="{Binding DeviceIdList}"
-                  SelectedValue="{Binding SelectedDeviceId, Mode=TwoWay}"
-                  SelectedValuePath="Value"
-                  DisplayMemberPath="Display"
-                  HorizontalAlignment="Center" />
-      </Grid>
+            <!-- Spacer -->
+            <Rectangle Grid.Column="3" Fill="Transparent" />
 
-      <ComboBox Grid.Row="2"
-                Margin="0,5,0,5"
-                ItemsSource="{Binding RootTable}"
-                SelectedIndex="{Binding RootTableSelectedIndex, Mode=TwoWay}"
-                DisplayMemberPath="Description"
-                HorizontalAlignment="Center" />
+            <!-- ComboBox for MIDI device choice-->
+            <ComboBox Grid.Column="4"
+                      ItemsSource="{Binding MidiOutputDeviceList}"
+                      SelectedIndex="{Binding SelectedMidiOutputIndex, Mode=TwoWay}"
+                      HorizontalAlignment="Center" />
 
-      <ComboBox Grid.Row="3"
-                Margin="0,5,0,5"
-                ItemsSource="{Binding BranchTable1}"
-                SelectedIndex="{Binding BranchTableSelectedIndex1, Mode=TwoWay}"
-                DisplayMemberPath="Description"
-                HorizontalAlignment="Center"
-                SelectionChanged="ComboBoxBranchTable_SelectionChanged" />
+            <!-- Spacer -->
+            <Rectangle Grid.Column="5" Fill="Transparent" />
 
-      <ComboBox Grid.Row="4"
-                Margin="0,5,0,5"
-                ItemsSource="{Binding BranchTable2}"
-                SelectedIndex="{Binding BranchTableSelectedIndex2, Mode=TwoWay}"
-                DisplayMemberPath="Description"
-                HorizontalAlignment="Center"
-                SelectionChanged="ComboBoxBranchTable_SelectionChanged" />
+            <!--CheckBox to enable MIDI device -->
+            <Grid Grid.Column="6">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
 
-      <ComboBox Grid.Row="5"
-                Margin="0,5,0,5"
-                ItemsSource="{Binding LeafTable}"
-                SelectedIndex="{Binding LeafTableSelectedIndex, Mode=TwoWay}"
-                DisplayMemberPath="Description"
-                HorizontalAlignment="Center" />
+              <CheckBox Grid.Column="0"
+                        Content="Enabled"
+                        IsChecked="{Binding IsMidiDeviceEnabled, Mode=TwoWay}"
+                        Command="{Binding ToggleMidiEnableCommand}"
+                        HorizontalAlignment="Center" />
 
-      <win:ComboBox Grid.Row="6"
-                Margin="0,5,0,5"
-                ItemsSource="{Binding Values}"
-                SelectedIndex="{Binding ValuesSelectedIndex, Mode=TwoWay}"
-                HorizontalAlignment="Center" />
+              <muxc:ProgressRing Grid.Column="1"
+                     IsActive="{Binding IsInitializing, Mode=OneWay}"
+                     IsIndeterminate="True"
+                     Width="20"
+                     Height="20"
+                     Margin="4,0,0,0" />
+            </Grid>
+          </Grid>
+        </ScrollViewer>
+      </utu:NavigationBar.Content>
+    </utu:NavigationBar>
 
-      <not_win:ListView Grid.Row="6"
-                    ItemsSource="{Binding Values}"
-                    SelectedIndex="{Binding ValuesSelectedIndex, Mode=TwoWay}"
-                    Height="150"
-                    Margin="10,5,10,5"
-                    SelectionMode="Single"
-                    HorizontalAlignment="Center"
-                    ScrollViewer.VerticalScrollBarVisibility="Visible">
-        <ListView.ItemTemplate>
-          <DataTemplate>
-            <TextBlock
-                Text="{Binding}"
-                Height="18"
-                FontWeight="Medium"
-                TextAlignment="Center"
-                Margin="10,0,10,0" />
-          </DataTemplate>
-        </ListView.ItemTemplate>
-        <ListView.Style>
-          <Style TargetType="ListView">
-            <Setter Property="BorderBrush" Value="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8,8,8,8"/>
-          </Style>
-        </ListView.Style>
-      </not_win:ListView>
 
-      <TextBlock
-                 Grid.Row="7"
-                 FontSize="25"
-                 Margin="10,5,10,5"
-                 Text="Data Transmit (DT1):"
-                 HorizontalAlignment="Left">
-      </TextBlock>
+    <!-- ContentControl for dynamic loading of MIDI controls -->
+    <ContentControl Grid.Row="1"
+                Content="{Binding SelectedControlInstance}"
+                HorizontalContentAlignment="Stretch"
+                VerticalContentAlignment="Stretch"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"/>
 
-      <TextBlock Name="CalculatedSysexDt1"
-                 Grid.Row="8"
-                 FontSize="25"
-                 Margin="10,5,10,5"
-                 Text="{Binding SysExMessageDt1, Converter={StaticResource byteArrayToString}}"
-                 HorizontalAlignment="Center">
-      </TextBlock>
-
-      <Grid Grid.Row="9"
-            Margin="0,5,0,5">
-
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-
-        <Button Grid.Column="0"
-                Content="📋"
-                Click="CopyDt1ToClipboard_Click"
-                Margin="0,0,10,0"
-                HorizontalAlignment="Right" />
-
-        <ComboBox Grid.Column="1"
-                  ItemsSource="{Binding MidiOutputDeviceList}"
-                  SelectedIndex="{Binding SelectedMidiOutputIndex, Mode=TwoWay}"
-                  HorizontalAlignment="Center" />
-
-        <Button Grid.Column="2"
-                Content="Send"
-                Command="{Binding DoSendSysexDt1ToDevice}"
-                Margin="10,0,0,0"
-                HorizontalAlignment="Left" />
-      </Grid>
-
-      <TextBlock
-            Grid.Row="10"
-            FontSize="25"
-            Margin="10,5,10,5"
-            Text="Data Request (RQ1):"
-            HorizontalAlignment="Left">
-      </TextBlock>
-
-      <TextBlock Name="CalculatedSysexRq1"
-            Grid.Row="11"
-            FontSize="25"
-            Margin="10,5,10,5"
-            Text="{Binding SysExMessageRq1, Converter={StaticResource byteArrayToString}}"
-            HorizontalAlignment="Center">
-      </TextBlock>
-
-      <Grid Grid.Row="12"
-            Margin="0,5,0,5">
-
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-
-        <Button Grid.Column="0"
-           Content="📋"
-           Click="CopyRq1ToClipboard_Click"
-           Margin="0,0,10,0"
-           HorizontalAlignment="Right" />
-
-        <Button Grid.Column="2"
-           Content="Send"
-           Command="{Binding DoSendSysexRq1ToDevice}"
-           Margin="10,0,0,0"
-           HorizontalAlignment="Left" />
-      </Grid>
-
-    </Grid>
-  </ScrollViewer>
+  </Grid>
 </Page>

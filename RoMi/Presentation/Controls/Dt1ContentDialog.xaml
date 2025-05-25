@@ -8,7 +8,7 @@
                IsSecondaryButtonEnabled="False"
                Style="{ThemeResource DefaultContentDialogStyle}">
 
-  <StackPanel Spacing="12" Width="400">
+  <StackPanel Spacing="12" MinWidth="200" HorizontalAlignment="Stretch">
 
     <TextBox
           x:Name="TextContent"
@@ -16,12 +16,15 @@
           AcceptsReturn="True"
           TextWrapping="Wrap"
           BorderThickness="0"
-          BorderBrush="Transparent" />
+          BorderBrush="Transparent"
+          HorizontalAlignment="Center"
+          IsTabStop="False"
+          IsFocusEngagementEnabled="False" />
 
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-      <Button Content="Copy hex" Click="CopyHex_Click" />
-      <Button Content="Copy value" Click="CopyValue_Click" />
-      <Button Content="Close" Click="Close_Click" />
+    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Spacing="8">
+      <Button Content="Copy hex" Click="CopyHex_Click" HorizontalAlignment="Center" />
+      <Button Content="Copy value" Click="CopyValue_Click" HorizontalAlignment="Center" />
+      <Button Content="Close" Click="Close_Click" HorizontalAlignment="Center" />
     </StackPanel>
 
   </StackPanel>

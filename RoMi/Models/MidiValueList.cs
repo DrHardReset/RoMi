@@ -10,6 +10,8 @@ public class MidiValueList : List<MidiValue>
     private readonly string? unit = null;
     public string? DescriptionTableRefName { get; set; } = null;
 
+    private static readonly MidiValueList _defaultNameList = CreateDefaultNameList();
+
     public MidiValueList() { }
 
     public MidiValueList(List<int> values)
@@ -155,4 +157,22 @@ public class MidiValueList : List<MidiValue>
 
         return this.Select(x => x.Value.ToString()).ToList();
     }
+
+    private static MidiValueList CreateDefaultNameList()
+    {
+        List<int> values = Enumerable.Range(32, 96).ToList();
+        MidiValueList midiValueList = new() { DescriptionTableRefName = "NAME" };
+
+        for (int i = 0; i < values.Count; i++)
+        {
+            midiValueList.Add(new MidiValue(values[i], ((char)values[i]).ToString(), null, null));
+        }
+
+        return midiValueList;
+    }
+
+    /// <summary>
+    /// Returns a list of default names for MIDI values, which are the ASCII characters from 32 to 127.
+    /// </summary>
+    public static MidiValueList DefaultNameList => _defaultNameList;
 }

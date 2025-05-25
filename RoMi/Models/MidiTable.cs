@@ -373,6 +373,7 @@ public partial class MidiTable : List<MidiTableEntry>
                 Match match = GeneratedRegex.MidiTableLeafEntryDescriptionRegex().Match(descriptionColumnRaw);
                 string description;
                 List<int> values;
+                MidiValueList? midiValueList = null;
 
                 if (match.Success && match.Groups[3].Success && !match.Groups[4].Success)
                 {
@@ -406,7 +407,7 @@ public partial class MidiTable : List<MidiTableEntry>
                         }
                     }
 
-                    values = MidiTableLeafEntry.AssembleValueList(valueLow, valueHigh);
+                    values = MidiTableLeafEntry.AssembleValues(valueLow, valueHigh);
                 }
                 else if (match.Success && match.Groups[4].Success)
                 {
@@ -415,7 +416,7 @@ public partial class MidiTable : List<MidiTableEntry>
                     int valueExtraLow = Convert.ToInt32(match.Groups[4].Value);
                     int valueLow = Convert.ToInt32(match.Groups[5].Value);
                     int valueHigh = Convert.ToInt32(match.Groups[6].Value);
-                    values = MidiTableLeafEntry.AssembleValueList(valueLow, valueHigh);
+                    values = MidiTableLeafEntry.AssembleValues(valueLow, valueHigh);
                     values.Insert(0, valueExtraLow);
                 }
                 else if (descriptionColumnRaw.EndsWith("(0)"))
@@ -437,7 +438,7 @@ public partial class MidiTable : List<MidiTableEntry>
                     {
                         // RD-88 table "Sympathetic Resonance" entry "Rev HF Damp" contains no value Range
                         description = descriptionColumnRaw;
-                        values = MidiTableLeafEntry.AssembleValueList(0, 31);
+                        values = MidiTableLeafEntry.AssembleValues(0, 31);
                     }
                     else if (deviceName == "FA-06/07/08")
                     {
@@ -526,7 +527,6 @@ public partial class MidiTable : List<MidiTableEntry>
                 }
 
                 // Check and parse separate value description rows if they exist:
-                MidiValueList? midiValueList = null;
 
                 if (rowIter < tableRows.Count)
                 {
@@ -689,6 +689,7 @@ public partial class MidiTable : List<MidiTableEntry>
 
                 // There is no extra row with value descriptions or description values could not be parsed.
                 midiValueList ??= new MidiValueList(values);
+                midiValueList = CheckDefaultDescription(midiValueList, description);
                 MidiTableLeafEntry leafEntry = new(startAddress, description, valueDataBitsPerByte, midiValueList);
                 Add(leafEntry);
 
@@ -860,6 +861,19 @@ public partial class MidiTable : List<MidiTableEntry>
     private static bool IsReservedValueDescriptionEntry(string valueDescription)
     {
         return GeneratedRegex.MidiTableLeafEntryReservedValueDescriptionRegex().IsMatch(valueDescription);
+    }
+
+    private static MidiValueList CheckDefaultDescription(MidiValueList midiValueList, string description)
+    {
+        // For better convinience, we replace some values or value descriptions with default ones, like ASCII characters instead of intergers
+        if (description.ToUpper().Contains(MidiValueList.DefaultNameList.DescriptionTableRefName!)
+            && midiValueList.First().Value == 32
+            && midiValueList.Last().Value == 127)
+        {
+            return new MidiValueList(midiValueList.GetValues(), MidiValueList.DefaultNameList.DescriptionTableRefName!);
+        }
+        
+        return midiValueList;
     }
 
     private int GetAmountOfMissingTableRows(string deviceName)

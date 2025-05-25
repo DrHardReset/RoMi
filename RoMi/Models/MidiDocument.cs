@@ -22,6 +22,7 @@ public class MidiDocument
     {
         DeviceName = deviceName;
         Dictionary<string, MidiValueList> midiValueDictionary = [];
+        midiValueDictionary.Add(MidiValueList.DefaultNameList.DescriptionTableRefName!, MidiValueList.DefaultNameList);
 
         GroupCollection modelIdByteStrings = GeneratedRegex.ModelIdBytesRegex().Match(midiDocumentationFileContent).Groups;
 
@@ -167,11 +168,16 @@ public class MidiDocument
         MidiTables.LinkValueDescriptionTables(midiValueDictionary);
     }
 
-    internal static byte[] AccumulateStartAddreses(MidiTableBranchEntry root, MidiTableBranchEntry branch1, MidiTableBranchEntry branch2, MidiTableLeafEntry leaf)
+    internal static byte[] AccumulateStartAddreses(MidiTableBranchEntry root, MidiTableBranchEntry branch1, MidiTableBranchEntry? branch2, MidiTableLeafEntry leaf)
     {
         byte[] accumulatedAddress = root.StartAddress.BytesCopy();
         accumulatedAddress.Add(branch1.StartAddress.Bytes, StartAddress.MaxAddressByteCount);
-        accumulatedAddress.Add(branch2.StartAddress.Bytes, StartAddress.MaxAddressByteCount);
+
+        if (branch2 != null)
+        {
+            accumulatedAddress.Add(branch2.StartAddress.Bytes, StartAddress.MaxAddressByteCount);
+        }
+
         accumulatedAddress.Add(leaf.StartAddress.Bytes, StartAddress.MaxAddressByteCount);
         return accumulatedAddress;
     }

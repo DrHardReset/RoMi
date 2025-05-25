@@ -61,7 +61,7 @@ public class MidiTableLeafEntry : MidiTableEntry
         }
     }
 
-    public static List<int> AssembleValueList(int valueLow, int valueHigh)
+    public static List<int> AssembleValues(int valueLow, int valueHigh)
     {
         return Enumerable.Range(valueLow, valueHigh - valueLow + 1).ToList();
     }

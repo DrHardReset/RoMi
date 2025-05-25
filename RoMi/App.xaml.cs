@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using RoMi.Presentation.Controls;
 using Uno.Resizetizer;
 
 namespace RoMi;
@@ -68,9 +70,10 @@ public partial class App : Application
                     services.AddHttpClient("PdfDownloadClient"))
                 .ConfigureServices((context, services) =>
                 {
-                    // TODO: Register your services
-                    //services.AddSingleton<IMyService, MyService>();
+                    // Register ViewModels
+                    services.AddTransient<MidiIoComboboxControlViewModel>();
                 })
+
                 .UseNavigation(RegisterRoutes)
             );
         MainWindow = builder.Window;

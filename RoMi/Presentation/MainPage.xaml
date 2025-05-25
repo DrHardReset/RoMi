@@ -12,7 +12,7 @@
   <ScrollViewer>
     <Grid utu:SafeArea.Insets="All">
       <Grid.RowDefinitions>
-        <RowDefinition Height="100" />
+        <RowDefinition Height="50" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="Auto" />
