@@ -22,6 +22,7 @@ public class MidiDocument
     {
         DeviceName = deviceName;
         Dictionary<string, MidiValueList> midiValueDictionary = [];
+        midiValueDictionary.Add(MidiValueList.DefaultNameList.DescriptionTableRefName!, MidiValueList.DefaultNameList);
 
         GroupCollection modelIdByteStrings = GeneratedRegex.ModelIdBytesRegex().Match(midiDocumentationFileContent).Groups;
 

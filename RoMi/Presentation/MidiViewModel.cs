@@ -240,7 +240,15 @@ public partial class MidiViewModel : ObservableObject, IMidiDeviceService, IDisp
     {
         if (rolandSysExClient != null)
         {
-            await rolandSysExClient.DisposeAsync();
+            try
+            {
+                await rolandSysExClient.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                await navigator.ShowMessageDialogAsync(this, title: "Error during MIDI output disposal", content: ex.Message);
+            }
+
             rolandSysExClient = new RolandSysExClient(StartAddress.MaxAddressByteCount);
             OnPropertyChanged(nameof(IMidiDeviceService.SysExClient));
         }

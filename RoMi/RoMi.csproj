@@ -77,7 +77,6 @@
   <ItemGroup>
     <PackageReference Include="managed-midi" />
     <PackageReference Include="PdfPig" />
-    <PackageReference Include="Uno.Fonts.Fluent" />
   </ItemGroup>
   
   <ItemGroup>
