@@ -96,11 +96,11 @@ public partial class MidiViewModel : ObservableObject, IMidiDeviceService, IDisp
         }
     }
 
-    private event EventHandler<bool>? midiDeviceEnabledChanged;
+    private event EventHandler<bool>? MidiDeviceEnabledChanged;
     event EventHandler<bool> IMidiDeviceService.MidiDeviceEnabledChanged
     {
-        add => midiDeviceEnabledChanged += value;
-        remove => midiDeviceEnabledChanged -= value;
+        add => MidiDeviceEnabledChanged += value;
+        remove => MidiDeviceEnabledChanged -= value;
     }
 
     private bool isMidiDeviceEnabled;
@@ -111,7 +111,7 @@ public partial class MidiViewModel : ObservableObject, IMidiDeviceService, IDisp
         {
             if (SetProperty(ref isMidiDeviceEnabled, value))
             {
-                midiDeviceEnabledChanged?.Invoke(this, value);
+                MidiDeviceEnabledChanged?.Invoke(this, value);
             }
         }
     }
@@ -123,7 +123,7 @@ public partial class MidiViewModel : ObservableObject, IMidiDeviceService, IDisp
         private set => SetProperty(ref isInitializing, value);
     }
 
-    private RolandSysExClient rolandSysExClient = new RolandSysExClient(StartAddress.MaxAddressByteCount);
+    private RolandSysExClient rolandSysExClient = new(StartAddress.MaxAddressByteCount);
 
     RolandSysExClient IMidiDeviceService.SysExClient => rolandSysExClient;
 
@@ -145,6 +145,19 @@ public partial class MidiViewModel : ObservableObject, IMidiDeviceService, IDisp
         {
             try
             {
+                if (MidiOutputDeviceList == null || MidiOutputDeviceList.Count == 0)
+                {
+                    IsMidiDeviceEnabled = false;
+                    await navigator.ShowMessageDialogAsync(this,
+                        title: "No MIDI output device available",
+                        content: $"Going back to main view and reopening {DeviceName} view refreshes the MIDI device list.");
+                    return;
+                }
+
+#if __ANDROID__
+                // Android logic is inverted in the moment we catch the checkbox state change event
+                IsMidiDeviceEnabled = !IsMidiDeviceEnabled;
+#endif
                 if (IsMidiDeviceEnabled)
                 {
                     var success = await EnableMidi();
@@ -170,7 +183,6 @@ public partial class MidiViewModel : ObservableObject, IMidiDeviceService, IDisp
                     content: $"An unexpected error occurred: {ex.Message}");
             }
         });
-
     }
 
     public void Initialize()

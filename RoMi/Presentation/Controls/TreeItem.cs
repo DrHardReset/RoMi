@@ -9,15 +9,16 @@ public enum TreeItemType
     Leaf
 }
 
-public class TreeItem : INotifyPropertyChanged
+// class shall be partial for trimming and AOT compatibility
+public partial class TreeItem(MidiTableEntry midiTableEntry, TreeItemType type, Func<List<TreeItem>>? childrenFactory = null) : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private readonly Func<List<TreeItem>>? childrenFactory;
-    private List<TreeItem>? children;
+    private readonly Func<List<TreeItem>>? childrenFactory = childrenFactory;
+    private List<TreeItem>? children = null;
 
-    public TreeItemType Type { get; set; }
-    public MidiTableEntry MidiTableEntry { get; set; }
+    public TreeItemType Type { get; set; } = type;
+    public MidiTableEntry MidiTableEntry { get; set; } = midiTableEntry;
 
     private string receivedValue = string.Empty;
     public string ReceivedValue
@@ -40,20 +41,11 @@ public class TreeItem : INotifyPropertyChanged
                 children = childrenFactory();
             }
 
-            return children ?? new List<TreeItem>();
+            return children ?? [];
         }
     }
 
     public bool AreChildrenLoaded => children != null;
-
-    // Constructor for lazy loading
-    public TreeItem(MidiTableEntry midiTableEntry, TreeItemType type, Func<List<TreeItem>>? childrenFactory = null)
-    {
-        MidiTableEntry = midiTableEntry;
-        Type = type;
-        this.childrenFactory = childrenFactory;
-        children = null;
-    }
 
     protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {

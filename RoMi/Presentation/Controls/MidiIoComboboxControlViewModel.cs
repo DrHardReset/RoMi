@@ -5,7 +5,8 @@ using RoMi.Models.Converters;
 
 namespace RoMi.Presentation.Controls;
 
-public class MidiIoComboboxControlViewModel : INotifyPropertyChanged
+// class shall be partial for trimming and AOT compatibility
+public partial class MidiIoComboboxControlViewModel : INotifyPropertyChanged
 {
     private readonly INavigator navigator;
     private readonly IMidiDeviceService midiDeviceService;
@@ -77,7 +78,7 @@ public class MidiIoComboboxControlViewModel : INotifyPropertyChanged
                  * Insert dummy table which disables Branch ComboBox in View if selected root table's child reference is a leaf table.
                  * Example: AX-Edge's "Setup" entry of Root table directly references the Leaf table [Setup]
                  */
-                BranchTable1 = new MidiTable { new MidiTableBranchEntry() };
+                BranchTable1 = [new MidiTableBranchEntry()];
                 BranchTable2 = BranchTable1;
                 LeafTable = childTable;
             }
@@ -123,7 +124,7 @@ public class MidiIoComboboxControlViewModel : INotifyPropertyChanged
                 /*
                 * Insert dummy table which disables second Branch ComboBox in View if (like in most cases) there is only one branch table between root and leaf table.
                 */
-                BranchTable2 = new MidiTable { new MidiTableBranchEntry() };
+                BranchTable2 = [new MidiTableBranchEntry()];
                 LeafTable = childTable;
             }
             else
@@ -313,7 +314,7 @@ public class MidiIoComboboxControlViewModel : INotifyPropertyChanged
     /// </summary>
     /// <param name="value">The new value that shall be assigned to 'selected index' variable and will be normalized.</param>
     /// <returns>The new normalized value.</returns>
-    private int NormalizeSelectedIndex(int value)
+    private static int NormalizeSelectedIndex(int value)
     {
         return value == -1 ? 0 : value;
     }

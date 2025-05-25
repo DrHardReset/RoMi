@@ -58,7 +58,7 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    private ObservableCollection<MainPageDeviceButtonData> mainPageDeviceButtonData = new();
+    private ObservableCollection<MainPageDeviceButtonData> mainPageDeviceButtonData = [];
 
     public ObservableCollection<MainPageDeviceButtonData> MainPageDeviceButtonData
     {
@@ -109,7 +109,7 @@ public partial class MainViewModel : ObservableObject
     {
         await CreateAndOpenMidiDir();
         IReadOnlyList<StorageFile> files = await LocalMidiPdfFolder!.GetFilesAsync();
-        List<Task> tasks = new List<Task>();
+        List<Task> tasks = [];
 
         foreach (StorageFile file in files)
         {
@@ -228,10 +228,7 @@ public partial class MainViewModel : ObservableObject
                 return null;
             }
 
-            if (httpClient == null)
-            {
-                httpClient = httpClientFactory.CreateClient();
-            }
+            httpClient ??= httpClientFactory.CreateClient();
 
             byte[] responseBytes = await httpClient.GetByteArrayAsync(url);
             StorageFile fullFilePath = await LocalMidiPdfFolder!.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
@@ -269,11 +266,11 @@ public partial class MainViewModel : ObservableObject
             this,
             title: string.Empty,
             content: content,
-            buttons: new[]
-            {
+            buttons:
+            [
                     new DialogAction(yes),
                     new DialogAction(no)
-            }
+            ]
         );
 
         if (result == null || result == no)

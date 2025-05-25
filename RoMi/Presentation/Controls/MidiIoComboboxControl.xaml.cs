@@ -9,14 +9,14 @@ public sealed partial class MidiIoComboboxControl : UserControl
     public MidiIoComboboxControl(MidiIoComboboxControlViewModel viewModel)
     {
         this.viewModel = viewModel;
-        this.InitializeComponent();
-        this.DataContext = this.viewModel;
+        InitializeComponent();
+        DataContext = this.viewModel;
     }
 
-    // Fallback-Konstruktor for Designer and XAML-Preview
+    // Fallback constructor for Designer and XAML-Preview
     public MidiIoComboboxControl()
     {
-        this.InitializeComponent();
+        InitializeComponent();
     }
 
     private void CopyDt1ToClipboard_Click(object sender, RoutedEventArgs e)
@@ -35,9 +35,7 @@ public sealed partial class MidiIoComboboxControl : UserControl
 
     private void ComboBoxBranchTable_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        ComboBox? comboBox = sender as ComboBox;
-
-        if (comboBox == null)
+        if (sender is not ComboBox comboBox)
         {
             return;
         }

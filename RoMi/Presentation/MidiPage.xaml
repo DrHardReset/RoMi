@@ -29,72 +29,72 @@
         </AppBarButton>
       </utu:NavigationBar.MainCommand>
 
-      <!-- Content with Grid for DeviceName and further Controls -->
+      <!-- Content with ScrollViewer and Grid for DeviceName and further Controls -->
       <utu:NavigationBar.Content>
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
-
-          <!-- DeviceName -->
-          <TextBlock Text="{Binding DeviceName}"
-                     Grid.Column="0"
-                     VerticalAlignment="Center"
-                     Margin="0, 0, 10, 0" />
-
-          <!-- Spacer -->
-          <Rectangle Grid.Column="1" Fill="Transparent" />
-
-          <!-- ComboBox for Control choice-->
-          <ComboBox Grid.Column="2"
-                    ItemsSource="{Binding AvailableControls}"
-                    SelectedItem="{Binding SelectedControl, Mode=TwoWay}"
-                    DisplayMemberPath="Name"
-                    Margin="0,0,10,0"
-                    VerticalAlignment="Center" />
-
-          <!-- Spacer -->
-          <Rectangle Grid.Column="3" Fill="Transparent" />
-
-          <!-- ComboBox for MIDI device choice-->
-          <ComboBox Grid.Column="4"
-                    ItemsSource="{Binding MidiOutputDeviceList}"
-                    SelectedIndex="{Binding SelectedMidiOutputIndex, Mode=TwoWay}"
-                    HorizontalAlignment="Center" />
-
-          <!-- Spacer -->
-          <Rectangle Grid.Column="5" Fill="Transparent" />
-
-          <!--CheckBox to enable MIDI device -->
-          <Grid Grid.Column="6">
+        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+          <Grid>
             <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="Auto"/>
-              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <CheckBox Grid.Column="0"
-                      Content="Enabled"
-                      IsChecked="{Binding IsMidiDeviceEnabled, Mode=TwoWay}"
-                      Command="{Binding ToggleMidiEnableCommand}"
+            <!-- DeviceName -->
+            <TextBlock Text="{Binding DeviceName}"
+                       Grid.Column="0"
+                       VerticalAlignment="Center"
+                       Margin="0, 0, 10, 0" />
+
+            <!-- Spacer -->
+            <Rectangle Grid.Column="1" Fill="Transparent" />
+
+            <!-- ComboBox for Control choice-->
+            <ComboBox Grid.Column="2"
+                      ItemsSource="{Binding AvailableControls}"
+                      SelectedItem="{Binding SelectedControl, Mode=TwoWay}"
+                      DisplayMemberPath="Name"
+                      Margin="0,0,10,0"
+                      VerticalAlignment="Center" />
+
+            <!-- Spacer -->
+            <Rectangle Grid.Column="3" Fill="Transparent" />
+
+            <!-- ComboBox for MIDI device choice-->
+            <ComboBox Grid.Column="4"
+                      ItemsSource="{Binding MidiOutputDeviceList}"
+                      SelectedIndex="{Binding SelectedMidiOutputIndex, Mode=TwoWay}"
                       HorizontalAlignment="Center" />
 
-            <muxc:ProgressRing Grid.Column="1"
-                   IsActive="{Binding IsInitializing, Mode=OneWay}"
-                   IsIndeterminate="True"
-                   Width="20"
-                   Height="20"
-                   Margin="4,0,0,0" />
+            <!-- Spacer -->
+            <Rectangle Grid.Column="5" Fill="Transparent" />
 
+            <!--CheckBox to enable MIDI device -->
+            <Grid Grid.Column="6">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <CheckBox Grid.Column="0"
+                        Content="Enabled"
+                        IsChecked="{Binding IsMidiDeviceEnabled, Mode=TwoWay}"
+                        Command="{Binding ToggleMidiEnableCommand}"
+                        HorizontalAlignment="Center" />
+
+              <muxc:ProgressRing Grid.Column="1"
+                     IsActive="{Binding IsInitializing, Mode=OneWay}"
+                     IsIndeterminate="True"
+                     Width="20"
+                     Height="20"
+                     Margin="4,0,0,0" />
+            </Grid>
           </Grid>
-
-        </Grid>
+        </ScrollViewer>
       </utu:NavigationBar.Content>
     </utu:NavigationBar>
 

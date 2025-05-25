@@ -56,6 +56,9 @@
     <muxc:TreeView Grid.Row="0" 
                    x:Name="TreeViewControl"
                    SelectionMode="Single"
+                   CanDrag="False"
+                   CanDragItems="False"
+                   CanReorderItems="False"
                    ItemsSource="{Binding TreeItems}"
                    ItemTemplateSelector="{StaticResource TreeViewItemTemplateSelector}"
                    Expanding="TreeViewControl_Expanding">

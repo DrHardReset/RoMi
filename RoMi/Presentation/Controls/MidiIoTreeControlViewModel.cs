@@ -7,14 +7,15 @@ using System.Timers;
 
 namespace RoMi.Presentation.Controls;
 
-public class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDisposable
+// class shall be partial for trimming and AOT compatibility
+public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDisposable
 {
     private bool disposed = false;
 
     private readonly INavigator navigator;
     private readonly IMidiDeviceService midiDeviceService;
     private readonly MidiTableNavigator midiTableNavigator;
-    public List<TreeItem> TreeItems { get; } = new List<TreeItem>();
+    public List<TreeItem> TreeItems { get; } = [];
 
     // Property to store the currently selected tree item
     private TreeItem? selectedTreeItem;
@@ -28,7 +29,7 @@ public class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private Timer sysexTimer;
+    private readonly Timer sysexTimer;
 
     public event PropertyChangedEventHandler? PropertyChanged;
     public void OnPropertyChanged([CallerMemberName] string name = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
@@ -69,7 +70,7 @@ public class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDisposable
                 var treeItem = new TreeItem(
                     branchEntry,
                     TreeItemType.Branch,
-                    () => LoadChildren(branchEntry).ToList()
+                    () => [.. LoadChildren(branchEntry)]
                 );
 
                 TreeItems.Add(treeItem);
@@ -97,7 +98,7 @@ public class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDisposable
                 var treeItem = new TreeItem(
                     item,
                     TreeItemType.Branch,
-                    () => LoadChildren(nextBranchEntry).ToList()
+                    () => [.. LoadChildren(nextBranchEntry)]
                 );
 
                 children.Add(treeItem);
@@ -143,7 +144,7 @@ public class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDisposable
         }
 
         // Find the parent tree nodes by traversing the tree
-        var pathEntries = FindPathToNode(TreeItems, selectedTreeItem);
+        var pathEntries = MidiIoTreeControlViewModel.FindPathToNode(TreeItems, selectedTreeItem);
 
         // Extract branch entries from path
         int index = 0;
@@ -173,7 +174,7 @@ public class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDisposable
     }
 
     // Recursively find the path from root to the selected node
-    private List<TreeItem> FindPathToNode(List<TreeItem> items, TreeItem target)
+    private static List<TreeItem> FindPathToNode(List<TreeItem> items, TreeItem target)
     {
         foreach (TreeItem item in items)
         {
@@ -184,7 +185,7 @@ public class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDisposable
 
             if (item.AreChildrenLoaded)
             {
-                List<TreeItem> path = FindPathToNode(item.Children, target);
+                List<TreeItem> path = MidiIoTreeControlViewModel.FindPathToNode(item.Children, target);
 
                 if (path.Count > 0)
                 {

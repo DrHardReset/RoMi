@@ -1,6 +1,7 @@
 namespace RoMi.Presentation.Controls;
 
-public class TreeItemTypeTemplateSelector : DataTemplateSelector
+// class shall be partial for trimming and AOT compatibility
+public partial class TreeItemTypeTemplateSelector : DataTemplateSelector
 {
     public DataTemplate? BranchTemplate { get; set; }
     public DataTemplate? LeafTemplate { get; set; }
