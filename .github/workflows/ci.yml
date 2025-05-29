@@ -63,11 +63,13 @@ jobs:
       Project_Name: ${{ github.event.repository.name }}
       Build_Path_Windows: ${{ github.workspace }}\RoMi\bin\RoMi_Windows
       Build_Path_Android: ${{ github.workspace }}\RoMi\bin\RoMi_Android
+      Build_Path_Windows_Exe: ${{ github.workspace }}\RoMi\bin\RoMi_Windows\RoMi.exe
       Build_Path_Android_Apk: ${{ github.workspace }}\RoMi\bin\RoMi_Android\com.DrHardReset.RoMi-Signed.apk
       
       Releases_Artifacts_Path: ${{ github.workspace }}\RoMi\bin\Release_Artifacts
-      Releases_Artifact_Path_Windows: ${{ github.workspace }}\RoMi\bin\Release_Artifacts\RoMi_Windows.zip
-      Releases_Artifact_Path_Android: ${{ github.workspace }}\RoMi\bin\Release_Artifacts\RoMi_Android.apk
+      #Releases_Artifact_Path_Windows: ${{ github.workspace }}\RoMi\bin\Release_Artifacts\RoMi_Windows.zip
+      Releases_Artifact_Path_Windows: ${{ github.workspace }}\RoMi\bin\Release_Artifacts\RoMi.exe
+      Releases_Artifact_Path_Android: ${{ github.workspace }}\RoMi\bin\Release_Artifacts\RoMi.apk
       
       Releases_Artifacts_Path_Linux: "value not set"
 
@@ -94,19 +96,26 @@ jobs:
       
       - name: Build Windows Release
         shell: pwsh
-        run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-windows10.0.19041 --output ${{ env.Build_Path_Windows }}
+        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p AnyCPU -f net8.0-windows10.0.19041 -o ${{ env.Build_Path_Windows }}
+        #run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-windows10.0.19041 --output ${{ env.Build_Path_Windows }}
       
       - name: Build Android Release
         shell: pwsh
-        run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-android --output ${{ env.Build_Path_Android }}
+        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p AnyCPU -f net8.0-android -o ${{ env.Build_Path_Android }}
+        #run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-android --output ${{ env.Build_Path_Android }}
 
       - name: Create artifact deployment directory
         run: |
           New-Item -ItemType Directory -Force -Path ${{ env.Releases_Artifacts_Path }}
 
-      - name: Zip Windows artifact for deployment
+      # as long as we publish as single file we do not need to zip the artifact. Instead we copy the exe to Releases_Artifact_Path_Windows
+      #- name: Zip Windows artifact for deployment
+      #  run: |
+      #    Compress-Archive -Path ${{ env.Build_Path_Windows }} -DestinationPath "${{ env.Releases_Artifact_Path_Windows }}"
+
+      - name: copy Windows exe artifact for deployment
         run: |
-          Compress-Archive -Path ${{ env.Build_Path_Windows }} -DestinationPath "${{ env.Releases_Artifact_Path_Windows }}"
+          Copy-Item ${{ env.Build_Path_Windows_Exe }} -Destination "${{ env.Releases_Artifact_Path_Windows }}"
 
       - name: copy Android apk artifact for deployment
         run: |
