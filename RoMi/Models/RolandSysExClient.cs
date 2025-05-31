@@ -72,7 +72,7 @@ public partial class RolandSysExClient(int maxAddressByteCount) : IAsyncDisposab
         }
     }
 
-    public async Task<byte[]> SendRq1AndWaitForResponseAsync(byte[] sysExBytes, int timeoutMs = 1000)
+    public async Task<byte[]> SendRq1AndWaitForResponseAsync(byte[] sysExBytes, int timeoutMs = 2000)
     {
         // extract address (maxAddressByteCount bytes from position 8)
         byte[] address = sysExBytes.Skip(8).Take(maxAddressByteCount).ToArray();
@@ -113,7 +113,7 @@ public partial class RolandSysExClient(int maxAddressByteCount) : IAsyncDisposab
                 }
                 catch (TaskCanceledException)
                 {
-                    throw new TimeoutException($"Request for address {key} timed out after {timeoutMs}ms.");
+                    throw new TimeoutException($"Request for address {key} timed out after {timeoutMs} ms.");
                 }
             }
         }
