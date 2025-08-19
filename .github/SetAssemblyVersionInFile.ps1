@@ -4,11 +4,17 @@ function getVersion()
 {
     $tag = iex "git describe --long --tags --always"
     $a = [regex]"v?\d+\.\d+\.\d+\-\d+"
-    $b = $a.Match($tag)
-    $b = $b.Captures[0].value
-    $b = $b -replace '-', '.'
-    $b = $b -replace 'v', ''
-    Write-Host "Version found: $b"
+    $match = $a.Match($tag)
+
+    if (-not $match.Success) {
+        Write-Error "Version does not match pattern 'x.x.x-x'. Found: $tag"
+        exit 1
+    }
+
+    $version = $match.Captures[0].value
+    $version = $version -replace '-', '.'
+    $version = $version -replace 'v', ''
+    Write-Host "Version found: $version"
     return $b
 }
 
