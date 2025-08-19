@@ -672,6 +672,20 @@ public partial class MidiTable : List<MidiTableEntry>
                                     }
                                 }
 
+                                if (deviceName == "JD-XA")
+                                {
+                                    // Multiple entries contain string values that cannot be automatically interpreted  -> ignore, e.g. Velocity Range Lower/Upper
+                                    if (higherMatch == "") // UPPER
+                                    {
+                                        higherMatch = "127";
+                                    }
+
+                                    if (lowerMatch == "") // LOWER
+                                    {
+                                        lowerMatch = "1";
+                                    }
+                                }
+
                                 double valueDescriptionLow = Convert.ToDouble(lowerMatch);
                                 double valueDescriptionHigh = Convert.ToDouble(higherMatch);
                                 string? unit = null;

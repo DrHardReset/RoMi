@@ -53,35 +53,28 @@ public partial class GeneratedRegex
     /// GT-1000 value description table:
     ///  *1 KNOB SETTING TABLE (Attention: begins with space)
     /// *2 ASSIGN TARGET TABLE
-    [GeneratedRegex(@"(?=^\*\s\[?.*?\]?\n|^\s?\*\d.*\n)", RegexOptions.Multiline)]
+    ///
+    /// GT-1000 names may be multiline:
+    /// * [PatchFx1SlowGearBass, PatchFx2SlowGearBass, PatchFx3SlowGearBass,
+    /// PatchFx4SlowGearBass(*)]
+    [GeneratedRegex(@"(?=^\*\s\[?.+?\]?\n|^\s?\*\d.*\n)", RegexOptions.Multiline)]
+
     public static partial Regex MidiTableNameRegex();
 
     /// <summary>
-    /// Extracts a table name. Examples:
-    /// AX-Edge:
-    /// * [Program]
-    ///
-    /// RD-2000:
-    /// * Program
-    /// </summary>
-    ///
-    /// GT-1000 value description table:
-    /// *1 KNOB SETTING TABLE
-    [GeneratedRegex(@"\* \[?(.*?)\]?\n|(\*\d [\w\s]+)\n")]
-    public static partial Regex MidiTableNameExtractRegex();
-
-    /// <summary>
     /// Matches rows that contain "content of interest" for parsing the MIDI sysex infos.
-    /// The first collumn of a "content" row must contain an address. Examples:
+    /// The first column of a "content" row must contain an address or a decimal number. Examples:
     /// <![CDATA[
     /// | 00 00 00 | Program Common [Program Common] |
     /// | : | |
     /// |# 00 0E | 0000 aaaa | |
     /// : : : :
+    /// | 0 | COMPRESSOR | ON OFF |
+    /// | 10 | DISTORTION 1 | DRIVE |
     /// ]]>
     /// </summary>
-    /// First check for Rows that consist only of colons and spaces. Than alternatively do not Match if negative lookahead counts more than 4 pipes and match pairs of hex-pairs (00, 0F, etc.), followed by space or colon, or only colons and spaces.
-    [GeneratedRegex(@"^:[:\s]+|^(?!([^|\n]*\|){5,})[\|:]#?\s*(?:[0-9a-fA-F]{2}(?:[\s:]|$)|[:\s])*[\|:].*[\|:]", RegexOptions.Multiline)]
+    /// First check for Rows that consist only of colons and spaces. Then exclude rows that only consist of pipes and spaces (empty rows). Then alternatively do not Match if negative lookahead counts more than 4 pipes and match pairs of hex-pairs (00, 0F, etc.) OR decimal numbers, followed by space or colon, or only colons and spaces.
+    [GeneratedRegex(@"^:[:\s]+|^(?![\|\s]*$)(?!([^|\n]*\|){5,})[\|:]#?\s*(?:[0-9a-fA-F]{2}(?:[\s:]|$)|[0-9]+(?:[\s|]|$)|[:\s])*[\|:].*[\|:]", RegexOptions.Multiline)]
     public static partial Regex MiditableContentRow();
 
     /// <summary>
@@ -123,7 +116,7 @@ public partial class GeneratedRegex
     /// | 00 1B | 0aaa aaaa | Reserved |
     /// ]]>
     /// </summary>
-    [GeneratedRegex(@"(^[<\(]?[Rr]eserve|N/A\(fixed value\))")]
+    [GeneratedRegex(@"(^[<\(]?[Rr]eserve|\([Rr]eserved?\)|N/A\(fixed value\))")]
     public static partial Regex MidiTableLeafEntryReservedValueDescriptionRegex();
 
     /// <summary>
@@ -132,7 +125,6 @@ public partial class GeneratedRegex
     /// | : | | |
     /// : : : :
     /// ]]>
-    /// </summary>
     [GeneratedRegex(@"^[\|:]\s+:")]
     public static partial Regex MidiTableLeafEntryFillUpRowRegex();
 

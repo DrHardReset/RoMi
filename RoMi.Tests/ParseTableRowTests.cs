@@ -12,6 +12,8 @@ internal class ParseTableRowTests
     [TestCase("| | | -24 - +12 [dB] |")]
     [TestCase("| : | |")]
     [TestCase(": : : :")]
+    [TestCase("| 0 | COMPRESSOR | ON OFF |")]
+    [TestCase("| 10 | DISTORTION 1 | DRIVE |")]
     public void MiditableContentRow_Match(string row)
     {
         // Act
@@ -43,6 +45,7 @@ internal class ParseTableRowTests
     [TestCase("+------+------++------+------++------+------++------+------+")]
     [TestCase("| D | H || D | H || D | H || D | H |")]
     [TestCase("| 0 | 00H || 32 | 20H || 64 | 40H || 96 | 60H |")]
+    [TestCase("| | | |")]
     public void MiditableContentRow_NoMatch(string row)
     {
         // Act

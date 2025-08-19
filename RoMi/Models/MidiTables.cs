@@ -30,6 +30,7 @@ public class MidiTables : List<MidiTable>
 
     /// <summary>
     /// Removes tables which's child tables do not exist. Example: AX-Edge table "Editor" references table [Edit] which does not exist in documentation.
+    /// This method now recursively checks all levels of child tables.
     /// </summary>
     public void FixTablesWithMissingSubTables(string deviceName)
     {
@@ -66,7 +67,14 @@ public class MidiTables : List<MidiTable>
                  */
                 if (parentTable.Name == "Temporary Tone")
                 {
-                    this[tableIndex].RemoveAt(tableIndex);
+                    this.RemoveAt(tableIndex);
+                    return true;
+                }
+
+                // First "Analog Synth Tone" table is not needed as it is just a link to the second one.
+                if (parentTable.Name == "Analog Synth Tone" && parentTable.Count == 1)
+                {
+                    this.RemoveAt(tableIndex);
                     return true;
                 }
 
@@ -81,7 +89,7 @@ public class MidiTables : List<MidiTable>
                         childTable.StartAddress.Increment([00, 0x01, 00, 00]);
                         break;
                     case "Temporary Tone (Analog Synth Part)":
-                        childTable.LeafName = "Analog Synth Part";
+                        childTable.LeafName = "Analog Synth Tone";
                         childTable.StartAddress.Increment([00, 0x02, 00, 00]);
                         break;
                     case "Temporary Tone (Drums Part)":
@@ -93,55 +101,166 @@ public class MidiTables : List<MidiTable>
                         break;
                 }
                 return false;
+            },
+            ["JD-XA"] = (parentTable, childTable, tableIndex, entryIndex) => {
+                /*
+                 * JD-XA root table has hard to follow references for Temporary tones.
+                 * Fix the child reference tables and the startaddresses
+                 */
+                if (parentTable.Name == "Temporary Tone")
+                {
+                    this.RemoveAt(tableIndex);
+                    return true;
+                }
+
+                switch (childTable.Description)
+                {
+                    case "Temporary Tone (Analog Part 1)":
+                        childTable.LeafName = "Analog Synth Tone";
+                        childTable.StartAddress.Increment([00, 0x02, 00, 00]);
+                        break;
+                    case "Temporary Tone (Analog Part 2)":
+                        childTable.LeafName = "Analog Synth Tone";
+                        childTable.StartAddress.Increment([00, 0x02, 00, 00]);
+                        break;
+                    case "Temporary Tone (Analog Part 3)":
+                        childTable.LeafName = "Analog Synth Tone";
+                        childTable.StartAddress.Increment([00, 0x02, 00, 00]);
+                        break;
+                    case "Temporary Tone (Analog Part 4)":
+                        childTable.LeafName = "Analog Synth Tone";
+                        childTable.StartAddress.Increment([00, 0x02, 00, 00]);
+                        break;
+
+                    case "Temporary Tone (Digital Part 1)":
+                        childTable.LeafName = "SuperNATURAL Synth Tone";
+                        childTable.StartAddress.Increment([00, 0x01, 00, 00]);
+                        break;
+                    case "Temporary Tone (Digital Part 2)":
+                        childTable.LeafName = "SuperNATURAL Synth Tone";
+                        childTable.StartAddress.Increment([00, 0x01, 00, 00]);
+                        break;
+                    case "Temporary Tone (Digital Part 3)":
+                        childTable.LeafName = "SuperNATURAL Synth Tone";
+                        childTable.StartAddress.Increment([00, 0x01, 00, 00]);
+                        break;
+                    case "Temporary Tone (Digital Part 4)":
+                        childTable.LeafName = "SuperNATURAL Synth Tone";
+                        childTable.StartAddress.Increment([00, 0x01, 00, 00]);
+                        break;
+                }
+                return false;
             }
         };
 
+        // HashSet to track which tables have already been processed to prevent infinite loops
+        HashSet<string> processedTables = new();
+
+        // Start recursive checking with ALL tables (not just root and branch)
         for (int midiTableIndex = 0; midiTableIndex < Count; midiTableIndex++)
         {
-            MidiTable parentTable = this[midiTableIndex];
+            MidiTable table = this[midiTableIndex];
+            // Check all table types, not just root and branch
+            CheckTableRecursively(table, deviceName, deviceActions, processedTables);
+        }
+    }
 
-            for (int midiTableEntryIndex = 0; midiTableEntryIndex < parentTable.Count; midiTableEntryIndex++)
+    /// <summary>
+    /// Recursively checks a table and all its child tables for missing references.
+    /// </summary>
+    private void CheckTableRecursively(MidiTable parentTable, string deviceName,
+        Dictionary<string, Func<MidiTable, MidiTableBranchEntry, int, int, bool>> deviceActions,
+        HashSet<string> processedTables)
+    {
+        // Prevent infinite loops by tracking processed tables
+        if (processedTables.Contains(parentTable.Name))
+        {
+            return;
+        }
+
+        processedTables.Add(parentTable.Name);
+
+        int parentTableIndex = FindIndex(t => t.Name == parentTable.Name);
+
+        if (parentTableIndex < 0)
+        {
+            return;
+        }
+
+        // Only process tables that can have child references (Root and Branch tables)
+        // Leaf tables don't have child table references, only data entries
+        if (parentTable.MidiTableType != MidiTableType.RootTable && 
+            parentTable.MidiTableType != MidiTableType.BranchTable)
+        {
+            return;
+        }
+
+        for (int midiTableEntryIndex = 0; midiTableEntryIndex < parentTable.Count; midiTableEntryIndex++)
+        {
+            if (!(parentTable[midiTableEntryIndex] is MidiTableBranchEntry childTable))
             {
-                if (!(parentTable[midiTableEntryIndex] is MidiTableBranchEntry childTable))
+                break;
+            }
+
+            // Apply device-specific processing first
+            if (deviceActions.TryGetValue(deviceName, out var action))
+            {
+                bool handled = action(parentTable, childTable, parentTableIndex, midiTableEntryIndex);
+
+                if (handled || parentTableIndex >= Count || midiTableEntryIndex >= parentTable.Count)
                 {
                     break;
                 }
+            }
 
-                // Apply device-specific processing first
-                if (deviceActions.TryGetValue(deviceName, out var action))
-                {
-                    bool handled = action(parentTable, childTable, midiTableIndex, midiTableEntryIndex);
+            string leafName = childTable.LeafName;
 
-                    if (handled || midiTableIndex >= Count || midiTableEntryIndex >= parentTable.Count)
-                    {
-                        break;
-                    }
-                }
+            // Skip entries with empty LeafName (e.g., reserved entries)
+            if (string.IsNullOrEmpty(leafName))
+            {
+                continue;
+            }
 
-                string leafName = childTable.LeafName;
+            try
+            {
+                int childTableIndex = GetTableIndexByName(leafName);
+                MidiTable foundChildTable = this[childTableIndex];
 
-                try
-                {
-                    GetTableIndexByName(leafName);
-                }
-                catch (KeyNotFoundException)
+                // Recursively check ALL found child tables (regardless of type)
+                // This ensures we check the entire hierarchy
+                CheckTableRecursively(foundChildTable, deviceName, deviceActions, processedTables);
+            }
+            catch (KeyNotFoundException)
+            {
+                string errorMessage = $"Table '{parentTable.Name}' references child table '{leafName}' which does not exist in the documentation.";
+
+                /*
+                 * PDF for INTEGRA-7 root table contains multiple entries that reference child tables whose names should start with "Temporary". The actual child table's names do not have this prefix. Example: root entry 'Temporary Studio Set' must reference "Studio Set"
+                 * If that is the case rename the child table on first check.
+                 */
+                if (leafName.StartsWith("Temporary"))
                 {
                     try
                     {
-                        /*
-                         * PDF for INTEGRA-7 root table contains multiple entries that reference child tables whose names should start with "Temporary". The actual child table's names do not have this prefix. Example: root entry 'Temporary Studio Set' must reference "Studio Set"
-                         * If that is the case rename the child table on first check.
-                         */
-                        if (leafName.StartsWith("Temporary"))
-                        {
-                            int temporaryEntryNameIndex = GetTableIndexByName(leafName.Replace("Temporary ", ""));
-                            this[temporaryEntryNameIndex].Name = leafName;
-                        }
+                        int temporaryEntryNameIndex = GetTableIndexByName(leafName.Replace("Temporary ", ""));
+                        this[temporaryEntryNameIndex].Name = leafName;
+
+                        // After renaming, recursively check this table (regardless of type)
+                        MidiTable renamedTable = this[temporaryEntryNameIndex];
+                        CheckTableRecursively(renamedTable, deviceName, deviceActions, processedTables);
                     }
-                    catch (KeyNotFoundException)
+                    catch(KeyNotFoundException)
                     {
-                        throw new Exception($"Table '{childTable.Description}' references a table named '{leafName}' which could not be found in the table list.");
+                        throw new KeyNotFoundException(errorMessage);
                     }
+                }
+                else if (GeneratedRegex.MidiTableLeafEntryReservedValueDescriptionRegex().IsMatch(leafName))
+                {
+                    continue; // Skip reserved entries, they are not relevant for the table structure
+                }
+                else
+                {
+                    throw new KeyNotFoundException(errorMessage);
                 }
             }
         }
