@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text;
 using System.Text.RegularExpressions;
 using RoMi.Models.Converters;
 
@@ -61,6 +62,11 @@ public class MidiDocument
         // Fix more PDF issues:
         switch (DeviceName)
         {
+            case "GT-1000 / GT-1000CORE":
+                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                    " * [Patch2]",
+                    "* [Patch2]]");
+                break;
             case "JUPITER-X/Xm":
                 midiDocumentationFileContent = midiDocumentationFileContent.Replace(
                     "* [Setup]\n9\nJUPITER-X/Xm MIDI Implementation",
@@ -68,6 +74,59 @@ public class MidiDocument
                 midiDocumentationFileContent = midiDocumentationFileContent.Replace(
                     "* [User Pattern]\n16\nJUPITER-X/Xm MIDI Implementation",
                     "* [User Pattern]");
+                break;
+            case "GAIA2":
+                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                    "|1/1,1/2,1/4,1/8,1/16,1/32,1/1T,1/2T,1/4T,1/8T,1/16T \n|",
+                    "|1/1,1/2,1/4,1/8,1/16,1/32,1/1T,1/2T,1/4T,1/8T,1/16T |\n"
+                    );
+                break;
+            case "INTEGRA-7":
+                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                    "SuperNATURAL Synth Tone Common MFX",
+                    "SuperNATURAL Synth Tone MFX"
+                    );
+                break;
+            case "JD-XA":
+                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                    "SuperNATURAL Synth Tone Common MFX",
+                    "SuperNATURAL Synth Tone MFX"
+                    );
+
+                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                    "|       00 1F | 0aaa aaaa | Keyboard Fade Width Lower                          |\n|             |           |                                           0 - 127  |\n|       00 20 | 0aaa aaaa | Keyboard Fade Width Upper                          |\n|             |           |                                           0 - 127  |\n",
+                    "|       00 1F | 0aaa aaaa | Keyboard Fade Width Lower                (0 - 127) |\n|       00 20 | 0aaa aaaa | Keyboard Fade Width Upper                (0 - 127) |\n"
+                    );
+
+                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                    "|       00 11 | 0000 000a |                                            (0 - 1) |",
+                    "|       00 11 | 0000 000a | <Undocumented>                             (0 - 1) |"
+                    );
+
+                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                    "|       00 14 | 0000 00aa |                                            (0 - 2) |",
+                    "|       00 14 | 0000 00aa | <Undocumented>                             (0 - 2) |"
+                    );
+
+                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                    "|       00 16 | 0000 000a |                                            (0 - 1) |",
+                    "|       00 16 | 0000 000a | <Undocumented>                             (0 - 1) |"
+                    );
+
+                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                    "|       00 0A | 000a aaaa |                                           (0 - 31) |",
+                    "|       00 0A | 000a aaaa | <Undocumented>                            (0 - 31) |"
+                    );
+
+                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                    "|       00 16 | 000a aaaa |                                           (0 - 31) |",
+                    "|       00 16 | 000a aaaa | <Undocumented>                            (0 - 31) |"
+                    );
+
+                midiDocumentationFileContent = midiDocumentationFileContent.Replace(
+                    "|       00 53 | 0aaa aaaa |                                         (14 - 114) |",
+                    "|       00 53 | 0aaa aaaa | <Undocumented>                                        (14 - 114) |"
+                    );
                 break;
         }
 
@@ -91,24 +150,82 @@ public class MidiDocument
             }
             else
             {
-                match = GeneratedRegex.MidiTableNameExtractRegex().Match(tablesRawSplit[i]);
+                var lines = tablesRawSplit[i].Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
-                if (!match.Success)
+                if (lines.Length == 0)
                 {
                     throw new NotSupportedException("Failed to parse table name header.");
                 }
 
-                if (match.Groups[1].Success)
+                /*
+                 * Check if multiline table name exists (starts with "* [" but doesn't end with "]"),
+                 * Example: "* [PatchFx1PitchShift, PatchFx2PitchShift, PatchFx3PitchShift,
+PatchFx4PitchShift(*)]"
+                */
+                if (lines[0].Trim().StartsWith("* [") && !lines[0].Trim().EndsWith("]"))
                 {
-                    name = match.Groups[1].Value.Trim();
-                }
-                else if (match.Groups[2].Success)
-                {
-                    name = match.Groups[2].Value.Trim();
+                    // Multiline name - collect all lines until closing bracket
+                    var nameBuilder = new StringBuilder();
+                    bool foundClosingBracket = false;
+
+                    for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
+                    {
+                        var line = lines[lineIndex].Trim();
+
+                        if (lineIndex == 0)
+                        {
+                            // First line: remove "* [" from beginning
+                            nameBuilder.Append(line.Substring(3));
+                        }
+                        else
+                        {
+                            // Additional lines: append directly
+                            nameBuilder.Append(line);
+                        }
+
+                        if (line.EndsWith("]"))
+                        {
+                            // Found closing bracket - remove the "]" at the end
+                            nameBuilder.Length -= 1;
+                            foundClosingBracket = true;
+                            break;
+                        }
+
+                        // Add space between lines if not the last character
+                        if (lineIndex < lines.Length - 1 && !line.EndsWith("]"))
+                        {
+                            nameBuilder.Append(" ");
+                        }
+                    }
+
+                    if (!foundClosingBracket)
+                    {
+                        throw new NotSupportedException("Failed to find closing bracket for multiline table name.");
+                    }
+
+                    name = nameBuilder.ToString();
                 }
                 else
                 {
-                    throw new NotImplementedException("Failed to parse table name header although regex matched.");
+                    // Single-line name
+                    var firstLine = lines[0].Trim();
+
+                    if (firstLine.StartsWith("* [") && firstLine.EndsWith("]"))
+                    {
+                        name = firstLine.Substring(3, firstLine.Length - 4); // Remove "* [" and "]"
+                    }
+                    else if (firstLine.StartsWith("* "))
+                    {
+                        name = firstLine.Substring(2); // Remove "* "
+                    }
+                    else if (firstLine.StartsWith("*"))
+                    {
+                        name = firstLine.Substring(1).Trim(); // Remove "*" and trim
+                    }
+                    else
+                    {
+                        throw new NotSupportedException("Failed to parse table name header.");
+                    }
                 }
             }
 
@@ -117,15 +234,9 @@ public class MidiDocument
 
             if (deviceName == "GT-1000 / GT-1000CORE")
             {
-                if (name == "PatchEfct")
-                {
-                    // Table contains empty rows which are currently not filtered by GeneratedRegex.MiditableContentRow.
-                    dataRows.Remove(x => x == "|             |           |                                                    |");
-                }
-
                 if (dataRows.Count == 0)
                 {
-                    // Table "*4 CHAIN ELEMENT TABLE" is followed by multiple comment rows which need to be ignored, e.g.:
+                    // Table "*4 CHAIN ELEMENT TABLE" is followed by multiple comment rows which need to be ignored as the may get interpreted as table header rows
                     continue;
                 }
             }
@@ -190,7 +301,7 @@ public class MidiDocument
          * Multi byte values must be splitted n times by the bitmask.
          * Multi byte values must be added to sysex message from LSB to MSB.
          */
-        byte[] valueArray = new byte[valueDataByteBitMasks.Count];
+                byte[] valueArray = new byte[valueDataByteBitMasks.Count];
         int valueRest = value;
 
         for (int i = 0; i < valueDataByteBitMasks.Count; i++)

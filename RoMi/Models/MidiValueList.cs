@@ -129,7 +129,11 @@ public class MidiValueList : List<MidiValue>
             Add(new MidiValue(values[i], null, null, null));
         }
 
-        DescriptionTableRefName = descriptionTableRefname;
+        /*
+         * The reference name comes in as "*1" and shall point to "*1 KNOB SETTING TABLE"
+         * As we generally store the table names without the leading asterisk we need to remove it.
+         */
+        DescriptionTableRefName = descriptionTableRefname.TrimStart('*');
     }
 
     public List<int> GetValues()

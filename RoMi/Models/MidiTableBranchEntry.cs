@@ -1,5 +1,3 @@
-using Commons.Music.Midi;
-
 namespace RoMi.Models;
 
 /// <summary>
@@ -13,6 +11,15 @@ public class MidiTableBranchEntry : MidiTableEntry
 
     public MidiTableBranchEntry(string startAddress, string description) : base(startAddress, description)
     {
+        // Check if this is a reserved entry first
+        if (GeneratedRegex.MidiTableLeafEntryReservedValueDescriptionRegex().IsMatch(description))
+        {
+            // For reserved entries, don't set a leaf name to avoid trying to link to non-existent tables
+            Description = description;
+            LeafName = string.Empty;
+            return;
+        }
+
         if (description.Contains('['))
         {
             // AX-Edge branch tables contain references to child tables in square brackets

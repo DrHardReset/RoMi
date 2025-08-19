@@ -15,6 +15,7 @@ The app is tested for Roland AX-Edge only, but should generally work with the fo
 - FANTOM-06/07/08
 - FANTOM-6/7/8
 - FA-06/07/08
+- GAIA 2
 - GT-1000
 - INTEGRA-7
 - JD-Xi
