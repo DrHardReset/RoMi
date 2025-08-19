@@ -21,17 +21,9 @@ function getVersion()
 function SetVersion ($file, $version)
 {
     Write-Host "Changing version in $file to $version"
-    $fileObject = get-item $file
-
-    $sr = new-object System.IO.StreamReader( $file, [System.Text.Encoding]::GetEncoding("utf-8") )
-    $content = $sr.ReadToEnd()
-    $sr.Close()
-
-    $content = [Regex]::Replace($content, "(\d+)\.(\d+)\.(\d+)[\.(\d+)]*", $version);
-
-    $sw = new-object System.IO.StreamWriter( $file, $false, [System.Text.Encoding]::GetEncoding("utf-8") )
-    $sw.Write( $content )
-    $sw.Close()
+    $content = Get-Content -Path $file -Raw -Encoding UTF8
+    $content = $content -replace "(\d+)\.(\d+)\.(\d+)[\.(\d+)]*", $version
+    Set-Content -Path $file -Value $content -Encoding UTF8 -NoNewline
 }
 
 function setVersionInDir($projectNamespace, $dir, $fileName, $version) {
