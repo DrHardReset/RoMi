@@ -1,10 +1,11 @@
-﻿namespace RoMi.Presentation;
+namespace RoMi.Presentation;
 
 public sealed partial class Shell : UserControl, IContentControlProvider
 {
     public Shell()
     {
-        this.InitializeComponent();
+        InitializeComponent();
     }
+
     public ContentControl ContentControl => Splash;
 }

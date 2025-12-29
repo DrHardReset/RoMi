@@ -1,8 +1,8 @@
 namespace RoMi.Presentation;
 
-public class DeviceIdDisplayItem
+public class DeviceIdDisplayItem(byte value)
 {
-    public byte Value { get; set; }
+    public byte Value { get; set; } = value;
     public string Display
     {
         get
@@ -16,10 +16,5 @@ public class DeviceIdDisplayItem
 
             return valueString;
         }
-    }
-
-    public DeviceIdDisplayItem(byte value)
-    {
-        this.Value = value;
     }
 }

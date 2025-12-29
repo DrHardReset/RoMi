@@ -2,17 +2,16 @@ namespace RoMi.Presentation;
 
 public class ShellViewModel
 {
-    private readonly INavigator _navigator;
+    private readonly INavigator navigator;
 
-    public ShellViewModel(
-        INavigator navigator)
+    public ShellViewModel(INavigator navigator)
     {
-        _navigator = navigator;
+        this.navigator = navigator;
         _ = Start();
     }
 
     public async Task Start()
     {
-        await _navigator.NavigateViewModelAsync<MainViewModel>(this);
+        await navigator.NavigateViewModelAsync<MainViewModel>(this);
     }
 }

@@ -6,14 +6,9 @@ namespace RoMi.Presentation;
 /// A sample implementation of the <see cref="IIncrementalSource{TSource}"/> interface.
 /// </summary>
 /// <seealso cref="IIncrementalSource{TSource}"/>
-public class PagedListSource : IIncrementalSource<object>
+public class PagedListSource(List<object> objectList) : IIncrementalSource<object>
 {
-    private readonly List<object> objectList;
-
-    public PagedListSource(List<object> objectList)
-    {
-        this.objectList = objectList;
-    }
+    private readonly List<object> objectList = objectList;
 
     /// <summary>
     /// Retrieves items based on <paramref name="pageIndex"/> and <paramref name="pageSize"/> arguments.
@@ -30,7 +25,7 @@ public class PagedListSource : IIncrementalSource<object>
     /// <returns>
     /// Returns a collection of <see langword="object"/>.
     /// </returns>
-    public async Task<IEnumerable<object>> GetPagedItemsAsync(int pageIndex, int pageSize, CancellationToken cancellationToken = default(CancellationToken))
+    public async Task<IEnumerable<object>> GetPagedItemsAsync(int pageIndex, int pageSize, CancellationToken cancellationToken = default)
     {
         return await Task.Run(() =>
         {
