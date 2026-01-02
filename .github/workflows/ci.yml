@@ -19,30 +19,13 @@ env:
   STEP_TIMEOUT_MINUTES: 60
 
 jobs:
-  # skip smoke test as it takes too much time and the unit_test job contains almost the same actions.
-  # smoke_test:
-    # name: Smoke Test (Debug Build of RoMi)
-    # runs-on: windows-latest
-    # steps:
-      # - uses: actions/checkout@v4
-        # with:
-          # fetch-depth: 0
-
-      # - name: Install Dependencies
-        # timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
-        # uses: "./.github/steps/install_dependencies"
-
-      # - name: Build RoMi (Debug)
-        # shell: pwsh
-        # run: dotnet build ./RoMi/RoMi.csproj
-
   unit_test:
     name: Unit Tests
     runs-on: windows-latest
     if: ${{ !startsWith(github.ref, 'refs/tags/') }} # always run this step if a tag/release was not the trigger
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -74,7 +57,7 @@ jobs:
       Releases_Artifacts_Path_Linux: "value not set"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -123,7 +106,7 @@ jobs:
 
       # Upload the zipped artifact: https://github.com/marketplace/actions/upload-a-build-artifact
       - name: Upload zipped artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           if-no-files-found: error
           name: ${{ env.Project_Name }}
