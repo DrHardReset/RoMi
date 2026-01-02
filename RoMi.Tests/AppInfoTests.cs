@@ -12,7 +12,7 @@ public class AppInfoTests
     {
         var appInfo = new AppConfig { Environment = "Test" };
 
-        appInfo.Should().NotBeNull();
-        appInfo.Environment.Should().Be("Test");
+        Assert.That(appInfo, Is.Not.Null);
+        Assert.That(appInfo.Environment, Is.EqualTo("Test"));
     }
 }
