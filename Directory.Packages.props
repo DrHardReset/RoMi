@@ -17,4 +17,12 @@
     <PackageVersion Include="CommunityToolkit.WinUI.UI" Version="7.1.2" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <!-- Fix for https://github.com/unoplatform/uno/issues/21923 -->
+    <UnoHotDesignVersion>1.18.0-dev.330</UnoHotDesignVersion>
+
+    <!-- Disable XAML Hot Design -->
+    <UseDesignerContext>false</UseDesignerContext>
+    <EnableXamlHotDesigner>false</EnableXamlHotDesigner>
+  </PropertyGroup>
 </Project>
