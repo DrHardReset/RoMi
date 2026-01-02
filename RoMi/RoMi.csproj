@@ -56,18 +56,18 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug' And $(TargetFramework.Contains('android'))">
-    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
-    <AndroidKeyStore>False</AndroidKeyStore>
-    <AndroidUseAapt2>True</AndroidUseAapt2>
+    <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidKeyStore>false</AndroidKeyStore>
+    <AndroidUseAapt2>true</AndroidUseAapt2>
   </PropertyGroup>
 
   <PropertyGroup  Condition="'$(Configuration)'=='Release' And $(TargetFramework.Contains('android'))">
-    <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+    <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
-    <AndroidKeyStore>False</AndroidKeyStore>
+    <AndroidKeyStore>false</AndroidKeyStore>
+    <AndroidUseAapt2>true</AndroidUseAapt2>
     <AndroidLinkTool>r8</AndroidLinkTool>
-    <AndroidUseAapt2>True</AndroidUseAapt2>
   </PropertyGroup>
 
    <!--
