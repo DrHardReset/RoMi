@@ -125,6 +125,7 @@ public partial class GeneratedRegex
     /// | : | | |
     /// : : : :
     /// ]]>
+    /// </summary>
     [GeneratedRegex(@"^[\|:]\s+:")]
     public static partial Regex MidiTableLeafEntryFillUpRowRegex();
 

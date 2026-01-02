@@ -1,9 +1,8 @@
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 
 namespace RoMi.Presentation.Converters;
 
-public class StringToVisibilityConverter : IValueConverter
+public partial class StringToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {

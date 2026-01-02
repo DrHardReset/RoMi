@@ -6,6 +6,17 @@ using System.Text.RegularExpressions;
 
 namespace RoMi.Models;
 
+[JsonSerializable(typeof(DependencyReport))]
+[JsonSerializable(typeof(List<Problem>))]
+[JsonSerializable(typeof(List<Project>))]
+[JsonSerializable(typeof(Problem))]
+[JsonSerializable(typeof(Project))]
+[JsonSerializable(typeof(Framework))]
+[JsonSerializable(typeof(TopLevelPackage))]
+[JsonSerializable(typeof(List<Framework>))]
+[JsonSerializable(typeof(List<TopLevelPackage>))]
+internal partial class DependencyReportJsonContext : JsonSerializerContext { }
+
 public class DependencyReport
 {
     private const string filePath = $"{nameof(RoMi)}.Assets.LibraryDependencyReport.json";
@@ -15,9 +26,9 @@ public class DependencyReport
     [JsonPropertyName("parameters")]
     public string Parameters { get; set; } = string.Empty;
     [JsonPropertyName("problems")]
-    public List<Problem> Problems { get; set; } = new List<Problem>();
+    public List<Problem> Problems { get; set; } = [];
     [JsonPropertyName("projects")]
-    public List<Project> Projects { get; set; } = new List<Project>();
+    public List<Project> Projects { get; set; } = [];
 
     public static async Task<DependencyReport?> Read()
     {
@@ -36,13 +47,13 @@ public class DependencyReport
         string jsonString = match.Groups[1].Value;
         var jsonByte = Encoding.UTF8.GetBytes(jsonString);
 
-        using Stream memoryStream = new MemoryStream(jsonByte);
-        return await JsonSerializer.DeserializeAsync<DependencyReport>(memoryStream);
+        using MemoryStream memoryStream = new(jsonByte);
+        return await JsonSerializer.DeserializeAsync(memoryStream, DependencyReportJsonContext.Default.DependencyReport);
     }
 
     public List<TopLevelPackage> GetAllDistinctTopLevelPackages()
     {
-        List<TopLevelPackage> list = new List<TopLevelPackage>();
+        List<TopLevelPackage> list = [];
 
         foreach (Project project in Projects)
         {
@@ -58,7 +69,7 @@ public class DependencyReport
             }
         }
 
-        list.Sort(delegate(TopLevelPackage x, TopLevelPackage y)
+        list.Sort(delegate (TopLevelPackage x, TopLevelPackage y)
         {
             if (x.Id == null && y.Id == null) return 0;
             else if (x.Id == null) return -1;
@@ -75,7 +86,7 @@ public class Framework
     [JsonPropertyName("framework")]
     public string FrameworkName { get; set; } = string.Empty;
     [JsonPropertyName("topLevelPackages")]
-    public List<TopLevelPackage> TopLevelPackages { get; set; } = new List<TopLevelPackage>();
+    public List<TopLevelPackage> TopLevelPackages { get; set; } = [];
 }
 
 public class Problem
@@ -91,7 +102,7 @@ public class Project
     [JsonPropertyName("path")]
     public string Path { get; set; } = string.Empty;
     [JsonPropertyName("frameworks")]
-    public List<Framework> Frameworks { get; set; } = new List<Framework>();
+    public List<Framework> Frameworks { get; set; } = [];
 }
 
 public class TopLevelPackage
@@ -107,15 +118,30 @@ public class TopLevelPackage
 
     public bool Equals(TopLevelPackage? other)
     {
-        if (ReferenceEquals(other, null)) return false;
-        if (ReferenceEquals(other, this)) return true;
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(other, this))
+        {
+            return true;
+        }
+
         return string.Equals(Id, other.Id) && string.Equals(ResolvedVersion, other.ResolvedVersion);
     }
 
     public override bool Equals(object? obj)
     {
-        if (ReferenceEquals(null, obj)) return false;
-        if (ReferenceEquals(this, obj)) return true;
+        if (obj is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, obj))
+        {
+            return true;
+        }
 
         return Equals(obj as TopLevelPackage);
     }

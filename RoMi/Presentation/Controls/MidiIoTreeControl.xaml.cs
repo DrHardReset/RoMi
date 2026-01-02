@@ -186,7 +186,7 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
         MonitoringHelpTip.IsOpen = true;
     }
 
-    public void Dispose()
+    public new void Dispose()
     {
         if (!disposed)
         {

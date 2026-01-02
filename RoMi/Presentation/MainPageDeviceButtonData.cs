@@ -1,16 +1,8 @@
-﻿namespace RoMi.Presentation;
+namespace RoMi.Presentation;
 
-public class MainPageDeviceButtonData
+public class MainPageDeviceButtonData(string name, MidiDocument midiDocument, ICommand command)
 {
-    public string Name { get; set; }
-    public object MidiDocument { get; set; }
-    public ICommand Command { get; set; }
-
-    public MainPageDeviceButtonData(string name, MidiDocument midiDocument, ICommand command)
-    {
-        Name = name;
-        MidiDocument = midiDocument;
-        Command = command;
-
-    }
+    public string Name { get; set; } = name;
+    public object MidiDocument { get; set; } = midiDocument;
+    public ICommand Command { get; set; } = command;
 }

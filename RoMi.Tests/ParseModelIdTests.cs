@@ -11,7 +11,8 @@ internal class ParseModelIdTests
     public void ModelId_Match(string text, string[] modelIdBytes)
     {
         // Act
-        string[] array = GeneratedRegex.ModelIdBytesRegex().Match(text).Groups.Cast<Group>().Skip(1).Where(o => o.Value != string.Empty).Select(o => o.Value.ToString()).ToArray();
+        IEnumerable<Group> groups = GeneratedRegex.ModelIdBytesRegex().Match(text).Groups.Cast<Group>().Skip(1);
+        string[] array = [.. groups.Where(o => o.Value != string.Empty).Select(o => o.Value.ToString())];
 
         // Assert
         Assert.Multiple(delegate

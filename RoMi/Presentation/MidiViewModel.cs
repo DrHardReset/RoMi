@@ -1,21 +1,18 @@
 using System.Collections.ObjectModel;
 using RoMi.Presentation.Controls;
+using System.Diagnostics.CodeAnalysis;
 
 namespace RoMi.Presentation;
 
 // class shall be partial for trimming and AOT compatibility
 public partial class MidiViewModel : ObservableObject, IMidiDeviceService, IDisposable
 {
-    public class ControlOption
+    public class ControlOption(string name, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type controlType)
     {
-        public string Name { get; set; }
-        public Type ControlType { get; set; }
+        public string Name { get; set; } = name;
 
-        public ControlOption(string name, Type controlType)
-        {
-            Name = name;
-            ControlType = controlType;
-        }
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
+        public Type ControlType { get; set; } = controlType;
     }
 
     private readonly INavigator navigator;

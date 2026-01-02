@@ -52,7 +52,7 @@ jobs:
 
       - name: Build and run Unit Tests
         shell: pwsh
-        run: dotnet test ./RoMi.Tests/RoMi.Tests.csproj --configuration Test --framework net8.0 --logger GitHubActions --blame-crash
+        run: dotnet test ./RoMi.Tests/RoMi.Tests.csproj --configuration Test --framework net10.0 --logger GitHubActions --blame-crash
 
   create_release_artifacts:
     name: Create release artifacts
@@ -96,12 +96,12 @@ jobs:
       
       - name: Build Windows Release
         shell: pwsh
-        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p AnyCPU -f net8.0-windows10.0.19041 -o ${{ env.Build_Path_Windows }}
+        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p AnyCPU -f net10.0-windows10.0.19041 -o ${{ env.Build_Path_Windows }}
         #run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-windows10.0.19041 --output ${{ env.Build_Path_Windows }}
       
       - name: Build Android Release
         shell: pwsh
-        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p AnyCPU -f net8.0-android -o ${{ env.Build_Path_Android }}
+        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p AnyCPU -f net10.0-android -o ${{ env.Build_Path_Android }}
         #run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-android --output ${{ env.Build_Path_Android }}
 
       - name: Create artifact deployment directory

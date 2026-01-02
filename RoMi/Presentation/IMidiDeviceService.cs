@@ -1,5 +1,7 @@
 using System.ComponentModel;
 
+namespace RoMi.Presentation;
+
 public interface IMidiDeviceService : INotifyPropertyChanged
 {
     bool IsMidiDeviceEnabled { get; }

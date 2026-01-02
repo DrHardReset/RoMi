@@ -46,7 +46,7 @@
                     HorizontalAlignment="Center"
                     Margin="10"
                     Content="{Binding Name}"
-                    Command="{Binding Command}"/>
+                    Command="{Binding Command}" />
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>

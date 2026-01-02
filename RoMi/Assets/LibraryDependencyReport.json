@@ -1,3 +1,1238 @@
 {
-  "error": "Library dependency report is not available."
+  "version": 1,
+  "parameters": "",
+  "problems": [
+    {
+      "level": "warning",
+      "text": "(A): Automatisch referenziertes Paket."
+    }
+  ],
+  "projects": [
+    {
+      "path": "<solutionDir>/RoMi/RoMi.csproj",
+      "frameworks": [
+        {
+          "framework": "net10.0",
+          "topLevelPackages": [
+            {
+              "id": "CommunityToolkit.Mvvm",
+              "requestedVersion": "[8.4.0, )",
+              "resolvedVersion": "8.4.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "managed-midi",
+              "requestedVersion": "1.10.1",
+              "resolvedVersion": "1.10.1"
+            },
+            {
+              "id": "Microsoft.Extensions.Logging.Console",
+              "requestedVersion": "[10.0.0, )",
+              "resolvedVersion": "10.0.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "PdfPig",
+              "requestedVersion": "0.1.10",
+              "resolvedVersion": "0.1.10"
+            },
+            {
+              "id": "SkiaSharp.Skottie",
+              "requestedVersion": "[3.119.1, )",
+              "resolvedVersion": "3.119.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "SkiaSharp.Views.Uno.WinUI",
+              "requestedVersion": "[3.119.1, )",
+              "resolvedVersion": "3.119.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.CommunityToolkit.WinUI.UI",
+              "requestedVersion": "7.1.204",
+              "resolvedVersion": "7.1.204"
+            },
+            {
+              "id": "Uno.Dsp.Tasks",
+              "requestedVersion": "[1.4.0, )",
+              "resolvedVersion": "1.4.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Configuration",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Core.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Http.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Localization.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Logging.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Navigation.Toolkit.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Navigation.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Material.WinUI",
+              "requestedVersion": "[6.0.2, )",
+              "resolvedVersion": "6.0.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Resizetizer",
+              "requestedVersion": "[1.12.1, )",
+              "resolvedVersion": "1.12.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Sdk.Extras",
+              "requestedVersion": "[6.1.1, )",
+              "resolvedVersion": "6.1.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Settings.DevServer",
+              "requestedVersion": "[1.7.1, )",
+              "resolvedVersion": "1.7.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Toolkit.WinUI",
+              "requestedVersion": "[8.3.2, )",
+              "resolvedVersion": "8.3.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Toolkit.WinUI.Material",
+              "requestedVersion": "[8.3.2, )",
+              "resolvedVersion": "8.3.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.Adapter.Microsoft.Extensions.Logging",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.App.Mcp",
+              "requestedVersion": "[1.0.7, )",
+              "resolvedVersion": "1.0.7",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.HotDesign",
+              "requestedVersion": "[1.17.155, )",
+              "resolvedVersion": "1.17.155",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.DevServer",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Graphics2DSK",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Lottie",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            }
+          ]
+        },
+        {
+          "framework": "net10.0-android36.0",
+          "topLevelPackages": [
+            {
+              "id": "CommunityToolkit.Mvvm",
+              "requestedVersion": "[8.4.0, )",
+              "resolvedVersion": "8.4.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "managed-midi",
+              "requestedVersion": "1.10.1",
+              "resolvedVersion": "1.10.1"
+            },
+            {
+              "id": "Microsoft.Extensions.Logging.Console",
+              "requestedVersion": "[10.0.0, )",
+              "resolvedVersion": "10.0.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Microsoft.NET.ILLink.Tasks",
+              "requestedVersion": "[10.0.1, )",
+              "resolvedVersion": "10.0.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "PdfPig",
+              "requestedVersion": "0.1.10",
+              "resolvedVersion": "0.1.10"
+            },
+            {
+              "id": "SkiaSharp.Skottie",
+              "requestedVersion": "[3.119.1, )",
+              "resolvedVersion": "3.119.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "SkiaSharp.Views.Uno.WinUI",
+              "requestedVersion": "[3.119.1, )",
+              "resolvedVersion": "3.119.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.CommunityToolkit.WinUI.UI",
+              "requestedVersion": "7.1.204",
+              "resolvedVersion": "7.1.204"
+            },
+            {
+              "id": "Uno.Dsp.Tasks",
+              "requestedVersion": "[1.4.0, )",
+              "resolvedVersion": "1.4.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Configuration",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Core.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Http.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Localization.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Logging.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Navigation.Toolkit.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Navigation.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Fonts.OpenSans",
+              "requestedVersion": "[2.8.1, )",
+              "resolvedVersion": "2.8.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Material.WinUI",
+              "requestedVersion": "[6.0.2, )",
+              "resolvedVersion": "6.0.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Resizetizer",
+              "requestedVersion": "[1.12.1, )",
+              "resolvedVersion": "1.12.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Sdk.Extras",
+              "requestedVersion": "[6.1.1, )",
+              "resolvedVersion": "6.1.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Settings.DevServer",
+              "requestedVersion": "[1.7.1, )",
+              "resolvedVersion": "1.7.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Toolkit.WinUI",
+              "requestedVersion": "[8.3.2, )",
+              "resolvedVersion": "8.3.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Toolkit.WinUI.Material",
+              "requestedVersion": "[8.3.2, )",
+              "resolvedVersion": "8.3.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.Adapter.Microsoft.Extensions.Logging",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.App.Mcp",
+              "requestedVersion": "[1.0.7, )",
+              "resolvedVersion": "1.0.7",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.HotDesign",
+              "requestedVersion": "[1.17.155, )",
+              "resolvedVersion": "1.17.155",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.DevServer",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Graphics2DSK",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Lottie",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Runtime.Skia.Android",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Xamarin.AndroidX.Activity",
+              "requestedVersion": "[1.10.1.3, )",
+              "resolvedVersion": "1.10.1.3",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Xamarin.AndroidX.AppCompat",
+              "requestedVersion": "[1.7.1.1, )",
+              "resolvedVersion": "1.7.1.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Xamarin.AndroidX.Browser",
+              "requestedVersion": "[1.8.0.11, )",
+              "resolvedVersion": "1.8.0.11",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Xamarin.AndroidX.Core.SplashScreen",
+              "requestedVersion": "[1.0.1.14, )",
+              "resolvedVersion": "1.0.1.14",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Xamarin.AndroidX.Legacy.Support.V4",
+              "requestedVersion": "[1.0.0.33, )",
+              "resolvedVersion": "1.0.0.33",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Xamarin.AndroidX.RecyclerView",
+              "requestedVersion": "[1.4.0.3, )",
+              "resolvedVersion": "1.4.0.3",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Xamarin.AndroidX.SwipeRefreshLayout",
+              "requestedVersion": "[1.1.0.29, )",
+              "resolvedVersion": "1.1.0.29",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Xamarin.Google.Android.Material",
+              "requestedVersion": "[1.12.0.5, )",
+              "resolvedVersion": "1.12.0.5",
+              "autoReferenced": "true"
+            }
+          ]
+        },
+        {
+          "framework": "net10.0-desktop1.0",
+          "topLevelPackages": [
+            {
+              "id": "CommunityToolkit.Mvvm",
+              "requestedVersion": "[8.4.0, )",
+              "resolvedVersion": "8.4.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "managed-midi",
+              "requestedVersion": "1.10.1",
+              "resolvedVersion": "1.10.1"
+            },
+            {
+              "id": "Microsoft.Extensions.Logging.Console",
+              "requestedVersion": "[10.0.0, )",
+              "resolvedVersion": "10.0.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "PdfPig",
+              "requestedVersion": "0.1.10",
+              "resolvedVersion": "0.1.10"
+            },
+            {
+              "id": "SkiaSharp.Skottie",
+              "requestedVersion": "[3.119.1, )",
+              "resolvedVersion": "3.119.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "SkiaSharp.Views.Uno.WinUI",
+              "requestedVersion": "[3.119.1, )",
+              "resolvedVersion": "3.119.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.CommunityToolkit.WinUI.UI",
+              "requestedVersion": "7.1.204",
+              "resolvedVersion": "7.1.204"
+            },
+            {
+              "id": "Uno.Dsp.Tasks",
+              "requestedVersion": "[1.4.0, )",
+              "resolvedVersion": "1.4.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Configuration",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Core.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Http.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Localization.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Logging.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Navigation.Toolkit.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Navigation.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Fonts.OpenSans",
+              "requestedVersion": "[2.8.1, )",
+              "resolvedVersion": "2.8.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Material.WinUI",
+              "requestedVersion": "[6.0.2, )",
+              "resolvedVersion": "6.0.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Resizetizer",
+              "requestedVersion": "[1.12.1, )",
+              "resolvedVersion": "1.12.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Sdk.Extras",
+              "requestedVersion": "[6.1.1, )",
+              "resolvedVersion": "6.1.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Settings.DevServer",
+              "requestedVersion": "[1.7.1, )",
+              "resolvedVersion": "1.7.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Toolkit.WinUI",
+              "requestedVersion": "[8.3.2, )",
+              "resolvedVersion": "8.3.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Toolkit.WinUI.Material",
+              "requestedVersion": "[8.3.2, )",
+              "resolvedVersion": "8.3.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.Adapter.Microsoft.Extensions.Logging",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.App.Mcp",
+              "requestedVersion": "[1.0.7, )",
+              "resolvedVersion": "1.0.7",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.HotDesign",
+              "requestedVersion": "[1.17.155, )",
+              "resolvedVersion": "1.17.155",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.DevServer",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Graphics2DSK",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Lottie",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Runtime.Skia.Linux.FrameBuffer",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Runtime.Skia.MacOS",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Runtime.Skia.Win32",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Runtime.Skia.Wpf",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Runtime.Skia.X11",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            }
+          ]
+        },
+        {
+          "framework": "net10.0-ios26.0",
+          "topLevelPackages": [
+            {
+              "id": "CommunityToolkit.Mvvm",
+              "requestedVersion": "[8.4.0, )",
+              "resolvedVersion": "8.4.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "managed-midi",
+              "requestedVersion": "1.10.1",
+              "resolvedVersion": "1.10.1"
+            },
+            {
+              "id": "Microsoft.Extensions.Logging.Console",
+              "requestedVersion": "[10.0.0, )",
+              "resolvedVersion": "10.0.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Microsoft.NET.ILLink.Tasks",
+              "requestedVersion": "[10.0.1, )",
+              "resolvedVersion": "10.0.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "PdfPig",
+              "requestedVersion": "0.1.10",
+              "resolvedVersion": "0.1.10"
+            },
+            {
+              "id": "SkiaSharp.Skottie",
+              "requestedVersion": "[3.119.1, )",
+              "resolvedVersion": "3.119.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "SkiaSharp.Views.Uno.WinUI",
+              "requestedVersion": "[3.119.1, )",
+              "resolvedVersion": "3.119.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.CommunityToolkit.WinUI.UI",
+              "requestedVersion": "7.1.204",
+              "resolvedVersion": "7.1.204"
+            },
+            {
+              "id": "Uno.Dsp.Tasks",
+              "requestedVersion": "[1.4.0, )",
+              "resolvedVersion": "1.4.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Configuration",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Core.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Http.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Localization.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Logging.OSLog",
+              "requestedVersion": "[1.7.0, )",
+              "resolvedVersion": "1.7.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Logging.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Navigation.Toolkit.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Navigation.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Fonts.OpenSans",
+              "requestedVersion": "[2.8.1, )",
+              "resolvedVersion": "2.8.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Material.WinUI",
+              "requestedVersion": "[6.0.2, )",
+              "resolvedVersion": "6.0.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Resizetizer",
+              "requestedVersion": "[1.12.1, )",
+              "resolvedVersion": "1.12.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Sdk.Extras",
+              "requestedVersion": "[6.1.1, )",
+              "resolvedVersion": "6.1.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Settings.DevServer",
+              "requestedVersion": "[1.7.1, )",
+              "resolvedVersion": "1.7.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Toolkit.WinUI",
+              "requestedVersion": "[8.3.2, )",
+              "resolvedVersion": "8.3.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Toolkit.WinUI.Material",
+              "requestedVersion": "[8.3.2, )",
+              "resolvedVersion": "8.3.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.Adapter.Microsoft.Extensions.Logging",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.App.Mcp",
+              "requestedVersion": "[1.0.7, )",
+              "resolvedVersion": "1.0.7",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.HotDesign",
+              "requestedVersion": "[1.17.155, )",
+              "resolvedVersion": "1.17.155",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.DevServer",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Graphics2DSK",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Lottie",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Runtime.Skia.AppleUIKit",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            }
+          ]
+        },
+        {
+          "framework": "net10.0-maccatalyst26.0",
+          "topLevelPackages": [
+            {
+              "id": "CommunityToolkit.Mvvm",
+              "requestedVersion": "[8.4.0, )",
+              "resolvedVersion": "8.4.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "managed-midi",
+              "requestedVersion": "1.10.1",
+              "resolvedVersion": "1.10.1"
+            },
+            {
+              "id": "Microsoft.Extensions.Logging.Console",
+              "requestedVersion": "[10.0.0, )",
+              "resolvedVersion": "10.0.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Microsoft.NET.ILLink.Tasks",
+              "requestedVersion": "[10.0.1, )",
+              "resolvedVersion": "10.0.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "PdfPig",
+              "requestedVersion": "0.1.10",
+              "resolvedVersion": "0.1.10"
+            },
+            {
+              "id": "SkiaSharp.Skottie",
+              "requestedVersion": "[3.119.1, )",
+              "resolvedVersion": "3.119.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "SkiaSharp.Views.Uno.WinUI",
+              "requestedVersion": "[3.119.1, )",
+              "resolvedVersion": "3.119.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.CommunityToolkit.WinUI.UI",
+              "requestedVersion": "7.1.204",
+              "resolvedVersion": "7.1.204"
+            },
+            {
+              "id": "Uno.Dsp.Tasks",
+              "requestedVersion": "[1.4.0, )",
+              "resolvedVersion": "1.4.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Configuration",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Core.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Http.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Localization.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Logging.OSLog",
+              "requestedVersion": "[1.7.0, )",
+              "resolvedVersion": "1.7.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Logging.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Navigation.Toolkit.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Navigation.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Fonts.OpenSans",
+              "requestedVersion": "[2.8.1, )",
+              "resolvedVersion": "2.8.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Material.WinUI",
+              "requestedVersion": "[6.0.2, )",
+              "resolvedVersion": "6.0.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Resizetizer",
+              "requestedVersion": "[1.12.1, )",
+              "resolvedVersion": "1.12.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Sdk.Extras",
+              "requestedVersion": "[6.1.1, )",
+              "resolvedVersion": "6.1.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Settings.DevServer",
+              "requestedVersion": "[1.7.1, )",
+              "resolvedVersion": "1.7.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Toolkit.WinUI",
+              "requestedVersion": "[8.3.2, )",
+              "resolvedVersion": "8.3.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Toolkit.WinUI.Material",
+              "requestedVersion": "[8.3.2, )",
+              "resolvedVersion": "8.3.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.Adapter.Microsoft.Extensions.Logging",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.App.Mcp",
+              "requestedVersion": "[1.0.7, )",
+              "resolvedVersion": "1.0.7",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.HotDesign",
+              "requestedVersion": "[1.17.155, )",
+              "resolvedVersion": "1.17.155",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.DevServer",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Graphics2DSK",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Lottie",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Runtime.Skia.AppleUIKit",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            }
+          ]
+        },
+        {
+          "framework": "net10.0-windows10.0.19041",
+          "topLevelPackages": [
+            {
+              "id": "CommunityToolkit.Mvvm",
+              "requestedVersion": "[8.4.0, )",
+              "resolvedVersion": "8.4.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "CommunityToolkit.WinUI.UI",
+              "requestedVersion": "7.1.2",
+              "resolvedVersion": "7.1.2"
+            },
+            {
+              "id": "managed-midi",
+              "requestedVersion": "1.10.1",
+              "resolvedVersion": "1.10.1"
+            },
+            {
+              "id": "Microsoft.Extensions.Logging.Console",
+              "requestedVersion": "[10.0.0, )",
+              "resolvedVersion": "10.0.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Microsoft.NET.ILLink.Tasks",
+              "requestedVersion": "[10.0.1, )",
+              "resolvedVersion": "10.0.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Microsoft.Windows.SDK.BuildTools",
+              "requestedVersion": "[10.0.26100.6901, )",
+              "resolvedVersion": "10.0.26100.6901",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Microsoft.WindowsAppSDK",
+              "requestedVersion": "[1.7.250909003, )",
+              "resolvedVersion": "1.7.250909003",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "PdfPig",
+              "requestedVersion": "0.1.10",
+              "resolvedVersion": "0.1.10"
+            },
+            {
+              "id": "Uno.Core.Extensions.Logging.Singleton",
+              "requestedVersion": "[4.1.1, )",
+              "resolvedVersion": "4.1.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Dsp.Tasks",
+              "requestedVersion": "[1.4.0, )",
+              "resolvedVersion": "1.4.0",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Configuration",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Core.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Http.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Localization.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Logging.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Navigation.Toolkit.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Extensions.Navigation.WinUI",
+              "requestedVersion": "[7.0.4, )",
+              "resolvedVersion": "7.0.4",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Material.WinUI",
+              "requestedVersion": "[6.0.2, )",
+              "resolvedVersion": "6.0.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Resizetizer",
+              "requestedVersion": "[1.12.1, )",
+              "resolvedVersion": "1.12.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Sdk.Extras",
+              "requestedVersion": "[6.1.1, )",
+              "resolvedVersion": "6.1.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Settings.DevServer",
+              "requestedVersion": "[1.7.1, )",
+              "resolvedVersion": "1.7.1",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Toolkit.WinUI",
+              "requestedVersion": "[8.3.2, )",
+              "resolvedVersion": "8.3.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.Toolkit.WinUI.Material",
+              "requestedVersion": "[8.3.2, )",
+              "resolvedVersion": "8.3.2",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.Adapter.Microsoft.Extensions.Logging",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.App.Mcp",
+              "requestedVersion": "[1.0.7, )",
+              "resolvedVersion": "1.0.7",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.UI.HotDesign",
+              "requestedVersion": "[1.17.155, )",
+              "resolvedVersion": "1.17.155",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.DevServer",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            },
+            {
+              "id": "Uno.WinUI.Graphics2DSK",
+              "requestedVersion": "[6.4.106, )",
+              "resolvedVersion": "6.4.106",
+              "autoReferenced": "true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "<solutionDir>/RoMi.Tests/RoMi.Tests.csproj",
+      "frameworks": [
+        {
+          "framework": "net10.0",
+          "topLevelPackages": [
+            {
+              "id": "coverlet.collector",
+              "requestedVersion": "6.0.4",
+              "resolvedVersion": "6.0.4"
+            },
+            {
+              "id": "FluentAssertions",
+              "requestedVersion": "8.0.1",
+              "resolvedVersion": "8.0.1"
+            },
+            {
+              "id": "GitHubActionsTestLogger",
+              "requestedVersion": "2.4.1",
+              "resolvedVersion": "2.4.1"
+            },
+            {
+              "id": "Microsoft.NET.Test.Sdk",
+              "requestedVersion": "17.12.0",
+              "resolvedVersion": "17.12.0"
+            },
+            {
+              "id": "NUnit",
+              "requestedVersion": "4.3.2",
+              "resolvedVersion": "4.3.2"
+            },
+            {
+              "id": "NUnit.ConsoleRunner",
+              "requestedVersion": "3.19.2",
+              "resolvedVersion": "3.19.2"
+            },
+            {
+              "id": "NUnit3TestAdapter",
+              "requestedVersion": "4.6.0",
+              "resolvedVersion": "4.6.0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
