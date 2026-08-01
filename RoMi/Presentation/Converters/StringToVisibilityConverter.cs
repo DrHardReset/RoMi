@@ -6,12 +6,12 @@ public partial class StringToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        if (value is string stringValue)
-        {
-            return string.IsNullOrEmpty(stringValue) ? Visibility.Collapsed : Visibility.Visible;
-        }
-        
-        return Visibility.Collapsed;
+        bool isEmpty = value is not string stringValue || string.IsNullOrEmpty(stringValue);
+        bool invert = string.Equals(parameter as string, "Invert", StringComparison.OrdinalIgnoreCase);
+
+        bool isVisible = invert ? isEmpty : !isEmpty;
+
+        return isVisible ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)
