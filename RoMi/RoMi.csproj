@@ -62,7 +62,7 @@
     <AndroidUseAapt2>true</AndroidUseAapt2>
   </PropertyGroup>
 
-  <PropertyGroup  Condition="'$(Configuration)'=='Release' And $(TargetFramework.Contains('android'))">
+  <PropertyGroup Condition="'$(Configuration)'=='Release' And $(TargetFramework.Contains('android'))">
     <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidKeyStore>false</AndroidKeyStore>
