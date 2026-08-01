@@ -5,7 +5,7 @@ namespace RoMi.Presentation;
 
 public partial class AboutViewModel : ObservableObject
 {
-    public ObservableCollection<TopLevelPackage> Packages { get; set; }
+    public ObservableCollection<LibraryInfo> Packages { get; set; }
 
     public static string Title
     {
@@ -35,7 +35,7 @@ public partial class AboutViewModel : ObservableObject
         catch (Exception ex)
         {
             _ = navigator.ShowMessageDialogAsync(this, title: "Error parsing dependency report file", content: $"{ex}");
-            Packages = [new TopLevelPackage() { Id = "Package references could not be loaded." }];
+            Packages = [new LibraryInfo() { PackageId = "Package references could not be loaded." }];
             return;
         }
 
@@ -43,7 +43,7 @@ public partial class AboutViewModel : ObservableObject
 
         if (dependencyReport != null)
         {
-            Packages.AddRange(dependencyReport.GetAllDistinctTopLevelPackages());
+            Packages.AddRange(dependencyReport.GetAllDistinctPackages());
         }
     }
 }

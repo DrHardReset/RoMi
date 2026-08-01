@@ -1,163 +1,117 @@
 using System.Reflection;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 
 namespace RoMi.Models;
 
-[JsonSerializable(typeof(DependencyReport))]
-[JsonSerializable(typeof(List<Problem>))]
-[JsonSerializable(typeof(List<Project>))]
-[JsonSerializable(typeof(Problem))]
-[JsonSerializable(typeof(Project))]
-[JsonSerializable(typeof(Framework))]
-[JsonSerializable(typeof(TopLevelPackage))]
-[JsonSerializable(typeof(List<Framework>))]
-[JsonSerializable(typeof(List<TopLevelPackage>))]
+[JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true)]
+[JsonSerializable(typeof(List<LibraryInfo>))]
+[JsonSerializable(typeof(LibraryInfo))]
+[JsonSerializable(typeof(List<ValidationError>))]
+[JsonSerializable(typeof(ValidationError))]
 internal partial class DependencyReportJsonContext : JsonSerializerContext { }
 
 public class DependencyReport
 {
     private const string filePath = $"{nameof(RoMi)}.Assets.LibraryDependencyReport.json";
 
-    [JsonPropertyName("version")]
-    public int Version { get; set; } = 0;
-    [JsonPropertyName("parameters")]
-    public string Parameters { get; set; } = string.Empty;
-    [JsonPropertyName("problems")]
-    public List<Problem> Problems { get; set; } = [];
-    [JsonPropertyName("projects")]
-    public List<Project> Projects { get; set; } = [];
+    public List<LibraryInfo> Packages { get; set; } = [];
 
     public static async Task<DependencyReport?> Read()
     {
         Assembly assembly = Assembly.GetExecutingAssembly();
-        using Stream stream = assembly.GetManifestResourceStream(filePath) ?? throw new Exception("Library dependency report resource file could not be found.");
-        using StreamReader reader = new(stream);
-        string fileContent = await reader.ReadToEndAsync();
+        using Stream stream = assembly.GetManifestResourceStream(filePath)
+            ?? throw new Exception("Library dependency report resource file could not be found.");
 
-        Match match = Regex.Match(fileContent, @"(\{[\s\S]*\})");
+        List<LibraryInfo>? packages = await JsonSerializer.DeserializeAsync(
+            stream,
+            DependencyReportJsonContext.Default.ListLibraryInfo);
 
-        if (!match.Success || match.Groups.Count < 2)
+        return new DependencyReport
         {
-            throw new Exception($"Library dependency report could not be parsed:\n{fileContent}");
-        }
-
-        string jsonString = match.Groups[1].Value;
-        var jsonByte = Encoding.UTF8.GetBytes(jsonString);
-
-        using MemoryStream memoryStream = new(jsonByte);
-        return await JsonSerializer.DeserializeAsync(memoryStream, DependencyReportJsonContext.Default.DependencyReport);
+            Packages = packages ?? []
+        };
     }
 
-    public List<TopLevelPackage> GetAllDistinctTopLevelPackages()
+    public List<LibraryInfo> GetAllDistinctPackages()
     {
-        List<TopLevelPackage> list = [];
+        List<LibraryInfo> list = [];
 
-        foreach (Project project in Projects)
+        foreach (LibraryInfo package in Packages)
         {
-            foreach (Framework framework in project.Frameworks)
+            if (!string.IsNullOrWhiteSpace(package.PackageId) && !list.Contains(package))
             {
-                foreach (TopLevelPackage topLevelPackage in framework.TopLevelPackages)
-                {
-                    if (!list.Contains(topLevelPackage))
-                    {
-                        list.Add(topLevelPackage);
-                    }
-                }
+                list.Add(package);
             }
         }
 
-        list.Sort(delegate (TopLevelPackage x, TopLevelPackage y)
-        {
-            if (x.Id == null && y.Id == null) return 0;
-            else if (x.Id == null) return -1;
-            else if (y.Id == null) return 1;
-            else return x.Id.CompareTo(y.Id);
-        });
+        list.Sort((x, y) => string.Compare(x.PackageId, y.PackageId, StringComparison.OrdinalIgnoreCase));
 
         return list;
     }
 }
 
-public class Framework
+public class LibraryInfo : IEquatable<LibraryInfo>
 {
-    [JsonPropertyName("framework")]
-    public string FrameworkName { get; set; } = string.Empty;
-    [JsonPropertyName("topLevelPackages")]
-    public List<TopLevelPackage> TopLevelPackages { get; set; } = [];
-}
+    public string PackageId { get; set; } = string.Empty;
+    public string PackageVersion { get; set; } = string.Empty;
+    public string? PackageProjectUrl { get; set; }
+    public string? Copyright { get; set; }
+    public string? Authors { get; set; }
+    public string? Description { get; set; }
+    public string? License { get; set; }
+    public string? LicenseUrl { get; set; }
+    public List<ValidationError> ValidationErrors { get; set; } = [];
+    public int LicenseInformationOrigin { get; set; }
 
-public class Problem
-{
-    [JsonPropertyName("level")]
-    public string Level { get; set; } = string.Empty;
-    [JsonPropertyName("text")]
-    public string Text { get; set; } = string.Empty;
-}
+    /// <summary>
+    /// True if nuget-license could resolve a license without any validation errors.
+    /// </summary>
+    public bool HasLicenseInfo => !string.IsNullOrWhiteSpace(License) && ValidationErrors.Count == 0;
 
-public class Project
-{
-    [JsonPropertyName("path")]
-    public string Path { get; set; } = string.Empty;
-    [JsonPropertyName("frameworks")]
-    public List<Framework> Frameworks { get; set; } = [];
-}
+    /// <summary>
+    /// Fallback text for the UI when no license could be determined for this package.
+    /// </summary>
+    public string LicenseDisplay
+    {
+        get
+        {
+            if (!HasLicenseInfo)
+            {
+                return "Unknown license";
+            }
 
-public class TopLevelPackage
-{
-    [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
-    [JsonPropertyName("requestedVersion")]
-    public string RequestedVersion { get; set; } = string.Empty;
-    [JsonPropertyName("resolvedVersion")]
-    public string ResolvedVersion { get; set; } = string.Empty;
-    [JsonPropertyName("autoReferenced")]
-    public string AutoReferenced { get; set; } = string.Empty;
+            return Uri.IsWellFormedUriString(License, UriKind.Absolute) ? "View License" : License!;
+        }
+    }
 
-    public bool Equals(TopLevelPackage? other)
+    public bool Equals(LibraryInfo? other)
     {
         if (other is null)
         {
             return false;
         }
 
-        if (ReferenceEquals(other, this))
+        if (ReferenceEquals(this, other))
         {
             return true;
         }
 
-        return string.Equals(Id, other.Id) && string.Equals(ResolvedVersion, other.ResolvedVersion);
+        return string.Equals(PackageId, other.PackageId, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(PackageVersion, other.PackageVersion, StringComparison.OrdinalIgnoreCase);
     }
 
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
+    public override bool Equals(object? obj) => Equals(obj as LibraryInfo);
 
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
-        }
+    public override int GetHashCode() =>
+        HashCode.Combine(PackageId?.ToLowerInvariant(), PackageVersion?.ToLowerInvariant());
 
-        return Equals(obj as TopLevelPackage);
-    }
+    public static bool operator ==(LibraryInfo? left, LibraryInfo? right) => Equals(left, right);
+    public static bool operator !=(LibraryInfo? left, LibraryInfo? right) => !Equals(left, right);
+}
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(Id, ResolvedVersion);
-    }
-
-    public static bool operator ==(TopLevelPackage left, TopLevelPackage right)
-    {
-        return Equals(left, right);
-    }
-
-    public static bool operator !=(TopLevelPackage left, TopLevelPackage right)
-    {
-        return !Equals(left, right);
-    }
+public class ValidationError
+{
+    public string Error { get; set; } = string.Empty;
+    public string Context { get; set; } = string.Empty;
 }

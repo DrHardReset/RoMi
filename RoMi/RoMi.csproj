@@ -102,12 +102,14 @@
        Unfortunatelly the targets for building in VS and dotnet build seem to differ.
        That is why I defined two targets. -->
   <Target Name="CreateLibraryDependencyReport_VisualStudio" BeforeTargets="DispatchToInnerBuilds">
-    <Exec Command="powershell.exe -NoLogo -NonInteractive -executionpolicy Unrestricted &quot;&amp; '.\createLibraryDependencyReport.ps1' '$(SolutionDir)' '$(MSBuildProjectDirectory)\Assets\LibraryDependencyReport.json'&quot;" />
+    <Exec Command="dotnet tool restore" />
+    <Exec Command="powershell.exe -NoLogo -NonInteractive -executionpolicy Unrestricted &quot;&amp; '.\createLibraryDependencyReport.ps1' '$(SolutionDir)\RoMi.sln' '$(MSBuildProjectDirectory)\Assets\LibraryDependencyReport.json'&quot;" />
   </Target>
 
   <Target Name="CreateLibraryDependencyReport_DotnetBuild" AfterTargets="Restore">
      <!--dotnet build works with "$(ProjectDir)..\" instead of "$(SolutionDir)"-->
-    <Exec Command="powershell.exe -NoLogo -NonInteractive -executionpolicy Unrestricted &quot;&amp; '.\createLibraryDependencyReport.ps1' '$(ProjectDir)..\' '$(MSBuildProjectDirectory)\Assets\LibraryDependencyReport.json'&quot;" />
+    <Exec Command="dotnet tool restore" />
+    <Exec Command="powershell.exe -NoLogo -NonInteractive -executionpolicy Unrestricted &quot;&amp; '.\createLibraryDependencyReport.ps1' '$(ProjectDir)..\RoMi.sln' '$(MSBuildProjectDirectory)\Assets\LibraryDependencyReport.json'&quot;" />
   </Target>
 
   <Import Project="build/Warnings.targets" />
