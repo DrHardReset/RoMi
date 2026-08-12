@@ -2,11 +2,11 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-  "nuget-license": {
-    "version": "4.0.15",
-    "commands": [
-      "nuget-license"
-    ]
+    "nuget-license": {
+      "version": "4.0.16",
+      "commands": [
+        "nuget-license"
+      ]
+    }
   }
-}
 }
