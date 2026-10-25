@@ -382,9 +382,9 @@ PatchFx4PitchShift(*)]"
     {
         byte[] sizeBytes =
         [
-            (byte)((size >> 24) & 0x7F),
-            (byte)((size >> 16) & 0x7F),
-            (byte)((size >> 8) & 0x7F),
+            (byte)((size >> 21) & 0x7F),
+            (byte)((size >> 14) & 0x7F),
+            (byte)((size >> 7) & 0x7F),
             (byte)(size & 0x7F)
         ];
 

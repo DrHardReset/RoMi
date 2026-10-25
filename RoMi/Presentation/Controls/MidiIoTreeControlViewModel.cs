@@ -1,9 +1,11 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Collections.ObjectModel;
-using Timer = System.Timers.Timer;
-using CommunityToolkit.WinUI;
 using System.Timers;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.WinUI;
+using RoMi.Models.Converters;
+using Timer = System.Timers.Timer;
 
 namespace RoMi.Presentation.Controls;
 
@@ -17,24 +19,39 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
     private readonly MidiTableNavigator midiTableNavigator;
     public List<TreeItem> TreeItems { get; } = [];
 
-    // Property to store the currently selected tree item
-    private TreeItem? selectedTreeItem;
-    public TreeItem? SelectedTreeItem
-    {
-        get => selectedTreeItem;
-        set
-        {
-            selectedTreeItem = value;
-            OnPropertyChanged();
-        }
-    }
-
     private readonly Timer sysexTimer;
 
     public event PropertyChangedEventHandler? PropertyChanged;
     public void OnPropertyChanged([CallerMemberName] string name = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     private readonly MidiDocument midiDocument;
     public string DeviceName { get; set; }
+
+    // Planner settings. Gaps (e.g. reserved addresses) up to MaxGapBytes are read over and discarded.
+    private const int MaxGapBytes = 16;
+    private const int MaxRangeBytes = 128;
+    private const byte DeviceId = 0x7F; // Broadcast, could be made configurable in the future
+
+    private IReadOnlyList<TreeItem> selectedTreeItems = [];
+    private int pollRunning;
+
+    public bool IsMidiDeviceEnabled => midiDeviceService.IsMidiDeviceEnabled;
+
+    private bool isAutoRefreshEnabled = true;
+    public bool IsAutoRefreshEnabled
+    {
+        get => isAutoRefreshEnabled;
+        set
+        {
+            if (isAutoRefreshEnabled != value)
+            {
+                isAutoRefreshEnabled = value;
+                OnPropertyChanged();
+                UpdateTimerState();
+            }
+        }
+    }
+
+    public IAsyncRelayCommand RefreshCommand { get; }
 
     public MidiIoTreeControlViewModel(INavigator navigator, MidiDocument midiDocument, IMidiDeviceService midiDeviceService)
     {
@@ -52,10 +69,12 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
         sysexTimer.Elapsed += OnSysexTimerElapsed;
         sysexTimer.AutoReset = true;
 
-        if (midiDeviceService.IsMidiDeviceEnabled)
-        {
-            sysexTimer.Start();
-        }
+        RefreshCommand = new AsyncRelayCommand(PollSelectionAsync, () => midiDeviceService.IsMidiDeviceEnabled);
+
+        // Subscribe last, so that the handler never sees uninitialized members
+        midiDeviceService.MidiDeviceEnabledChanged += OnMidiDeviceEnabledChanged;
+
+        UpdateTimerState();
     }
 
     private void BuildTree()
@@ -118,88 +137,30 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
         return children;
     }
 
-    // Method to collect all parent entries up to the selected node
-    private (MidiTableBranchEntry? root, MidiTableBranchEntry? branch1, MidiTableBranchEntry? branch2, MidiTableLeafEntry? leaf) GetSelectedNodeHierarchy()
+    private void OnMidiDeviceEnabledChanged(object? sender, bool isEnabled)
     {
-        // Default null values
-        MidiTableBranchEntry? rootEntry = null;
-        MidiTableBranchEntry? branchEntry1 = null;
-        MidiTableBranchEntry? branchEntry2 = null;
-        MidiTableLeafEntry? leafEntry = null;
+        UpdateTimerState();
+        RefreshCommand.NotifyCanExecuteChanged();
 
-        // If no selection or selected item is not a leaf, we can't process
-        if (selectedTreeItem == null || selectedTreeItem.Type != TreeItemType.Leaf)
+        // The event may be raised from a non UI thread
+        if (App.MainWindow?.DispatcherQueue is { } dispatcherQueue)
         {
-            return (root: null, branch1: null, branch2: null, leaf: null);
-        }
-
-        // The selected item is a leaf entry
-        if (selectedTreeItem.MidiTableEntry is MidiTableLeafEntry leaf)
-        {
-            leafEntry = leaf;
+            dispatcherQueue.TryEnqueue(() => OnPropertyChanged(nameof(IsMidiDeviceEnabled)));
         }
         else
         {
-            return (root: null, branch1: null, branch2: null, leaf: null);
+            OnPropertyChanged(nameof(IsMidiDeviceEnabled));
         }
-
-        // Find the parent tree nodes by traversing the tree
-        var pathEntries = MidiIoTreeControlViewModel.FindPathToNode(TreeItems, selectedTreeItem);
-
-        // Extract branch entries from path
-        int index = 0;
-
-        foreach (var entry in pathEntries)
-        {
-            if (entry.MidiTableEntry is MidiTableBranchEntry branchEntry)
-            {
-                if (index == 0)
-                {
-                    rootEntry = branchEntry;
-                }
-                else if (index == 1)
-                {
-                    branchEntry1 = branchEntry;
-                }
-                else if (index == 2)
-                {
-                    branchEntry2 = branchEntry;
-                }
-            }
-
-            index++;
-        }
-
-        return (root: rootEntry, branch1: branchEntry1, branch2: branchEntry2, leaf: leafEntry);
     }
 
-    // Recursively find the path from root to the selected node
-    private static List<TreeItem> FindPathToNode(List<TreeItem> items, TreeItem target)
+    public void SetSelectedTreeItems(IEnumerable<TreeItem> items)
     {
-        foreach (TreeItem item in items)
-        {
-            if (item == target)
-            {
-                return [item];
-            }
-
-            if (item.AreChildrenLoaded)
-            {
-                List<TreeItem> path = MidiIoTreeControlViewModel.FindPathToNode(item.Children, target);
-
-                if (path.Count > 0)
-                {
-                    path.Insert(0, item);
-                    return path;
-                }
-            }
-        }
-        return [];
+        selectedTreeItems = [.. items];
     }
 
-    private void OnMidiDeviceEnabledChanged(object? sender, bool isEnabled)
+    private void UpdateTimerState()
     {
-        if (isEnabled)
+        if (!disposed && isAutoRefreshEnabled && midiDeviceService.IsMidiDeviceEnabled)
         {
             sysexTimer.Start();
         }
@@ -211,13 +172,57 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
 
     private async void OnSysexTimerElapsed(object? sender, ElapsedEventArgs e)
     {
-        if (!midiDeviceService.IsMidiDeviceEnabled)
+        await PollSelectionAsync();
+    }
+
+    private static bool TryGetAbsoluteAddress(TreeItem leafItem, MidiTableLeafEntry leaf, out byte[] address)
+    {
+        address = [];
+        List<MidiTableBranchEntry> branches = [];
+
+        for (TreeItem? parent = leafItem.Parent; parent != null; parent = parent.Parent)
+        {
+            if (parent.MidiTableEntry is not MidiTableBranchEntry branch)
+            {
+                return false;
+            }
+
+            branches.Insert(0, branch);
+        }
+
+        // root + branch1 (+ branch2) are supported by AccumulateStartAddreses
+        if (branches.Count is < 2 or > 3)
+        {
+            return false;
+        }
+
+        address = MidiDocument.AccumulateStartAddreses(branches[0], branches[1], branches.Count == 3 ? branches[2] : null, leaf);
+        return true;
+    }
+
+    private static string FormatLeafValue(MidiTableLeafEntry leaf, byte[] bytes)
+    {
+        int value = MidiDocument.CalculateValueFromBytes(leaf.ValueDataByteBitMasks, bytes);
+        List<int> values = leaf.MidiValueList.GetValues();
+        int valueIndex = values.FindIndex(x => x == value);
+
+        if (valueIndex < 0)
+        {
+            throw new Exception($"The received value {value} could not be found in the value list which contains {values.Count} entries.");
+        }
+
+        return $"{leaf.MidiValueList.GetDescriptions()[valueIndex]} [{BitConverter.ToString(bytes)}]";
+    }
+
+    private async Task PollSelectionAsync()
+    {
+        if (disposed)
         {
             sysexTimer.Stop();
             return;
         }
 
-        if (disposed)
+        if (!midiDeviceService.IsMidiDeviceEnabled)
         {
             sysexTimer.Stop();
             return;
@@ -225,7 +230,6 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
 
         var rolandSysExClient = midiDeviceService.SysExClient;
 
-        // Verify we have all needed components
         if (rolandSysExClient == null || !rolandSysExClient.IsReady())
         {
             sysexTimer.Stop();
@@ -233,69 +237,74 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
             return;
         }
 
-        if (selectedTreeItem == null || selectedTreeItem.Type != TreeItemType.Leaf)
+        // Collect all selected leaves (branches are ignored for now)
+        List<SysExReadItem<TreeItem>> reads = [];
+
+        foreach (TreeItem item in selectedTreeItems)
         {
-            // TODO: Edit if multiple selection is supported
+            if (item.Type == TreeItemType.Leaf
+                && item.MidiTableEntry is MidiTableLeafEntry leaf
+                && TryGetAbsoluteAddress(item, leaf, out byte[] address))
+            {
+                reads.Add(new SysExReadItem<TreeItem>(item, address.ToIntegerRepresentation(StartAddress.MaxAddressByteCount), leaf.ValueDataByteBitMasks.Count));
+            }
+        }
+
+        if (reads.Count == 0)
+        {
+            return;
+        }
+
+        // Skip this run if the previous one is still active
+        if (Interlocked.Exchange(ref pollRunning, 1) == 1)
+        {
             return;
         }
 
         try
         {
-            // Get the selected node hierarchy
-            var (rootEntry, branchEntry1, branchEntry2, leafEntry) = GetSelectedNodeHierarchy();
-
-            // If we don't have a root, branch1 or leaf entry, we can't proceed
-            if (leafEntry == null || branchEntry1 == null || rootEntry == null)
+            foreach (var range in SysExRangePlanner.Plan(reads, MaxGapBytes, MaxRangeBytes))
             {
-                await navigator.ShowMessageDialogAsync(this, "Selection Required", "Please select a leaf node in the tree.");
-                return;
+                byte[] startAddress = range.StartAddress.From7bitIntegerRepresentation(StartAddress.MaxAddressByteCount);
+                byte[] rq1 = midiDocument.CalculateRq1(DeviceId, startAddress, range.TotalSize);
+                byte[] dt1 = await rolandSysExClient.SendRq1AndWaitForResponseAsync(rq1);
+
+                if (dt1.Length != range.TotalSize)
+                {
+                    throw new NotSupportedException($"The received DT1 message has {dt1.Length} bytes instead of the requested {range.TotalSize} bytes.");
+                }
+
+                List<(TreeItem Item, string Text)> results = [];
+
+                foreach (var member in range.Members)
+                {
+                    var leaf = (MidiTableLeafEntry)member.Tag.MidiTableEntry;
+
+                    try
+                    {
+                        byte[] bytes = dt1.AsSpan(member.Offset, member.Size).ToArray();
+                        results.Add((member.Tag, FormatLeafValue(leaf, bytes)));
+                    }
+                    catch (Exception ex)
+                    {
+                        // a single faulty value shall not stop the whole polling
+                        results.Add((member.Tag, $"Error: {ex.Message}"));
+                    }
+                }
+
+                await (App.MainWindow?.DispatcherQueue?.EnqueueAsync(() =>
+                {
+                    foreach (var (item, text) in results)
+                    {
+                        item.ReceivedValue = text;
+                    }
+                }) ?? Task.CompletedTask);
             }
-
-            // Use broadcast device ID, could be made configurable in the future
-            byte selectedDeviceId = 0x7F;
-
-            // Calculate the complete address by combining all branches
-            byte[] sysExStartAddress = MidiDocument.AccumulateStartAddreses(rootEntry, branchEntry1, branchEntry2, leafEntry);
-
-            // Create the RQ1 message
-            byte[] sysExMessageRq1 = midiDocument.CalculateRq1(selectedDeviceId, sysExStartAddress, leafEntry.ValueDataByteBitMasks.Count);
-
-            // Send the RQ1 message and get the response
-            byte[] dt1 = await rolandSysExClient.SendRq1AndWaitForResponseAsync(sysExMessageRq1);
-
-            // Validate the response
-            if (dt1.Length > leafEntry.ValueDataByteBitMasks.Count)
-            {
-                throw new NotSupportedException($"The received DT1 message value has a size of {dt1.Length} bytes instead of the maximum supported {leafEntry.ValueDataByteBitMasks.Count} bytes.");
-            }
-
-            // Calculate the value from the received bytes
-            int dt1Value = MidiDocument.CalculateValueFromBytes(leafEntry.ValueDataByteBitMasks, dt1);
-
-            // Find the corresponding description for this value
-            List<int> values = leafEntry.MidiValueList.GetValues();
-            int valueIndex = values.FindIndex(x => x == dt1Value);
-
-            if (valueIndex < 0)
-            {
-                throw new Exception($"The received DT1 message value {dt1Value} could not be found in the value list which contains {values.Count} entries.");
-            }
-
-            // Format the hex data for display
-            string hexString = BitConverter.ToString(dt1);
-            string dt1ValueDescription = leafEntry.MidiValueList.GetDescriptions()[valueIndex];
-
-            // Display the result on the UI thread
-            await (App.MainWindow?.DispatcherQueue?.EnqueueAsync(() =>
-            {
-                selectedTreeItem.ReceivedValue = $"{dt1ValueDescription} [{hexString}]";
-            }) ?? Task.CompletedTask);
         }
         catch (Exception ex)
         {
             sysexTimer.Stop();
 
-            // process UI updates on UI thread
             await (App.MainWindow?.DispatcherQueue?.EnqueueAsync(async () =>
             {
                 if (!disposed)
@@ -304,6 +313,10 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
                     await midiDeviceService.DisableMidiDeviceAsync();
                 }
             }) ?? Task.CompletedTask);
+        }
+        finally
+        {
+            Interlocked.Exchange(ref pollRunning, 0);
         }
     }
 

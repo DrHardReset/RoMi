@@ -30,27 +30,19 @@ public partial class TreeItem(MidiTableEntry midiTableEntry, TreeItemType type, 
             OnPropertyChanged();
         }
     }
+    public TreeItem? Parent { get; private set; }
 
     // Lazy-loading property for children
     public List<TreeItem> Children
     {
         get
         {
-            if (children == null && childrenFactory != null)
-            {
-                children = childrenFactory();
-            }
-
+            LoadChildren();
             return children ?? [];
         }
     }
 
     public bool AreChildrenLoaded => children != null;
-
-    protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
 
     // Method for explicitly loading children
     public void LoadChildren()
@@ -58,7 +50,17 @@ public partial class TreeItem(MidiTableEntry midiTableEntry, TreeItemType type, 
         if (children == null && childrenFactory != null)
         {
             children = childrenFactory();
+
+            foreach (TreeItem child in children)
+            {
+                child.Parent = this;
+            }
         }
+    }
+
+    protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
 

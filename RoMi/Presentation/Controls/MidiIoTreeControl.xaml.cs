@@ -157,28 +157,7 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
 
     private void TreeViewControl_SelectionChanged(TreeView sender, TreeViewSelectionChangedEventArgs e)
     {
-        if (viewModel == null)
-        {
-            return;
-        }
-
-        // Handle deselection first
-        foreach (var item in e.RemovedItems)
-        {
-            if (item is TreeItem)
-            {
-                viewModel.SelectedTreeItem = null;
-            }
-        }
-
-        foreach (var item in e.AddedItems)
-        {
-            if (item is TreeItem treeItem)
-            {
-                // Update the selected item in the view model
-                viewModel.SelectedTreeItem = treeItem;
-            }
-        }
+        viewModel?.SetSelectedTreeItems(TreeViewControl.SelectedNodes.Select(n => n.Content).OfType<TreeItem>());
     }
 
     private void HelpButton_Click(object sender, RoutedEventArgs e)
