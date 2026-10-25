@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using RoMi.Presentation.Controls;
-using Uno.Resizetizer;
 
 namespace RoMi;
 
@@ -12,12 +10,16 @@ public partial class App : Application
     /// </summary>
     public App()
     {
-        this.InitializeComponent();
+        InitializeComponent();
     }
 
     public static Window? MainWindow { get; private set; }
     protected IHost? Host { get; private set; }
 
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026",
+        Justification = "Uno.Extensions assemblies (Localization, Navigation, Configuration) and RoMi are protected from trimming via TrimmerRootAssembly entries in RoMi.csproj.")]
     protected async override void OnLaunched(LaunchActivatedEventArgs args)
     {
         var builder = this.CreateBuilder(args)
