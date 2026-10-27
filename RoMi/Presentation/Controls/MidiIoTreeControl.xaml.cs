@@ -30,6 +30,12 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
 
     private void TreeViewControl_Tapped(object sender, TappedRoutedEventArgs e)
     {
+        // Klicks auf die Selektions-Checkbox nicht als Expand behandeln
+        if (MidiIoTreeControl.FindAncestor<CheckBox>(e.OriginalSource as DependencyObject) != null)
+        {
+            return;
+        }
+
         // Find the element that was clicked
         var treeViewItem = MidiIoTreeControl.FindAncestor<TreeViewItem>(e.OriginalSource as FrameworkElement);
         
@@ -129,8 +135,8 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
             }
             else
             {
-                // Add placeholder for the expansion icon
-                node.Children.Add(new TreeViewNode());
+                // show expansion icon
+                node.HasUnrealizedChildren = true;
             }
         }
 
@@ -139,7 +145,7 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
 
     private static void LoadChildrenForTreeItem(TreeItem treeItem, TreeViewNode node)
     {
-        if (treeItem.AreChildrenLoaded)
+        if (node.Children.Count > 0 && !node.HasUnrealizedChildren)
         {
             return;
         }
@@ -147,12 +153,21 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
         treeItem.LoadChildren();
 
         // Update the children in the TreeView node
-        node.Children.Clear();
+        for (int i = node.Children.Count - 1; i >= 0; i--)
+        {
+            if (node.Children[i].Content is null)
+            {
+                node.Children.RemoveAt(i);
+            }
+        }
 
         foreach (var child in treeItem.Children)
         {
             node.Children.Add(CreateTreeViewNode(child));
         }
+
+        node.HasUnrealizedChildren = false;
+
     }
 
     private void TreeViewControl_SelectionChanged(TreeView sender, TreeViewSelectionChangedEventArgs e)
