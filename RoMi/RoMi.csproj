@@ -88,14 +88,18 @@
   
   <ItemGroup>
     <None Remove="Assets\LibraryDependencyReport.json" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <EmbeddedResource Include="Assets\LibraryDependencyReport.json" />
   </ItemGroup>
   
   <ItemGroup>
     <ProjectCapability Include="Maui" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="Uno.Extensions.Localization" />
+    <TrimmerRootAssembly Include="Uno.Extensions.Navigation" />
+    <TrimmerRootAssembly Include="Uno.Extensions.Configuration" />
+    <TrimmerRootAssembly Include="RoMi" />
   </ItemGroup>
 
   <!-- Only create the library dependency report once for all platforms directly after restoring nuget packages.
