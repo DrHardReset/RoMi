@@ -44,16 +44,23 @@ public partial class TreeItem(MidiTableEntry midiTableEntry, TreeItemType type, 
 
     public bool AreChildrenLoaded => children != null;
 
+    private readonly Lock loadLock = new();
     // Method for explicitly loading children
     public void LoadChildren()
     {
-        if (children == null && childrenFactory != null)
+        // Called from the UI thread (expanding) and from a background thread (selection)
+        lock (loadLock)
         {
-            children = childrenFactory();
-
-            foreach (TreeItem child in children)
+            if (children == null && childrenFactory != null)
             {
-                child.Parent = this;
+                List<TreeItem> loaded = childrenFactory();
+
+                foreach (TreeItem child in loaded)
+                {
+                    child.Parent = this;
+                }
+
+                children = loaded;
             }
         }
     }
@@ -63,4 +70,3 @@ public partial class TreeItem(MidiTableEntry midiTableEntry, TreeItemType type, 
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
-

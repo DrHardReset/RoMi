@@ -20,7 +20,7 @@ public partial class RolandSysExClient(int maxAddressByteCount) : IAsyncDisposab
     private IMidiOutput? output;
 
     private const byte rolandId = 0x41;
-    private readonly object sendLock = new();
+    private readonly Lock sendLock = new();
 
     // Key = start address (7-bit integer representation)
     private readonly ConcurrentDictionary<int, PendingRangeRequest> pendingRequests = new();

@@ -51,13 +51,12 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
         bool isExpanding = ToggleExpansionState(treeItem);
         treeViewItem.IsExpanded = isExpanding;
 
-        // Load children if necessary
-        if (isExpanding && !treeItem.AreChildrenLoaded)
+        // Load children if necessary.
+        // Do not check TreeItem.AreChildrenLoaded here: the ViewModel may have loaded the
+        // data model already, but the TreeViewNode still has no child nodes.
+        if (isExpanding && FindNodeForTreeItem(TreeViewControl.RootNodes, treeItem) is TreeViewNode node)
         {
-            if (FindNodeForTreeItem(TreeViewControl.RootNodes, treeItem) is TreeViewNode node)
-            {
-                LoadChildrenForTreeItem(treeItem, node);
-            }
+            LoadChildrenForTreeItem(treeItem, node);
         }
     }
 
@@ -122,22 +121,13 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
     {
         var node = new TreeViewNode { Content = treeItem };
 
-        // Only for Branch elements
+        // Create only one level at a time. Children are created on expansion,
+        // so they are inserted below a node that is already attached to the TreeView
+        // and therefore inherit the selection of their parent.
         if (treeItem.Type == TreeItemType.Branch)
         {
-            if (treeItem.AreChildrenLoaded)
-            {
-                // Add already loaded children
-                foreach (var child in treeItem.Children)
-                {
-                    node.Children.Add(CreateTreeViewNode(child));
-                }
-            }
-            else
-            {
-                // show expansion icon
-                node.HasUnrealizedChildren = true;
-            }
+            // Show the expansion icon without adding a placeholder node
+            node.HasUnrealizedChildren = true;
         }
 
         return node;
@@ -145,21 +135,15 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
 
     private static void LoadChildrenForTreeItem(TreeItem treeItem, TreeViewNode node)
     {
-        if (node.Children.Count > 0 && !node.HasUnrealizedChildren)
+        // Guard against double calls (Tapped and Expanding both call this method).
+        // Do not rely on HasUnrealizedChildren: root nodes are created by the TreeView
+        // from ItemsSource and never have this flag set.
+        if (node.Children.Count > 0)
         {
             return;
         }
 
         treeItem.LoadChildren();
-
-        // Update the children in the TreeView node
-        for (int i = node.Children.Count - 1; i >= 0; i--)
-        {
-            if (node.Children[i].Content is null)
-            {
-                node.Children.RemoveAt(i);
-            }
-        }
 
         foreach (var child in treeItem.Children)
         {
@@ -167,7 +151,6 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
         }
 
         node.HasUnrealizedChildren = false;
-
     }
 
     private void TreeViewControl_SelectionChanged(TreeView sender, TreeViewSelectionChangedEventArgs e)

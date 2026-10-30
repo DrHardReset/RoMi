@@ -153,9 +153,76 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
         }
     }
 
+    private CancellationTokenSource? selectionCts;
+
     public void SetSelectedTreeItems(IEnumerable<TreeItem> items)
     {
-        selectedTreeItems = [.. items];
+        // Copy on the UI thread, the TreeView collection must not be accessed from another thread
+        List<TreeItem> snapshot = [.. items];
+
+        // A newer selection makes the previous calculation obsolete
+        selectionCts?.Cancel();
+        selectionCts?.Dispose();
+        CancellationTokenSource cts = selectionCts = new CancellationTokenSource();
+
+        _ = Task.Run(() =>
+        {
+            HashSet<TreeItem> selected = [.. snapshot];
+            HashSet<TreeItem> leaves = [];
+
+            foreach (TreeItem item in snapshot)
+            {
+                if (cts.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                // Descendants of a selected branch are collected through that branch
+                if (HasSelectedAncestor(item, selected))
+                {
+                    continue;
+                }
+
+                CollectLeaves(item, leaves, cts.Token);
+            }
+
+            if (!cts.IsCancellationRequested)
+            {
+                selectedTreeItems = [.. leaves];
+            }
+        }, cts.Token);
+    }
+
+    private static bool HasSelectedAncestor(TreeItem item, HashSet<TreeItem> selected)
+    {
+        for (TreeItem? parent = item.Parent; parent != null; parent = parent.Parent)
+        {
+            if (selected.Contains(parent))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static void CollectLeaves(TreeItem item, HashSet<TreeItem> result, CancellationToken token)
+    {
+        if (token.IsCancellationRequested)
+        {
+            return;
+        }
+
+        if (item.Type == TreeItemType.Leaf)
+        {
+            result.Add(item);
+            return;
+        }
+
+        foreach (TreeItem child in item.Children)
+        {
+            CollectLeaves(child, result, token);
+        }
     }
 
     private void UpdateTimerState()
@@ -237,7 +304,7 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
             return;
         }
 
-        // Collect all selected leaves (branches are ignored for now)
+        // Collect all selected leaves (branches were already resolved to their leaves in SetSelectedTreeItems)
         List<SysExReadItem<TreeItem>> reads = [];
 
         foreach (TreeItem item in selectedTreeItems)
@@ -335,6 +402,9 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
 
         if (disposing)
         {
+            selectionCts?.Cancel();
+            selectionCts?.Dispose();
+
             midiDeviceService.MidiDeviceEnabledChanged -= OnMidiDeviceEnabledChanged;
 
             if (sysexTimer != null)
