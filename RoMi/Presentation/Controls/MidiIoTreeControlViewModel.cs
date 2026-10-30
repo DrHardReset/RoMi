@@ -59,8 +59,6 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
         this.midiDocument = midiDocument;
         this.midiDeviceService = midiDeviceService;
 
-        midiDeviceService.MidiDeviceEnabledChanged += OnMidiDeviceEnabledChanged;
-
         DeviceName = midiDocument.DeviceName;
         midiTableNavigator = new MidiTableNavigator(midiDocument.MidiTables);
         BuildTree();

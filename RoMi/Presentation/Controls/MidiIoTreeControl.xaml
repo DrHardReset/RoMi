@@ -9,6 +9,7 @@
   <UserControl.Resources>
     <converters:ByteArrayToStringConverter x:Key="byteArrayToString" />
     <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+    <converters:BoolToTreeViewSelectionModeConverter x:Key="BoolToSelectionMode" />
 
     <!-- Templates for the different element types -->
     <DataTemplate x:Key="BranchTemplate">
@@ -63,7 +64,7 @@
 
     <muxc:TreeView Grid.Row="1"
                    x:Name="TreeViewControl"
-                   SelectionMode="Multiple"
+                   SelectionMode="{Binding IsMidiDeviceEnabled, Converter={StaticResource BoolToSelectionMode}}"
                    CanDrag="False"
                    CanDragItems="False"
                    CanReorderItems="False"
