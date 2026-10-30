@@ -199,6 +199,16 @@ public partial class MidiTable : List<MidiTableEntry>
                     }
 
                     needEntryFillUp = false;
+
+                    if (this.Last().Description == newBranchEntry.Description)
+                    {
+                        /*
+                         * Documentation error: the address of the end row is not aligned with the address grid
+                         * (e.g. AX-Edge [Program] -> "Program MFX (04)" at 00 37 00 instead of 00 36 00).
+                         * The calculated fill up entry already is the end entry -> do not add the end row a second time.
+                         */
+                        continue;
+                    }
                 }
 
                 Add(newBranchEntry);

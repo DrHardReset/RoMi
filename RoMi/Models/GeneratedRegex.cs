@@ -11,7 +11,7 @@ public partial class GeneratedRegex
     /// Regex pattern for extraction of model id bytes.
     /// "H" is missing after third byte in AX Edge documentation.
     /// </summary>
-    [GeneratedRegex(@"[Mm]odel\s?ID [=\:]?.*?([0-9a-fA-F]{2})H?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)?(?: ([0-9a-fA-F]{2})H?)")]
+    [GeneratedRegex(@"[Mm]odel\s?ID [=\:]?.*?([0-9a-fA-F]{2})H?(?:\s+([0-9a-fA-F]{2})H?)?(?:\s+([0-9a-fA-F]{2})H?)?(?:\s+([0-9a-fA-F]{2})H?)?(?:\s+([0-9a-fA-F]{2})H?)")]
     public static partial Regex ModelIdBytesRegex();
 
     /// <summary>
