@@ -20,9 +20,11 @@ public partial class RolandSysExClient(int maxAddressByteCount) : IAsyncDisposab
     private IMidiOutput? output;
 
     private const byte rolandId = 0x41;
-    private readonly object sendLock = new();
-    private readonly ConcurrentDictionary<string, TaskCompletionSource<byte[]>> pendingRequests = new();
+    private readonly Lock sendLock = new();
 
+    // Key = start address (7-bit integer representation)
+    private readonly ConcurrentDictionary<int, PendingRangeRequest> pendingRequests = new();
+    
     public static List<string> MidiOutputs { get => midi.Outputs.Select(x => x.Name + " " + x.Id).ToList(); }
     public static List<string> MidiInputs { get => midi.Inputs.Select(x => x.Name + " " + x.Id).ToList(); }
 
@@ -72,32 +74,80 @@ public partial class RolandSysExClient(int maxAddressByteCount) : IAsyncDisposab
         }
     }
 
-    public async Task<byte[]> SendRq1AndWaitForResponseAsync(byte[] sysExBytes, int timeoutMs = 2000)
+    private sealed class PendingRangeRequest(int startAddress, int size)
     {
-        // extract address (maxAddressByteCount bytes from position 8)
-        byte[] address = sysExBytes.Skip(8).Take(maxAddressByteCount).ToArray();
-        string key = BitConverter.ToString(address);
+        private readonly byte[] buffer = new byte[size];
+        private readonly bool[] filled = new bool[size];
+        private int filledCount;
 
-        // Check and remove any existing stale request for this address
-        if (pendingRequests.TryGetValue(key, out var existingTcs))
+        public int StartAddress { get; } = startAddress;
+        public int Size { get; } = size;
+        public TaskCompletionSource<byte[]> Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void AddData(int address, byte[] data)
         {
-            // An old request for this address still exists
-            // Mark it as canceled and remove it
-            existingTcs.TrySetCanceled();
-            pendingRequests.TryRemove(key, out _);
+            lock (buffer)
+            {
+                for (int i = 0; i < data.Length; i++)
+                {
+                    int index = address - StartAddress + i;
+
+                    if (!filled[index])
+                    {
+                        filled[index] = true;
+                        filledCount++;
+                    }
+
+                    buffer[index] = data[i];
+                }
+
+                if (filledCount == Size)
+                {
+                    Completion.TrySetResult((byte[])buffer.Clone());
+                }
+            }
+        }
+    }
+
+    private static int Decode7Bit(byte[] data, int offset, int count)
+    {
+        int value = 0;
+
+        for (int i = 0; i < count; i++)
+        {
+            value = (value << 7) | (data[offset + i] & 0x7F);
         }
 
-        var tcs = new TaskCompletionSource<byte[]>(TaskCreationOptions.RunContinuationsAsynchronously);
+        return value;
+    }
 
-        if (!pendingRequests.TryAdd(key, tcs))
+    public async Task<byte[]> SendRq1AndWaitForResponseAsync(byte[] sysExBytes, int timeoutMs = 2000)
+    {
+        // address starts at position 8, followed by the size (same length)
+        int startAddress = Decode7Bit(sysExBytes, 8, maxAddressByteCount);
+        int size = Decode7Bit(sysExBytes, 8 + maxAddressByteCount, maxAddressByteCount);
+
+        if (size <= 0)
         {
-            throw new InvalidOperationException($"There is already a pending Request for address {key}.");
+            throw new ArgumentException("The RQ1 message must request at least one byte.", nameof(sysExBytes));
         }
 
         if (input == null)
         {
-            pendingRequests.TryRemove(key, out _);
             throw new NotSupportedException("MIDI input is not initialized.");
+        }
+
+        // Remove any stale request for this address
+        if (pendingRequests.TryRemove(startAddress, out var stale))
+        {
+            stale.Completion.TrySetCanceled();
+        }
+
+        var request = new PendingRangeRequest(startAddress, size);
+
+        if (!pendingRequests.TryAdd(startAddress, request))
+        {
+            throw new InvalidOperationException($"There is already a pending request for address 0x{startAddress:X}.");
         }
 
         try
@@ -105,22 +155,22 @@ public partial class RolandSysExClient(int maxAddressByteCount) : IAsyncDisposab
             Send(sysExBytes);
 
             using var cts = new CancellationTokenSource(timeoutMs);
-            using (cts.Token.Register(() => tcs.TrySetCanceled(), useSynchronizationContext: false))
+            using (cts.Token.Register(() => request.Completion.TrySetCanceled(), useSynchronizationContext: false))
             {
                 try
                 {
-                    return await tcs.Task;
+                    return await request.Completion.Task;
                 }
                 catch (TaskCanceledException)
                 {
-                    throw new TimeoutException($"Request for address {key} timed out after {timeoutMs} ms.");
+                    throw new TimeoutException($"Request for address 0x{startAddress:X} ({size} bytes) timed out after {timeoutMs} ms.");
                 }
             }
         }
         finally
         {
-            // Ensure the request is always removed from the dictionary, regardless of outcome
-            pendingRequests.TryRemove(key, out _);
+            // only removes the entry if it still is this request
+            pendingRequests.TryRemove(new KeyValuePair<int, PendingRangeRequest>(startAddress, request));
         }
     }
 
@@ -134,18 +184,35 @@ public partial class RolandSysExClient(int maxAddressByteCount) : IAsyncDisposab
             return;
         }
 
-        // extract address (maxAddressByteCount bytes from position 8)
-        byte[] address = data.Skip(8).Take(maxAddressByteCount).ToArray();
-        string key = BitConverter.ToString(address);
+        // Verify checksum (covers address + data)
+        int sum = 0;
 
-        // extract data which starts after address and ends before checksum:
-        int dataStart = 12;
+        for (int i = 8; i < data.Length - 2; i++)
+        {
+            sum += data[i];
+        }
+
+        if (((sum + data[^2]) & 0x7F) != 0)
+        {
+            return;
+        }
+
+        int address = Decode7Bit(data, 8, maxAddressByteCount);
+        int dataStart = 8 + maxAddressByteCount;
         int dataEnd = data.Length - 2; // before checksum
         byte[] valueData = data[dataStart..dataEnd];
 
-        if (pendingRequests.TryGetValue(key, out var tcs))
+        if (valueData.Length == 0)
         {
-            tcs.TrySetResult(valueData);
+            return;
+        }
+
+        foreach (var request in pendingRequests.Values)
+        {
+            if (address >= request.StartAddress && address + valueData.Length <= request.StartAddress + request.Size)
+            {
+                request.AddData(address, valueData);
+            }
         }
     }
 

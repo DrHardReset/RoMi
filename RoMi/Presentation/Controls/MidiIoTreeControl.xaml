@@ -48,14 +48,22 @@
 
   <Grid>
     <Grid.RowDefinitions>
-      <!-- TreeView takes up all available space -->
+      <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
     </Grid.RowDefinitions>
 
+    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="8,4">
+      <CheckBox Content="Auto refresh (500 ms)"
+            IsEnabled="{Binding IsMidiDeviceEnabled}"
+            IsChecked="{Binding IsAutoRefreshEnabled, Mode=TwoWay}" />
+      <Button Content="Refresh"
+          IsEnabled="{Binding IsMidiDeviceEnabled}"
+          Command="{Binding RefreshCommand}" />
+    </StackPanel>
 
-    <muxc:TreeView Grid.Row="0" 
+    <muxc:TreeView Grid.Row="1"
                    x:Name="TreeViewControl"
-                   SelectionMode="Single"
+                   SelectionMode="Multiple"
                    CanDrag="False"
                    CanDragItems="False"
                    CanReorderItems="False"
@@ -66,6 +74,7 @@
 
     <!-- Floating Help Button -->
     <Button x:Name="HelpButton"
+            Grid.Row="1"
             Click="HelpButton_Click"
             VerticalAlignment="Bottom"
             HorizontalAlignment="Right"
@@ -93,9 +102,10 @@
       </muxc:TeachingTip.IconSource>
       <muxc:TeachingTip.Content>
         <TextBlock TextWrapping="Wrap">
-          <LineBreak/>Select an element (leaf) in the tree view to monitor it.<LineBreak/>
-          When a MIDI device is enabled, the value of the selected element will be automatically updated every 500ms.<LineBreak/><LineBreak/>
-          You can stop the monitoring process by disabling the MIDI device in the top bar, selecting a different view or clicking on the back button.
+          <LineBreak/>Select one or more elements (leaves) in the tree view using the checkboxes. Branches are ignored.<LineBreak/>
+ Neighboring elements are read from the device with as few requests as possible. Small gaps between them (e.g. reserved addresses) are read over and discarded.<LineBreak/><LineBreak/>
+ When a MIDI device is enabled and "Auto refresh" is checked, the values are updated automatically every 500ms. Otherwise, use the "Refresh" button to read the current selection once.<LineBreak/><LineBreak/>
+ You can stop the monitoring process by disabling the MIDI device in the top bar, unchecking "Auto refresh", selecting a different view or clicking on the back button.
         </TextBlock>
       </muxc:TeachingTip.Content>
     </muxc:TeachingTip>

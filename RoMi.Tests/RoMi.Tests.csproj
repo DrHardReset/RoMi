@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -24,4 +24,9 @@
   <ItemGroup>
     <ProjectReference Include="..\RoMi\RoMi.csproj" />
   </ItemGroup>
+
+  <Target Name="EnforceTestConfiguration" BeforeTargets="BeforeBuild" Condition="'$(Configuration)' != 'Test'">
+    <Error Code="ROMITEST001"
+           Text="Tests must be built and run with the 'Test' configuration (current: '$(Configuration)'). Please select the 'Test' configuration." />
+  </Target>
 </Project>

@@ -30,6 +30,12 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
 
     private void TreeViewControl_Tapped(object sender, TappedRoutedEventArgs e)
     {
+        // Klicks auf die Selektions-Checkbox nicht als Expand behandeln
+        if (MidiIoTreeControl.FindAncestor<CheckBox>(e.OriginalSource as DependencyObject) != null)
+        {
+            return;
+        }
+
         // Find the element that was clicked
         var treeViewItem = MidiIoTreeControl.FindAncestor<TreeViewItem>(e.OriginalSource as FrameworkElement);
         
@@ -45,13 +51,12 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
         bool isExpanding = ToggleExpansionState(treeItem);
         treeViewItem.IsExpanded = isExpanding;
 
-        // Load children if necessary
-        if (isExpanding && !treeItem.AreChildrenLoaded)
+        // Load children if necessary.
+        // Do not check TreeItem.AreChildrenLoaded here: the ViewModel may have loaded the
+        // data model already, but the TreeViewNode still has no child nodes.
+        if (isExpanding && FindNodeForTreeItem(TreeViewControl.RootNodes, treeItem) is TreeViewNode node)
         {
-            if (FindNodeForTreeItem(TreeViewControl.RootNodes, treeItem) is TreeViewNode node)
-            {
-                LoadChildrenForTreeItem(treeItem, node);
-            }
+            LoadChildrenForTreeItem(treeItem, node);
         }
     }
 
@@ -116,22 +121,13 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
     {
         var node = new TreeViewNode { Content = treeItem };
 
-        // Only for Branch elements
+        // Create only one level at a time. Children are created on expansion,
+        // so they are inserted below a node that is already attached to the TreeView
+        // and therefore inherit the selection of their parent.
         if (treeItem.Type == TreeItemType.Branch)
         {
-            if (treeItem.AreChildrenLoaded)
-            {
-                // Add already loaded children
-                foreach (var child in treeItem.Children)
-                {
-                    node.Children.Add(CreateTreeViewNode(child));
-                }
-            }
-            else
-            {
-                // Add placeholder for the expansion icon
-                node.Children.Add(new TreeViewNode());
-            }
+            // Show the expansion icon without adding a placeholder node
+            node.HasUnrealizedChildren = true;
         }
 
         return node;
@@ -139,46 +135,27 @@ public sealed partial class MidiIoTreeControl : UserControl, IDisposable
 
     private static void LoadChildrenForTreeItem(TreeItem treeItem, TreeViewNode node)
     {
-        if (treeItem.AreChildrenLoaded)
+        // Guard against double calls (Tapped and Expanding both call this method).
+        // Do not rely on HasUnrealizedChildren: root nodes are created by the TreeView
+        // from ItemsSource and never have this flag set.
+        if (node.Children.Count > 0)
         {
             return;
         }
 
         treeItem.LoadChildren();
 
-        // Update the children in the TreeView node
-        node.Children.Clear();
-
         foreach (var child in treeItem.Children)
         {
             node.Children.Add(CreateTreeViewNode(child));
         }
+
+        node.HasUnrealizedChildren = false;
     }
 
     private void TreeViewControl_SelectionChanged(TreeView sender, TreeViewSelectionChangedEventArgs e)
     {
-        if (viewModel == null)
-        {
-            return;
-        }
-
-        // Handle deselection first
-        foreach (var item in e.RemovedItems)
-        {
-            if (item is TreeItem)
-            {
-                viewModel.SelectedTreeItem = null;
-            }
-        }
-
-        foreach (var item in e.AddedItems)
-        {
-            if (item is TreeItem treeItem)
-            {
-                // Update the selected item in the view model
-                viewModel.SelectedTreeItem = treeItem;
-            }
-        }
+        viewModel?.SetSelectedTreeItems(TreeViewControl.SelectedNodes.Select(n => n.Content).OfType<TreeItem>());
     }
 
     private void HelpButton_Click(object sender, RoutedEventArgs e)
