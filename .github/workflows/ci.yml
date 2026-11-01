@@ -79,12 +79,12 @@ jobs:
       
       - name: Build Windows Release
         shell: pwsh
-        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p AnyCPU -f net10.0-windows10.0.19041 -o ${{ env.Build_Path_Windows }}
+        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p:Platform=AnyCPU -f net10.0-windows10.0.19041 -o ${{ env.Build_Path_Windows }}
         #run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-windows10.0.19041 --output ${{ env.Build_Path_Windows }}
       
       - name: Build Android Release
         shell: pwsh
-        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p AnyCPU -f net10.0-android -o ${{ env.Build_Path_Android }}
+        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p:Platform=AnyCPU -f net10.0-android -o ${{ env.Build_Path_Android }}
         #run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-android --output ${{ env.Build_Path_Android }}
 
       - name: Create artifact deployment directory
