@@ -79,13 +79,13 @@ jobs:
       
       - name: Build Windows Release
         shell: pwsh
-        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p:Platform=AnyCPU -f net10.0-windows10.0.19041 -o ${{ env.Build_Path_Windows }}
-        #run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-windows10.0.19041 --output ${{ env.Build_Path_Windows }}
+        # we need to override 'TargetFrameworks' as the restore phase otherwise would try to restore all targetframeworks which may fail with weird Microsoft.NETCore.App.Runtime.Mono.win-x64 errors
+        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p:TargetFrameworks=net10.0-windows10.0.19041 -f net10.0-windows10.0.19041 -p:RuntimeIdentifier=win-x64 -o ${{ env.Build_Path_Windows }}
       
       - name: Build Android Release
         shell: pwsh
-        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p:Platform=AnyCPU -f net10.0-android -o ${{ env.Build_Path_Android }}
-        #run: dotnet build ./RoMi/RoMi.csproj --configuration Release --framework net8.0-android --output ${{ env.Build_Path_Android }}
+        # we want to override 'TargetFrameworks' as the restore phase would otherwise restore all targetframeworks
+        run: dotnet publish ./RoMi/RoMi.csproj -c Release -p:TargetFrameworks=net10.0-android -f net10.0-android -p:AndroidPackageFormat=apk -o ${{ env.Build_Path_Android }}
 
       - name: Create artifact deployment directory
         run: |
