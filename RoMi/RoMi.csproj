@@ -1,4 +1,4 @@
-﻿<Project Sdk="Uno.Sdk">
+<Project Sdk="Uno.Sdk">
   <!-- Basic settings -->
   <PropertyGroup>
     <ApplicationTitle>RoMi</ApplicationTitle>
@@ -15,6 +15,7 @@
     <Platforms>AnyCPU;x64</Platforms>
     <Configurations>Debug;Release;Test</Configurations>
 
+    
     <!-- Do not autogenerate AssemblyInfo as github workflow will set the version number in the static AssemblyInfo.cs automatically. -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 
@@ -96,10 +97,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <TrimmerRootAssembly Include="Uno.Extensions.Localization" />
-    <TrimmerRootAssembly Include="Uno.Extensions.Navigation" />
-    <TrimmerRootAssembly Include="Uno.Extensions.Configuration" />
-    <TrimmerRootAssembly Include="RoMi" />
+    <TrimmerRootAssembly Include="Uno.Extensions.Localization" RootMode="EntryPoint" />
+    <TrimmerRootAssembly Include="Uno.Extensions.Navigation" RootMode="EntryPoint" />
+    <TrimmerRootAssembly Include="Uno.Extensions.Configuration" RootMode="EntryPoint" />
+    <TrimmerRootAssembly Include="RoMi" RootMode="EntryPoint" />
   </ItemGroup>
 
   <!-- Only create the library dependency report once for all platforms directly after restoring nuget packages.
