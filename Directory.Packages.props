@@ -10,7 +10,7 @@
     <PackageVersion Include="NUnit" Version="4.4.0" />
     <PackageVersion Include="NUnit.ConsoleRunner" Version="3.21.1" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.0.1" />
-    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.1" />
+    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.5" />
     <PackageVersion Include="PdfPig" Version="0.1.13" />
     <PackageVersion Include="managed-midi" Version="1.10.1" />
     <PackageVersion Include="Uno.CommunityToolkit.WinUI.UI" Version="7.1.204" />
