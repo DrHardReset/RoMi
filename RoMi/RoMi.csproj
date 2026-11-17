@@ -7,10 +7,17 @@
     <Description>RoMi: Calculates SysEx MIDI messages for Roland Keyboards.</Description>
 	  <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
+
+    <!--
+    Do not reference the development-time packages Uno.UI.App.Mcp and Uno.UI.HotDesign as it would lead to conflicts with different versions of SkiaSharp.
+    SkiaSharp is currently not used for the windows build.
+    -->
+    <UnoDisableMCPSupport>true</UnoDisableMCPSupport>
+    <UnoDisableHotDesign>true</UnoDisableHotDesign>
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks Condition="'$(Configuration)'!='Test'">net10.0-android;net10.0-ios;net10.0-desktop;net10.0-maccatalyst;net10.0-windows10.0.19041;net10.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)'!='Test'">net10.0-android;net10.0-ios;net10.0-desktop;net10.0-windows10.0.19041;net10.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(Configuration)'=='Test'">net10.0</TargetFrameworks>
     <Platforms>AnyCPU;x64</Platforms>
     <Configurations>Debug;Release;Test</Configurations>
@@ -18,18 +25,6 @@
     
     <!-- Do not autogenerate AssemblyInfo as github workflow will set the version number in the static AssemblyInfo.cs automatically. -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-
-    <!--
-      If you encounter this error message:
-
-        error NETSDK1148: A referenced assembly was compiled using a newer version of Microsoft.Windows.SDK.NET.dll.
-        Please update to a newer .NET SDK in order to reference this assembly.
-
-      This means that the two packages below must be aligned with the "build" version number of
-      the "Microsoft.Windows.SDK.BuildTools" package above, and the "revision" version number
-      must be the highest found in https://www.nuget.org/packages/Microsoft.Windows.SDK.NET.Ref.
-    -->
-    <WindowsSdkPackageVersion>10.0.19041.57</WindowsSdkPackageVersion>
 
     <!--
       UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
@@ -46,7 +41,6 @@
       Localization;
       Navigation;
       ThemeService;
-      SkiaRenderer;
     </UnoFeatures>
   </PropertyGroup>
 
@@ -71,22 +65,11 @@
     <AndroidLinkTool>r8</AndroidLinkTool>
   </PropertyGroup>
 
-   <!--
-    Differentiation of CommunityToolkit.WinUI.UI is needed for "IncrementalLoadingCollection" in MidiView.
-    Don't forget to add specific Version-Numbers in Directory.Packages.props.
-  -->
-  <ItemGroup Condition="$(TargetFramework.Contains('windows10'))">
-    <PackageReference Include="CommunityToolkit.WinUI.UI" />
-  </ItemGroup>
-  <ItemGroup Condition="!$(TargetFramework.Contains('windows10'))">
-    <PackageReference Include="Uno.CommunityToolkit.WinUI.UI" />
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="managed-midi" />
     <PackageReference Include="PdfPig" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Remove="Assets\LibraryDependencyReport.json" />
     <EmbeddedResource Include="Assets\LibraryDependencyReport.json" />
