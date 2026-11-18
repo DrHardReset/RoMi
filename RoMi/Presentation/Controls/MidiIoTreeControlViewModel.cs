@@ -2,8 +2,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Timers;
-using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.WinUI;
 using RoMi.Models.Converters;
 using Timer = System.Timers.Timer;
 
@@ -31,7 +29,7 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
     private const int MaxRangeBytes = 128;
     private const byte DeviceId = 0x7F; // Broadcast, could be made configurable in the future
 
-    private IReadOnlyList<TreeItem> selectedTreeItems = [];
+    private IReadOnlyList<TreeItem> selectedTreeItems = new List<TreeItem>();
     private int pollRunning;
 
     public bool IsMidiDeviceEnabled => midiDeviceService.IsMidiDeviceEnabled;
@@ -186,7 +184,7 @@ public partial class MidiIoTreeControlViewModel : INotifyPropertyChanged, IDispo
 
             if (!cts.IsCancellationRequested)
             {
-                selectedTreeItems = [.. leaves];
+                selectedTreeItems = new List<TreeItem>(leaves);
             }
         }, cts.Token);
     }

@@ -83,6 +83,7 @@ public partial class App : Application
 #if DEBUG
         MainWindow.UseStudio();
 #endif
+
         MainWindow.SetWindowIcon();
 
         Host = await builder.NavigateAsync<Shell>();
