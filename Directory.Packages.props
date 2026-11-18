@@ -13,6 +13,7 @@
     <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.1" />
     <PackageVersion Include="PdfPig" Version="0.1.13" />
     <PackageVersion Include="managed-midi" Version="1.10.1" />
+    <PackageVersion Include="Uno.icu-win" Version="77.4.1" />
   </ItemGroup>
 
   <PropertyGroup>

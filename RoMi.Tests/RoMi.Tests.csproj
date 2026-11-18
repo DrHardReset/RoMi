@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,6 +8,9 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <Configurations>Debug;Release;Test</Configurations>
+
+    <!-- The tests only cover non-UI logic and run on the Uno reference assemblies, so no Uno runtime host is needed. -->
+    <UnoDisableUNOB0025Validation>true</UnoDisableUNOB0025Validation>
   </PropertyGroup>
 
   <ItemGroup>

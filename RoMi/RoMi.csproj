@@ -9,11 +9,10 @@
     <UnoSingleProject>true</UnoSingleProject>
 
     <!--
-    Do not reference the development-time packages Uno.UI.App.Mcp and Uno.UI.HotDesign as it would lead to conflicts with different versions of SkiaSharp.
+    Do not reference the development-time packages Uno.UI.App.Mcp as it would lead to conflicts with different versions of SkiaSharp.
     SkiaSharp is currently not used for the windows build.
     -->
     <UnoDisableMCPSupport>true</UnoDisableMCPSupport>
-    <UnoDisableHotDesign>true</UnoDisableHotDesign>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -68,6 +67,12 @@
   <ItemGroup>
     <PackageReference Include="managed-midi" />
     <PackageReference Include="PdfPig" />
+  </ItemGroup>
+
+  <!-- The net10.0 target has no Uno runtime host (used by the unit tests), but the generated ICU initializer still needs
+       the native ICU library and the embedded icudt.dat. Since Uno 7 they only come with a runtime host. -->
+  <ItemGroup Condition="'$(TargetFramework)'=='net10.0'">
+    <PackageReference Include="Uno.icu-win" />
   </ItemGroup>
 
   <ItemGroup>
