@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace RoMi.Models;
+namespace RoMiCore;
 
 public partial class GeneratedRegex
 {

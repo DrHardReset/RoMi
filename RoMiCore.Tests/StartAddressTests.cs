@@ -1,4 +1,4 @@
-namespace RoMi.Tests;
+namespace RoMiCore.Tests;
 
 [TestFixture]
 public class StartAddressTests

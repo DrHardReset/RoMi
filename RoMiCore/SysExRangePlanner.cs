@@ -1,4 +1,4 @@
-namespace RoMi.Models;
+namespace RoMiCore;
 
 public readonly record struct SysExReadItem<T>(T Tag, int Address, int Size);
 

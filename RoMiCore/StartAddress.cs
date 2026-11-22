@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using RoMi.Models.Converters;
+using RoMiCore.Converters;
 
-namespace RoMi.Models;
+namespace RoMiCore;
 
 /// <summary>
 /// As MIDI uses the 8th (MSB) bit to distinguish between status and data byte, a class is needed to represent the "usable" 7 bits of a MIDI data byte.

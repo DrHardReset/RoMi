@@ -1,4 +1,4 @@
-namespace RoMi.Models.Converters;
+namespace RoMiCore.Converters;
 
 public static class Converter
 {

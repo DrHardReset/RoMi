@@ -1,9 +1,9 @@
 using System.Data;
 using System.Text;
 using System.Text.RegularExpressions;
-using RoMi.Models.Converters;
+using RoMiCore.Converters;
 
-namespace RoMi.Models;
+namespace RoMiCore;
 
 public class MidiDocument
 {
@@ -15,9 +15,9 @@ public class MidiDocument
                                                             .Append((byte)0x7F) // Broadcast address
                                                             .ToList();
 
-    internal MidiTables MidiTables = [];
-    internal byte[] ModelIdBytes { get; set; }
-    internal string DeviceName { get; private set; }
+    public MidiTables MidiTables = [];
+    public byte[] ModelIdBytes { get; set; }
+    public string DeviceName { get; private set; }
 
     public MidiDocument(string deviceName, string midiDocumentationFileContent)
     {
@@ -279,7 +279,7 @@ PatchFx4PitchShift(*)]"
         MidiTables.LinkValueDescriptionTables(midiValueDictionary);
     }
 
-    internal static byte[] AccumulateStartAddreses(MidiTableBranchEntry root, MidiTableBranchEntry branch1, MidiTableBranchEntry? branch2, MidiTableLeafEntry leaf)
+    public static byte[] AccumulateStartAddreses(MidiTableBranchEntry root, MidiTableBranchEntry branch1, MidiTableBranchEntry? branch2, MidiTableLeafEntry leaf)
     {
         byte[] accumulatedAddress = root.StartAddress.BytesCopy();
         accumulatedAddress.Add(branch1.StartAddress.Bytes, StartAddress.MaxAddressByteCount);
@@ -293,7 +293,7 @@ PatchFx4PitchShift(*)]"
         return accumulatedAddress;
     }
 
-    internal static byte[] CalculateValueBytes(List<uint> valueDataByteBitMasks, int value)
+    public static byte[] CalculateValueBytes(List<uint> valueDataByteBitMasks, int value)
     {
         /*
          * Calculate the value byte or multiple value bytes.
@@ -316,7 +316,7 @@ PatchFx4PitchShift(*)]"
         return valueBytes;
     }
 
-    internal static int CalculateValueFromBytes(List<uint> valueDataByteBitMasks, byte[] valueBytes)
+    public static int CalculateValueFromBytes(List<uint> valueDataByteBitMasks, byte[] valueBytes)
     {
         /*
          * Reconstruct the integer value from a list of value bytes and corresponding bitmasks.

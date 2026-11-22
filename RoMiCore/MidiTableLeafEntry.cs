@@ -1,4 +1,4 @@
-namespace RoMi.Models;
+namespace RoMiCore;
 
 /// <summary>
 /// Entry of a "Leaf" table. It contains a 2 byte start address. The description cell contains the possible values. In the documentation this row is followed by the desciptive strings for the values.

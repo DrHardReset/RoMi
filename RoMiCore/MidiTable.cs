@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
 using System.Data;
-using RoMi.Models.Converters;
+using RoMiCore.Converters;
 
-namespace RoMi.Models;
+namespace RoMiCore;
 
 // class shall be partial for trimming and AOT compatibility
 public partial class MidiTable : List<MidiTableEntry>

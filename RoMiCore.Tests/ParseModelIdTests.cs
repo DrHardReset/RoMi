@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace RoMi.Tests;
+namespace RoMiCore.Tests;
 
 [TestFixture]
 internal class ParseModelIdTests

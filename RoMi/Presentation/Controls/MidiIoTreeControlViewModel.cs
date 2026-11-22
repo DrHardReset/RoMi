@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Timers;
-using RoMi.Models.Converters;
+using RoMiCore.Converters;
 using Timer = System.Timers.Timer;
 
 namespace RoMi.Presentation.Controls;

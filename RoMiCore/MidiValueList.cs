@@ -1,4 +1,4 @@
-namespace RoMi.Models;
+namespace RoMiCore;
 
 /// <summary>
 /// This class holds all the possible values for a MIDI leaf table entry. It may contain descriptions and/or categories for all values <see cref="MidiValue"/>.

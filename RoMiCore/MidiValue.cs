@@ -1,4 +1,4 @@
-namespace RoMi.Models;
+namespace RoMiCore;
 
 public class MidiValue(int value, string? description, string? category, string? unit)
 {

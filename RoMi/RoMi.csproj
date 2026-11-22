@@ -16,10 +16,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks Condition="'$(Configuration)'!='Test'">net10.0-android;net10.0-ios;net10.0-desktop;net10.0-windows10.0.19041;net10.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(Configuration)'=='Test'">net10.0</TargetFrameworks>
+    <TargetFrameworks>net10.0-android;net10.0-windows10.0.19041<!--;net10.0-ios;net10.0-desktop--></TargetFrameworks>
     <Platforms>AnyCPU;x64</Platforms>
-    <Configurations>Debug;Release;Test</Configurations>
+    <Configurations>Debug;Release</Configurations>
 
     
     <!-- Do not autogenerate AssemblyInfo as github workflow will set the version number in the static AssemblyInfo.cs automatically. -->
@@ -66,13 +65,10 @@
 
   <ItemGroup>
     <PackageReference Include="managed-midi" />
-    <PackageReference Include="PdfPig" />
   </ItemGroup>
 
-  <!-- The net10.0 target has no Uno runtime host (used by the unit tests), but the generated ICU initializer still needs
-       the native ICU library and the embedded icudt.dat. Since Uno 7 they only come with a runtime host. -->
-  <ItemGroup Condition="'$(TargetFramework)'=='net10.0'">
-    <PackageReference Include="Uno.icu-win" />
+  <ItemGroup>
+    <ProjectReference Include="..\RoMiCore\RoMiCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -85,9 +81,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <TrimmerRootAssembly Include="Uno.Extensions.Localization" RootMode="EntryPoint" />
-    <TrimmerRootAssembly Include="Uno.Extensions.Navigation" RootMode="EntryPoint" />
-    <TrimmerRootAssembly Include="Uno.Extensions.Configuration" RootMode="EntryPoint" />
+    <TrimmerRootAssembly Include="Uno.Extensions.Localization" RootMode="All" />
+    <TrimmerRootAssembly Include="Uno.Extensions.Navigation" RootMode="All" />
+    <TrimmerRootAssembly Include="Uno.Extensions.Configuration" RootMode="All" />
     <TrimmerRootAssembly Include="RoMi" RootMode="EntryPoint" />
   </ItemGroup>
 

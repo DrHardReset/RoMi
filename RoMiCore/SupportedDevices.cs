@@ -1,4 +1,7 @@
-namespace RoMi.Models;
+using System.Collections.Immutable;
+
+namespace RoMiCore;
+
 public static class SupportedDevices
 {
     public static ImmutableDictionary<string, string> Devices = ImmutableDictionary.CreateRange(

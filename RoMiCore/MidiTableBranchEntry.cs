@@ -1,4 +1,4 @@
-namespace RoMi.Models;
+namespace RoMiCore;
 
 /// <summary>
 /// Entry of a "Branch" or "Root" table. It contains a 3 or 4 byte start address. The description cell contains the linkname of the next child table which may be a "Branch" or "Child" table.

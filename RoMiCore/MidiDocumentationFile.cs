@@ -3,7 +3,7 @@ using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 using Page = UglyToad.PdfPig.Content.Page;
 
-namespace RoMi.Models;
+namespace RoMiCore;
 
 public static class MidiDocumentationFile
 {

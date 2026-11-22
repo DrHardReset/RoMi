@@ -1,6 +1,6 @@
-using RoMi.Models.Converters;
+using RoMiCore.Converters;
 
-namespace RoMi.Models;
+namespace RoMiCore;
 
 /// <summary>
 /// Base class for all table entries.
