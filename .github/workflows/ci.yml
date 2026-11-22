@@ -29,13 +29,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Dependencies
-        timeout-minutes: ${{ fromJSON(env.STEP_TIMEOUT_MINUTES) }}
-        uses: "./.github/steps/install_dependencies"
+      # RoMiCore.Tests only needs the .NET SDK, not the Windows SDK or Uno workloads
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
 
       - name: Build and run Unit Tests
         shell: pwsh
-        run: dotnet test ./RoMi.Tests/RoMi.Tests.csproj --configuration Test --framework net10.0 --logger GitHubActions --blame-crash
+        run: dotnet test ./RoMiCore.Tests/RoMiCore.Tests.csproj --configuration Release --framework net10.0 --logger GitHubActions --blame-crash
 
   create_release_artifacts:
     name: Create release artifacts
