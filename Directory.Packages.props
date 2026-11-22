@@ -6,15 +6,14 @@
     See https://aka.platform.uno/using-uno-sdk#implicit-packages for more information regarding the Implicit Packages.
   -->
   <ItemGroup>
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageVersion Include="NUnit" Version="4.4.0" />
-    <PackageVersion Include="NUnit.ConsoleRunner" Version="3.21.1" />
-    <PackageVersion Include="NUnit3TestAdapter" Version="6.0.1" />
-    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.1" />
-    <PackageVersion Include="PdfPig" Version="0.1.13" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
+    <PackageVersion Include="NUnit" Version="5.0.0" />
+    <PackageVersion Include="NUnit.ConsoleRunner" Version="3.22.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="6.3.1" />
+    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.5" />
+    <PackageVersion Include="PdfPig" Version="0.1.16" />
     <PackageVersion Include="managed-midi" Version="1.10.1" />
   </ItemGroup>
-
   <PropertyGroup>
     <!-- Disable XAML Hot Design -->
     <UseDesignerContext>false</UseDesignerContext>
