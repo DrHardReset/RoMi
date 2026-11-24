@@ -266,6 +266,39 @@ public class MidiTables : List<MidiTable>
         }
     }
 
+    /// <summary>
+    /// Moves leaf entries which are listed in the wrong table of the documentation. Must run after parsing, as the parser verifies each table's entry count against its documented total size.
+    /// </summary>
+    public void FixMisplacedEntries(string deviceName)
+    {
+        if (deviceName == "AX-Edge")
+        {
+            // 'Pitch Env Velocity Curve' is documented in [Partial Filter Env] but belongs to [Partial Pitch Env]
+            MoveEntry("Partial Filter Env", "Partial Pitch Env", "Pitch Env Velocity Curve");
+        }
+    }
+
+    private void MoveEntry(string sourceTableName, string targetTableName, string entryDescription)
+    {
+        MidiTable? source = Find(t => t.Name == sourceTableName);
+        MidiTable? target = Find(t => t.Name == targetTableName);
+
+        if (source == null || target == null)
+        {
+            return;
+        }
+
+        int entryIndex = source.FindIndex(e => e is MidiTableLeafEntry && e.Description == entryDescription);
+
+        if (entryIndex < 0)
+        {
+            return;
+        }
+
+        target.Add(source[entryIndex]);
+        source.RemoveAt(entryIndex);
+    }
+
     private bool HandleFantomCase(MidiTable parentTable, MidiTableBranchEntry childTable, int tableIndex, int entryIndex)
     {
         // Entry "Setup" of table "System Controller" references table 'System Controller' which is named "System Control" -> rename

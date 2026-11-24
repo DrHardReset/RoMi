@@ -276,6 +276,7 @@ PatchFx4PitchShift(*)]"
         }
 
         MidiTables.FixTablesWithMissingSubTables(deviceName);
+        MidiTables.FixMisplacedEntries(deviceName);
         MidiTables.LinkValueDescriptionTables(midiValueDictionary);
     }
 
