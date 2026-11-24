@@ -1,7 +1,6 @@
-using CommunityToolkit.WinUI;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using RoMi.Models.Converters;
+using RoMiCore.Converters;
 
 namespace RoMi.Presentation.Controls;
 

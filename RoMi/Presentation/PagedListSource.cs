@@ -1,6 +1,9 @@
-using CommunityToolkit.Common.Collections;
-
 namespace RoMi.Presentation;
+
+public interface IIncrementalSource<T>
+{
+    Task<IEnumerable<T>> GetPagedItemsAsync(int pageIndex, int pageSize, CancellationToken cancellationToken = default);
+}
 
 /// <summary>
 /// A sample implementation of the <see cref="IIncrementalSource{TSource}"/> interface.

@@ -6,5 +6,6 @@ global using Microsoft.Extensions.Hosting;
 global using Microsoft.Extensions.Localization;
 global using Microsoft.Extensions.Logging;
 global using RoMi.Models;
-global using Converter = RoMi.Models.Converters.Converter;
+global using RoMiCore;
+global using Converter = RoMiCore.Converters.Converter;
 global using RoMi.Presentation;

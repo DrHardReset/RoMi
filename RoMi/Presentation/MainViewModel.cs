@@ -190,7 +190,15 @@ public partial class MainViewModel : ObservableObject
         var picker = new FileOpenPicker();
         picker.FileTypeFilter.Add(".pdf");
         picker.SuggestedStartLocation = PickerLocationId.Downloads;
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+
+        Window? window = App.MainWindow;
+
+        if (window == null)
+        {
+            return null;
+        }
+
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
         WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
         StorageFile file = await picker.PickSingleFileAsync();
 
