@@ -16,7 +16,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0-android;net10.0-windows10.0.19041<!--;net10.0-ios;net10.0-desktop--></TargetFrameworks>
+    <TargetFrameworks Condition="'$(RoMiTfm)' != ''">$(RoMiTfm)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(RoMiTfm)' == ''">net10.0-android;net10.0-windows10.0.19041<!--;net10.0-ios;net10.0-desktop--></TargetFrameworks>
+
     <Platforms>AnyCPU;x64</Platforms>
     <Configurations>Debug;Release</Configurations>
 
